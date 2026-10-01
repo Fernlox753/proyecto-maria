@@ -1,12 +1,14 @@
 <style>
 /* ---------- hoja Tablero: el analisis de una flota o un modelo, siempre
    en el mismo orden. Cada bloque responde una pregunta y dice como leerse. */
-.tbVer{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-top:18px; padding:14px 18px;
+/* la franja de la seleccion: delgada, una sola linea cuando cabe */
+.tbVer{display:flex; flex-wrap:wrap; align-items:center; gap:4px 14px; margin-top:14px; padding:6px 14px;
        border:1px solid var(--tinta); background:#fff}
-.tbVer .quien{font-family:Archivo,sans-serif; font-weight:800; font-size:clamp(1.15rem,2vw,1.6rem);
-              letter-spacing:-.02em; color:var(--tinta)}
-.tbVer .sub{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em; color:var(--tinta-2)}
-.tbChip{display:inline-block; padding:6px 12px; font-family:"IBM Plex Mono",monospace; font-size:11px;
+.tbVer .quien{font-family:Archivo,sans-serif; font-weight:800; font-size:clamp(1rem,1.4vw,1.2rem);
+              letter-spacing:-.01em; color:var(--tinta)}
+.tbVer .sub{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.08em; color:var(--tinta-2);
+            flex:1 1 300px; min-width:0}
+.tbChip{display:inline-block; padding:3px 9px; font-family:"IBM Plex Mono",monospace; font-size:11px;
         letter-spacing:.1em; font-weight:600; border:2px solid; background:#fff}
 .tbChip.mal{color:#B3261E; border-color:#B3261E; background:#FDECEA}
 .tbChip.bien{color:#0B6B3A; border-color:#0B6B3A; background:#E7F5EC}

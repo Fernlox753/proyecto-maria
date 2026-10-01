@@ -25,6 +25,17 @@ body.dividida .vista.luz.divAct{box-shadow:inset 0 3px 0 var(--sm)}
 /* con medio alto, los titulos grandes de cada hoja se achican */
 body.dividida .vista .tituloV h2{font-size:clamp(20px,2.2vw,28px); margin-block:4px 6px}
 body.dividida .vista .tituloV .ord{margin-bottom:2px}
+/* el Tablero en un panel: primero el veredicto, los pasos y su informacion;
+   los filtros siguen ahi pero abajo (se llega desplazando), porque en esta
+   vista la seleccion suele venir del boton TABLERO de la otra hoja */
+body.dividida #v-tablero .wrap{display:flex; flex-direction:column}
+body.dividida #v-tablero .tituloV{display:none}
+body.dividida #v-tablero #tb-cuerpo{order:1; display:flex; flex-direction:column}
+/* la franja de la seleccion baja: despues de la informacion del paso, encima de los filtros */
+body.dividida #v-tablero #tb-cuerpo > .tbVer{order:5; margin-top:22px}
+body.dividida #v-tablero .panelF{order:2; margin-top:22px !important; padding-top:14px; border-top:1px solid var(--linea)}
+body.dividida #v-tablero .panelF::before{content:"FILTROS DEL TABLERO"; flex-basis:100%; font-family:"IBM Plex Mono",monospace;
+  font-size:11px; letter-spacing:.14em; color:var(--tinta-3)}
 /* las tablas de Propios y Alquilados no pasan del alto de su panel */
 body.dividida .vista.divA .xlEnv{max-height:max(160px, calc(var(--hA) - 70px))}
 body.dividida .vista.divB .xlEnv{max-height:max(160px, calc(100vh - var(--navH) - var(--hA) - var(--divH) - 70px))}

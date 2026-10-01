@@ -11,8 +11,12 @@
 .encBtn:focus-visible{outline:2px solid var(--hivis); outline-offset:2px}
 .nav.claro .encBtn{border-color:var(--linea); color:var(--tinta-2); background:#fff}
 .nav.claro .encBtn:hover{border-color:var(--sm); color:var(--sm)}
-.nav .pestanas{width:auto; flex:1 1 calc(100% - 90px); min-width:0}
-.nav .pes{padding-left:8px; padding-right:8px; letter-spacing:.05em}
+/* la barra de arriba mas delgada: menos aire, y los botones de encabezado
+   (▴) y de pantalla doble (⊟) al final de la fila de pestanas, a la derecha */
+.nav,.nav.fondo,.nav.claro{padding-top:8px; padding-bottom:0; row-gap:2px}
+.nav .pestanas{width:auto; flex:1 1 calc(100% - 150px); min-width:0; order:3; padding-top:0}
+.nav .pes{padding:6px 8px 7px; letter-spacing:.05em}
+.nav .encBtn,.nav .divBtn{order:4; align-self:center; height:24px; line-height:22px}
 /* En las hojas claras el amarillo de seguridad de la pestana elegida no se
    lee sobre el fondo blanco: ahi va el azul de la marca, con su subrayado.
    Las demas pestanas pasan al gris de tinta, que si contrasta. */
@@ -32,8 +36,9 @@ body.sinEnc .xlEnv{max-height:calc(100vh - 150px); max-height:calc(100dvh - 150p
    familia > modelo > equipo > orden de trabajo. La primera columna y las
    dos filas de cabecera se quedan fijas al desplazar; los grupos de
    columnas se pliegan con el boton de su cabecera. */
-.xlEnv{border:1px solid var(--tinta-3); background:#fff; overflow:auto; max-height:min(78vh,820px);
-       margin-top:12px}
+/* la tabla puede llenar la pantalla menos el encabezado: al bajar un poco ocupa todo el alto */
+.xlEnv{border:1px solid var(--tinta-3); background:#fff; overflow:auto; min-height:260px;
+       max-height:calc(100vh - 150px); max-height:calc(100dvh - 150px); margin-top:8px}
 table.xl{border-collapse:separate; border-spacing:0; min-width:100%; white-space:nowrap;
          font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-variant-numeric:tabular-nums;
          color:var(--tinta)}
@@ -60,6 +65,13 @@ table.xl thead tr.c th:hover .xlF,table.xl thead tr.c th .xlF:focus-visible{opac
 table.xl thead tr.c th .xlF:focus-visible{outline:2px solid var(--sm)}
 table.xl thead tr.c th .xlF.on{opacity:1; background:var(--sm); color:#fff}
 table.xl thead tr.c th.xf{text-decoration:underline; text-decoration-color:var(--sm); text-underline-offset:3px}
+/* semaforo de % DM: punto y cifra en verde (85% o mas) o rojo (menos de 85%) */
+table.xl .sem{font-weight:600; white-space:nowrap}
+table.xl .sem::before{content:""; display:inline-block; width:8px; height:8px; border-radius:50%;
+  margin-right:5px; vertical-align:1px}
+table.xl .sem.v{color:#0B6B3A} table.xl .sem.v::before{background:#1E8E4E}
+table.xl .sem.r{color:#B3261E} table.xl .sem.r::before{background:#D93025}
+table.xl tfoot .sem.v{color:#9BE3B4} table.xl tfoot .sem.r{color:#FFB199}
 /* con filtros: la cifra original (sin filtrar) debajo de cada subtotal y del total */
 table.xl .xo{display:block; font-size:9.5px; font-weight:400; line-height:1.1; color:var(--tinta-3); opacity:.85}
 table.xl tfoot .xo{color:rgba(255,255,255,.62)}
@@ -194,6 +206,18 @@ table.xl thead tr.g th.g-dacum{background:#5E523C}
 table.xl thead tr.c th.g-dacum{background:#E9E3D7; color:#5E523C; box-shadow:inset 0 -3px 0 #5E523C}
 table.xl tbody tr td.g-dacum{background:#F5F2EC}
 table.xl tbody tr.n0 td.g-dacum,table.xl tbody tr.n1 td.g-dacum{background:#E9E3D7}
+/* la fila de familia (subtotal) un tono mas oscura que la de modelo, en cada grupo */
+table.xl tbody tr.n0 td.fija{background:#D8DEE7}
+table.xl tbody tr.n0 td.g-costo{background:#D8DEE9}
+table.xl tbody tr.n0 td.g-oper{background:#D2E2E2}
+table.xl tbody tr.n0 td.g-venta{background:#D3E5D6}
+table.xl tbody tr.n0 td.g-desv{background:#E5DECF}
+table.xl tbody tr.n0 td.g-treal{background:#DCE0EB}
+table.xl tbody tr.n0 td.g-tventa{background:#D6E6D9}
+table.xl tbody tr.n0 td.g-tacum{background:#D5D8E1}
+table.xl tbody tr.n0 td.g-cacum{background:#D0D6E0}
+table.xl tbody tr.n0 td.g-vacum{background:#CFE0D2}
+table.xl tbody tr.n0 td.g-dacum{background:#DED4C3}
 /* el pase del raton, la celda comentada y la elegida mandan sobre el color del grupo */
 table.xl tbody tr:hover td{background:#E4ECF7}
 table.xl tbody tr td.cn{background:#FFF3B0}
@@ -209,13 +233,95 @@ table.xl tfoot td{position:sticky; bottom:0; z-index:2; background:var(--tinta);
 table.xl tfoot .fija{background:var(--tinta); color:#fff; z-index:3}
 table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl tfoot .z{color:#fff}
 /* aqui se viene a leer la tabla: titulo y cifras ocupan poco */
-.hojaXl .tituloV{margin-bottom:14px}
-.hojaXl .tituloV h2{font-size:clamp(1.4rem,2.4vw,2rem); max-width:none}
-.hojaXl .granTotal{margin-top:14px; padding:14px 0; gap:14px clamp(18px,3vw,40px)}
-.hojaXl .granTotal .gt{font-size:clamp(1.2rem,2.1vw,1.7rem); margin:3px 0}
-.xlBarra{display:flex; flex-wrap:wrap; gap:12px 22px; align-items:flex-end; margin-top:18px}
-.xlBarra .entradaEq{width:min(100%,260px); margin-top:0}
-.xlBarra .gcB{display:flex; flex-wrap:wrap; gap:6px}
+/* lo de arriba ocupa poco para que la tabla se vea desde el comienzo:
+   titulo y «como se lee» en una linea, menos aire arriba de la hoja */
+.vista.hojaXl{padding-top:clamp(12px,2.2vh,24px)}
+.hojaXl .tituloV{margin-bottom:4px; display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 20px}
+.hojaXl .tituloV .ord{flex-basis:100%}
+.hojaXl .tituloV h2{font-size:clamp(1.15rem,1.9vw,1.6rem); max-width:none; margin:2px 0}
+.hojaXl .tituloV details.expl{margin:0; flex:1 1 260px}
+/* las seis tarjetas en una sola fila; en pantallas angostas pasan a dos o tres por fila */
+.hojaXl .granTotal{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); align-items:start;
+  margin-top:6px; padding:10px 0; gap:10px clamp(12px,1.6vw,24px)}
+.hojaXl .granTotal > *{min-width:0}
+/* barritas de las tarjetas de costo y tarifa: barra = costo, raya negra = venta */
+.gMini{display:grid; gap:2px; margin-top:3px; font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--tinta-2)}
+.gMini .gm{display:grid; grid-template-columns:2.6em minmax(30px,1fr) auto; align-items:center; gap:6px}
+.gMini .gb{position:relative; height:6px; background:#E3E7EE}
+.gMini .gb i{position:absolute; left:0; top:0; bottom:0}
+.gMini .gb i.mal{background:#C62828} .gMini .gb i.bien{background:#1E8E4E} .gMini .gb i.neu{background:#4A5A78}
+.gMini .gb b{position:absolute; top:-3px; bottom:-3px; width:2px; margin-left:-1px; background:var(--tinta)}
+.gMini .gv{min-width:4.5em; text-align:right; font-variant-numeric:tabular-nums}
+.hojaXl .granTotal.recorte{box-shadow:inset 4px 0 0 var(--sm); padding-left:14px; background:#F3F6FB}
+.hojaXl .granTotal .gt{font-size:clamp(1rem,1.5vw,1.32rem); margin:2px 0 1px; white-space:nowrap}
+.hojaXl .granTotal .gd{font-size:11.5px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px}
+.hojaXl .granTotal .gl{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+@media (max-width:1000px){ .hojaXl .granTotal{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:560px){ .hojaXl .granTotal{grid-template-columns:repeat(2,minmax(0,1fr))} }
+/* la tarjeta del acumulado se despliega: el detalle cae encima de la tabla */
+.gAcum{position:relative}
+.gAcum summary{list-style:none; cursor:pointer}
+.gAcum summary::-webkit-details-marker{display:none}
+.gAcum summary .gl::after{content:" ▾"; color:var(--sm)}
+.gAcum[open] summary .gl::after{content:" ▴"}
+.gAcum summary:focus-visible{outline:2px solid var(--sm); outline-offset:3px}
+.gAcum .gDet{position:absolute; z-index:30; right:0; top:calc(100% + 8px); width:min(420px,88vw);
+  background:#fff; border:1px solid var(--tinta-3); box-shadow:0 18px 44px rgba(8,25,42,.2); padding:12px 14px}
+.gAcum .gDet table{width:100%; border-collapse:collapse; font-family:"IBM Plex Mono",monospace;
+  font-size:12px; font-variant-numeric:tabular-nums}
+.gAcum .gDet th{font-weight:500; color:var(--tinta-3); text-align:right; padding:3px 6px;
+  border-bottom:1px solid var(--linea); font-size:11px; letter-spacing:.04em}
+.gAcum .gDet th:first-child,.gAcum .gDet td:first-child{text-align:left}
+.gAcum .gDet td{padding:4px 6px; text-align:right; border-bottom:1px solid var(--linea-2); color:var(--tinta)}
+.gAcum .gDet tr.tot td{font-weight:700; border-top:1px solid var(--tinta)}
+.gAcum .gDet tr.z td{color:var(--tinta-3)}
+.gAcum .gDet .neg{color:#B3261E} .gAcum .gDet .pos{color:#0B6B3A}
+.gAcum .gDet p{margin:8px 0 0; font-size:11.5px; color:var(--tinta-3); line-height:1.4}
+/* los filtros en una sola fila; si no caben, la fila se desliza */
+.xlBarra{display:flex; flex-wrap:nowrap; gap:10px 18px; align-items:flex-end; margin-top:8px;
+  overflow-x:auto; padding-bottom:2px; scrollbar-width:thin}
+.xlBarra > *{flex:0 0 auto}
+.xlBarra .gcT{white-space:nowrap}
+.xlBarra .fbt{padding-left:9px; padding-right:9px; letter-spacing:.04em}
+.xlBarra .xlBusca{flex:1 1 170px; min-width:150px; max-width:300px}
+.xlBarra .entradaEq{width:100%; margin-top:0}
+.xlBarra .gcB{display:flex; flex-wrap:nowrap; gap:5px}
+/* los botones de nivel: DESPLEGAR abre la tabla hasta ese nivel; SELECCIONAR
+   abre una lista para elegir que familias, modelos, equipos u ordenes se ven */
+.xlModoT{display:inline-flex !important; gap:0; letter-spacing:.06em}
+.xlModoT button{all:unset; cursor:pointer; padding:1px 7px; border:1px solid var(--linea); background:#fff;
+  color:var(--tinta-3); font:inherit; letter-spacing:inherit}
+.xlModoT button + button{border-left:0}
+.xlModoT button[aria-pressed="true"]{background:var(--sm); border-color:var(--sm); color:#fff}
+.xlModoT button:focus-visible{outline:2px solid var(--sm); outline-offset:1px}
+.xlElegir .lista{max-height:min(320px,calc(100vh - 260px)); min-height:90px; overflow:auto; border:1px solid var(--linea); margin-top:2px}
+.xlElegir .it{display:flex; align-items:center; gap:8px; padding:5px 8px; cursor:pointer; color:var(--tinta)}
+.xlElegir .it:hover{background:#EEF2F8}
+.xlElegir .it input{all:revert; margin:0; accent-color:var(--sm); flex:0 0 auto}
+.xlElegir .it span{flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.xlElegir .it small{margin-left:auto; padding-left:8px; color:var(--tinta-3); font-size:11px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; max-width:55%}
+.xlElegir .mas{padding:6px 8px; color:var(--tinta-3); font-size:11.5px; font-family:"IBM Plex Sans",sans-serif}
+.xlElegir input.busca{all:unset; box-sizing:border-box; width:100%; padding:7px 8px; border:1px solid var(--linea); background:#fff}
+.xlElegir input.busca:focus{outline:2px solid var(--sm); outline-offset:1px}
+/* comentarios, leyenda y origen de la celda: plegables, con un resumen a la vista */
+.xlPlg{margin-top:8px; border:1px solid var(--linea); background:#fff}
+.xlPlg > summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:6px 10px;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em; color:var(--tinta-2); user-select:none}
+.xlPlg > summary::-webkit-details-marker{display:none}
+.xlPlg > summary::before{content:"▸"; color:var(--sm); font-size:11px}
+.xlPlg[open] > summary::before{content:"▾"}
+.xlPlg > summary:hover{background:var(--luz-2)}
+.xlPlg > summary:focus-visible{outline:2px solid var(--sm); outline-offset:-2px}
+.xlPlg > summary .ic{display:inline-grid; place-items:center; width:15px; height:15px; border-radius:50%;
+  background:var(--sm); color:#fff; font-family:Georgia,serif; font-style:italic; font-size:10px; letter-spacing:0}
+.xlPlg > summary .fx{font-family:Georgia,serif; font-style:italic; font-weight:700; color:var(--sm); font-size:14px; letter-spacing:0}
+.xlPlg > summary .res{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  letter-spacing:.02em; color:var(--tinta-3)}
+.xlPlg > summary .res b{color:var(--tinta)}
+.xlPlg > summary .res .av{color:#B3261E; font-weight:600}
+.xlInfo > .xlEstado,.xlInfo > .xlLey{margin:0; padding:2px 12px 10px}
+.xlOrigenD > .xlOrigen{margin-top:0; border:0; border-top:1px solid var(--linea)}
 .xlEstado{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em; color:var(--tinta-2);
           margin-top:10px}
 .xlEstado b{color:var(--sm)}
@@ -261,16 +367,22 @@ table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl t
     </div>
     <div class="granTotal" id="hx-cifras-P"></div>
     <div class="xlBarra">
-      <div><span class="gcT">DESPLEGAR HASTA</span><div class="gcB" id="hx-nivel-P"></div></div>
+      <div><span class="gcT xlModoT" id="hx-modo-P" role="group" aria-label="Qué hacen los botones de nivel"></span><div class="gcB" id="hx-nivel-P"></div></div>
       <div><span class="gcT">DEPRECIACIÓN EN EL COSTO</span><div class="gcB" id="hx-ter-P"></div></div>
       <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-P"></div></div>
-      <label class="fl">BUSCAR EQUIPO, MODELO O FAMILIA
-        <input class="entradaEq" id="hx-buscar-P" autocomplete="off" placeholder="p. ej. FC-87 o 785C"></label>
+      <label class="fl xlBusca">BUSCAR
+        <input class="entradaEq" id="hx-buscar-P" autocomplete="off" placeholder="equipo, modelo o familia: FC-87, 785C" title="Busca por equipo, modelo o familia"></label>
     </div>
-    <div class="xlEstado" id="hx-estado-P"></div>
-    <div class="xlLey" aria-label="Leyenda de columnas"><span><i style="background:#4A5A78">▼</i>costo</span><span><i style="background:#4F7657">▲</i>venta interna</span><span><i style="background:#7A6A4F">±</i>venta − costo</span><span><i style="background:#3F6F72">◷</i>horas y operación</span><span><i style="background:#5E6C88">/h</i>por hora</span><span><i style="background:#384459">Σ</i>acumulado 2026</span></div>
-    <div class="xlOrigen" id="hx-origen-P" aria-live="polite"></div>
     <div class="xlEnv"><table class="xl" id="hx-tabla-P"></table></div>
+    <details class="xlPlg xlOrigenD" id="hx-origenD-P" data-plg="origen">
+      <summary><span class="fx" aria-hidden="true">fx</span><span class="res" id="hx-origenRes-P">DE DÓNDE SALE CADA CIFRA · haz clic en una celda</span></summary>
+      <div class="xlOrigen" id="hx-origen-P" aria-live="polite"></div>
+    </details>
+    <details class="xlPlg xlInfo" id="hx-info-P" data-plg="info">
+      <summary><span class="ic" aria-hidden="true">i</span>COMENTARIOS Y LEYENDA<span class="res" id="hx-infoRes-P"></span></summary>
+      <div class="xlEstado" id="hx-estado-P"></div>
+      <div class="xlLey" aria-label="Leyenda de columnas"><span><i style="background:#4A5A78">▼</i>costo</span><span><i style="background:#4F7657">▲</i>venta interna</span><span><i style="background:#7A6A4F">±</i>venta − costo</span><span><i style="background:#3F6F72">◷</i>horas y operación</span><span><i style="background:#5E6C88">/h</i>por hora</span><span><i style="background:#384459">Σ</i>acumulado 2026</span></div>
+    </details>
   </div>
 </section>
 
@@ -295,16 +407,22 @@ table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl t
     </div>
     <div class="granTotal" id="hx-cifras-A"></div>
     <div class="xlBarra">
-      <div><span class="gcT">DESPLEGAR HASTA</span><div class="gcB" id="hx-nivel-A"></div></div>
+      <div><span class="gcT xlModoT" id="hx-modo-A" role="group" aria-label="Qué hacen los botones de nivel"></span><div class="gcB" id="hx-nivel-A"></div></div>
       <div><span class="gcT">ALQUILER EN EL COSTO</span><div class="gcB" id="hx-ter-A"></div></div>
       <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-A"></div></div>
-      <label class="fl">BUSCAR EQUIPO, MODELO, FAMILIA O PROVEEDOR
-        <input class="entradaEq" id="hx-buscar-A" autocomplete="off" placeholder="p. ej. V-2401-AL o TLH 135"></label>
+      <label class="fl xlBusca">BUSCAR
+        <input class="entradaEq" id="hx-buscar-A" autocomplete="off" placeholder="equipo, modelo, familia o proveedor" title="Busca por equipo, modelo, familia o proveedor: V-2401-AL, TLH 135"></label>
     </div>
-    <div class="xlEstado" id="hx-estado-A"></div>
-    <div class="xlLey" aria-label="Leyenda de columnas"><span><i style="background:#4A5A78">▼</i>costo</span><span><i style="background:#4F7657">▲</i>venta interna</span><span><i style="background:#7A6A4F">±</i>venta − costo</span><span><i style="background:#3F6F72">◷</i>horas y operación</span><span><i style="background:#5E6C88">/h</i>por hora</span><span><i style="background:#384459">Σ</i>acumulado 2026</span></div>
-    <div class="xlOrigen" id="hx-origen-A" aria-live="polite"></div>
     <div class="xlEnv"><table class="xl" id="hx-tabla-A"></table></div>
+    <details class="xlPlg xlOrigenD" id="hx-origenD-A" data-plg="origen">
+      <summary><span class="fx" aria-hidden="true">fx</span><span class="res" id="hx-origenRes-A">DE DÓNDE SALE CADA CIFRA · haz clic en una celda</span></summary>
+      <div class="xlOrigen" id="hx-origen-A" aria-live="polite"></div>
+    </details>
+    <details class="xlPlg xlInfo" id="hx-info-A" data-plg="info">
+      <summary><span class="ic" aria-hidden="true">i</span>COMENTARIOS Y LEYENDA<span class="res" id="hx-infoRes-A"></span></summary>
+      <div class="xlEstado" id="hx-estado-A"></div>
+      <div class="xlLey" aria-label="Leyenda de columnas"><span><i style="background:#4A5A78">▼</i>costo</span><span><i style="background:#4F7657">▲</i>venta interna</span><span><i style="background:#7A6A4F">±</i>venta − costo</span><span><i style="background:#3F6F72">◷</i>horas y operación</span><span><i style="background:#5E6C88">/h</i>por hora</span><span><i style="background:#384459">Σ</i>acumulado 2026</span></div>
+    </details>
   </div>
 </section>
 

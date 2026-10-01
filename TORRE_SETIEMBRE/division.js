@@ -79,6 +79,8 @@ function divAplicar(){
     if(estudioVisible) setTimeout(function(){ ajustarEstudio(); pedirCuadro(); }, 60);
   } catch(e){}
   divMarcas(); divMedir();
+  /* las tablas de Propios y Alquilados toman el alto del panel, no el de la pantalla */
+  try { hxAjustarAlto(); } catch(e){}
   setTimeout(function(){
     try { ajustarTajo(); } catch(e){}
     try { if(DIV.a === 'v-costos' || DIV.b === 'v-costos') pintarTendencia(); } catch(e){}
@@ -120,6 +122,7 @@ function divPoner(si){
     document.body.style.removeProperty('--navH'); document.body.style.removeProperty('--hA');
     irABase(queda);
     divMarcas();
+    try { requestAnimationFrame(hxAjustarAlto); } catch(e){}
   }
 }
 

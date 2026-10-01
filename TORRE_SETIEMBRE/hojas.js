@@ -42,17 +42,20 @@ function hxColumnas(esProp, st){
   var tc = function(o){ return hxTc(o, st.ter); }, tv = function(o){ return hxTv(o, st.ter); };
   var tac = function(o){ return hxTac(o, st.ter); }, tav = function(o){ return hxTav(o, st.ter); };
   /* t3: la columna del tercer componente; se oculta cuando no se suma */
+  /* primero la operacion y despues el costo: el orden de los grupos es solo
+     de vista; comentarios, orden y filtros van por el id del grupo */
   return [
+    { id: 'oper', t: 'OPERACIÓN', cols: [
+      /* sem: semaforo de la celda, verde desde ese valor y rojo por debajo */
+      { t: '% DM', f: 'p', sem: 85, v: function(o){ return o.dm; } },
+      { t: '% Uso', f: 'p', v: function(o){ return o.use; } },
+      { t: 'Horas real', f: 'n1', k: 1, v: function(o){ return o.hr; } },
+      { t: 'HM prof', f: 'n', v: function(o){ return o.hrProf; } } ] },
     { id: 'costo', t: 'COSTO REAL AL ' + hxCorte(), cols: [
       { t: 'RyM', f: 'n', v: function(o){ return o.c[0]; } },
       { t: 'MOV', f: 'n', v: function(o){ return o.c[1]; } },
       { t: t, f: 'n', t3: 1, v: function(o){ return o.c[2]; } },
       { t: 'Total', f: 'n', k: 1, v: tc } ] },
-    { id: 'oper', t: 'OPERACIÓN', cols: [
-      { t: '% DM', f: 'p', v: function(o){ return o.dm; } },
-      { t: '% Uso', f: 'p', v: function(o){ return o.use; } },
-      { t: 'Horas real', f: 'n1', k: 1, v: function(o){ return o.hr; } },
-      { t: 'HM prof', f: 'n', v: function(o){ return o.hrProf; } } ] },
     { id: 'venta', t: 'VENTA INTERNA AL ' + hxCorte(), cols: [
       { t: 'RyM', f: 'n', v: function(o){ return o.v[0]; } },
       { t: 'MOV', f: 'n', v: function(o){ return o.v[1]; } },
@@ -196,6 +199,11 @@ function hxCeldas(st, n, o0){
     }
     return vis.map(function(c, i){
       var col = g.id + '-' + g.cols.indexOf(c), h = hxCelda(c, n.o), m = hxMarca(st, n, col);
+      /* el semaforo mira la cifra como se ve (redondeada), igual que los filtros */
+      if(c.sem !== undefined){
+        var vs = hxValorFiltro(c, n.o);
+        if(vs !== null) h = '<span class="sem ' + (vs >= c.sem ? 'v' : 'r') + '">' + h + '</span>';
+      }
       var sel = st.sel && n.k && st.sel.k === n.k && st.sel.col === col;
       return '<td class="g-' + g.id + (i ? '' : ' ini') + (m ? ' cn' : '') + (sel ? ' sel' : '') + '">'
         + (c.k ? '<b>' + h + '</b>' : h)
@@ -269,6 +277,7 @@ function hxBarraOrigen(s){
   if(!n){
     el.innerHTML = '<span class="fx">fx</span><span class="txt">Haz clic en cualquier cifra para ver <b>de dónde sale</b> '
       + 'y comentarla. Para desplegar una fila, clic en la primera columna.</span>';
+    txt('hx-origenRes-' + s, 'DE DÓNDE SALE CADA CIFRA · haz clic en una celda');
     return;
   }
   var col = st.sel.col, p = col.split('-'), gr = null;
@@ -276,6 +285,9 @@ function hxBarraOrigen(s){
   var cc = gr.cols[parseInt(p[1], 10)];
   var valor = hxCelda(cc, n.o).replace(/<[^>]+>/g, '');
   var nota = (HX_NOTAS[hxClaveNota(s, n, col)] || {}).texto;
+  /* plegado, el resumen dice que celda es y cuanto vale */
+  htm('hx-origenRes-' + s, '<b>' + esc(n.et) + ' · ' + esc(hxTituloCol(st, col)) + ' = ' + esc(valor) + '</b>'
+    + (nota ? ' · comentada' : '') + ' · despliega para ver de dónde sale' + (nota ? '' : ' o comentarla'));
   el.innerHTML = '<span class="fx">fx</span><span class="txt"><b>' + esc(n.et) + ' · ' + esc(hxTituloCol(st, col)) + ' = ' + esc(valor)
     + '</b><br>' + esc(hxOrigen(st, n, col))
     + (nota ? '<br><span class="nt">Comentario: ' + esc(nota) + '</span>' : '') + '</span>'
@@ -338,6 +350,60 @@ function hxCumple(f, c, x){
   return true;
 }
 function hxHayFiltros(st){ return !!(st.filtros && Object.keys(st.filtros).length); }
+
+/* ---------- SELECCIONAR: elegir que familias, modelos, equipos u ordenes se ven ----------
+   st.eleg guarda lo elegido por nivel (claves de nodo de familia y modelo,
+   codigo de equipo, numero de orden). Vacio es todo. Cada nivel solo ofrece
+   lo que queda dentro de lo elegido en los niveles de arriba. */
+var HX_ELEG = ['fam', 'mod', 'eq', 'ot'];
+var HX_ELEG_PL = ['FAMILIAS', 'MODELOS', 'EQUIPOS', 'ÓRDENES'];
+function hxHayEleccion(st){
+  var x = st.eleg;
+  return !!(x && (x.fam.length || x.mod.length || x.eq.length || x.ot.length));
+}
+function hxHayRecorte(st){ return hxHayFiltros(st) || hxHayEleccion(st); }
+function hxPasaEleccion(st, f, m, e){
+  var x = st.eleg;
+  if(!x) return true;
+  if(x.fam.length && x.fam.indexOf(f.k) < 0) return false;
+  if(x.mod.length && x.mod.indexOf(m.k) < 0) return false;
+  if(x.eq.length && x.eq.indexOf(e.id) < 0) return false;
+  if(x.ot.length && !e.hijos.some(function(o){ return x.ot.indexOf(o.et) >= 0; })) return false;
+  return true;
+}
+/* las opciones de un nivel, dentro de lo elegido arriba */
+function hxOpciones(st, i){
+  var x = st.eleg, out = [];
+  st.arbol.forEach(function(f){
+    if(i === 0){ out.push({ v: f.k, t: f.et, d: f.o.n + (f.o.n === 1 ? ' equipo' : ' equipos') }); return; }
+    if(x.fam.length && x.fam.indexOf(f.k) < 0) return;
+    f.hijos.forEach(function(m){
+      if(i === 1){ out.push({ v: m.k, t: m.et, d: f.et }); return; }
+      if(x.mod.length && x.mod.indexOf(m.k) < 0) return;
+      m.hijos.forEach(function(e){
+        if(i === 2){ out.push({ v: e.id, t: e.id, d: m.et + (e.sub ? ' · ' + e.sub : '') }); return; }
+        if(x.eq.length && x.eq.indexOf(e.id) < 0) return;
+        e.hijos.forEach(function(o){ out.push({ v: o.et, t: o.et, d: e.id + ' · ' + o.sub }); });
+      });
+    });
+  });
+  return out;
+}
+/* al cambiar un nivel, los de abajo pierden lo que quedo fuera */
+function hxPodarEleccion(st, desde){
+  for(var j = desde + 1; j < 4; j++){
+    var k = HX_ELEG[j];
+    if(!st.eleg[k].length) continue;
+    var ok = {};
+    hxOpciones(st, j).forEach(function(o){ ok[o.v] = 1; });
+    st.eleg[k] = st.eleg[k].filter(function(v){ return ok[v]; });
+  }
+}
+function hxNombreEleg(st, i, v){
+  if(i === 0) return v.replace(/^f\|/, '');
+  if(i === 1) return v.split('|').slice(2).join('|') || '(sin modelo)';
+  return v;
+}
 function hxPasaFiltros(st, e){
   for(var col in st.filtros){
     var cc = hxColDe(st, col);
@@ -347,10 +413,19 @@ function hxPasaFiltros(st, e){
 }
 /* el arbol que se ve: con filtros, solo los equipos que pasan y sumas nuevas */
 function hxArbolVista(st){
-  if(!hxHayFiltros(st)){ st.vista = st.arbol; st.totalVista = st.total; return; }
+  if(!hxHayRecorte(st)){ st.vista = st.arbol; st.totalVista = st.total; return; }
+  /* con ordenes elegidas, cada equipo ensena solo esas ordenes */
+  var ots = st.eleg && st.eleg.ot.length ? st.eleg.ot : null;
   st.vista = st.arbol.map(function(f){
     var mods = f.hijos.map(function(m){
-      var es = m.hijos.filter(function(e){ return hxPasaFiltros(st, e); });
+      var es = m.hijos.filter(function(e){ return hxPasaFiltros(st, e) && hxPasaEleccion(st, f, m, e); })
+        .map(function(e){
+          if(!ots) return e;
+          var c = {}, k;
+          for(k in e) c[k] = e[k];
+          c.hijos = e.hijos.filter(function(o){ return ots.indexOf(o.et) >= 0; });
+          return c;
+        });
       return es.length ? { k: m.k, lv: 1, et: m.et, sub: '', hijos: es, fam: m.fam, mod: m.mod,
                            o: hxSuma(es.map(function(e){ return e.o; })) } : null;
     }).filter(Boolean);
@@ -409,6 +484,10 @@ function hxEstado(){
     if(!st.arbol) return;
     var n = 0, k;
     for(k in HX_NOTAS) if(k.indexOf(s + '.') === 0 && HX_NOTAS[k].texto) n++;
+    /* lo esencial queda a la vista aunque el bloque este plegado */
+    htm('hx-infoRes-' + s, ' · <b>' + n + (n === 1 ? ' comentario' : ' comentarios') + '</b> · '
+      + fmt(st.vistas || 0) + ' filas a la vista'
+      + (s === 'A' && st.ter ? ' · <span class="av">⚠ el alquiler no es costo real</span>' : ''));
     htm('hx-estado-' + s, (s === 'A' && st.ter ? '<span class="neg" style="color:#B3261E">' + esc(hxAvisoAlq(st.todos).toUpperCase()) + '</span><br>' : '')
       + fmt(st.vistas || 0) + ' FILAS A LA VISTA · <b>' + n
       + (n === 1 ? ' COMENTARIO' : ' COMENTARIOS') + '</b> · '
@@ -469,29 +548,118 @@ function hxGuardarNota(texto){
 
 /* ---------- pintado ---------- */
 function hxCifras(s){
-  var st = HX[s], tot = st.total, esProp = s === 'P', ter = st.ter, h = tot.hr;
+  /* las tarjetas siguen a lo que se ve: con una seleccion o un filtro, suman solo eso */
+  var st = HX[s], tot = st.totalVista || st.total, esProp = s === 'P', ter = st.ter, h = tot.hr;
   var tc = hxTc(tot, ter), tv = hxTv(tot, ter), d = tv - tc;
-  var it = function(l, v, dsc, cl){
-    return '<div><div class="gl">' + l + '</div><div class="gt' + (cl ? ' ' + cl : '') + '">' + v
-         + '</div><div class="gd">' + dsc + '</div></div>';
+  var comps = [['RyM', 0], ['MOV', 1]];
+  if(ter) comps.push([esProp ? 'Dep' : 'Alq', 2]);
+  var tarjeta = function(l, v, cuerpo, cl){
+    return '<div><div class="gl">' + l + '</div><div class="gt' + (cl ? ' ' + cl : '') + '">' + v + '</div>' + cuerpo + '</div>';
   };
+  var gd = function(t){ return '<div class="gd">' + t + '</div>'; };
+  /* costo contra venta por componente (paso 1 del Tablero en chico):
+     barra = costo, raya negra = venta; rojo si el costo la pasa */
+  var cv = function(c, v, div){
+    var num = function(x){ return div === 1 ? fmt(x) : x.toFixed(1); };
+    var xs = comps.map(function(k){ return { n: k[0], c: c[k[1]] / div, v: v[k[1]] / div }; });
+    var mx = Math.max.apply(null, xs.map(function(x){ return Math.max(x.c, x.v); }).concat([1e-9]));
+    return hxBarras(xs.map(function(x){
+      return { n: x.n, txt: num(x.c), w: x.c / mx, t: x.v ? x.v / mx : null, cl: (x.v ? x.c > x.v : x.c > 0) ? 'mal' : 'bien',
+               title: x.n + ': costo ' + num(x.c) + ' · venta ' + num(x.v) };
+    }));
+  };
+  /* la venta por componente: cuanto pesa cada uno */
+  var ventas = hxBarras(comps.map(function(k){
+    var x = tot.v[k[1]];
+    return { n: k[0], txt: fmt(x), w: tv ? x / tv : 0, t: null, cl: 'neu', title: k[0] + ': ' + (tv ? (x / tv * 100).toFixed(0) : 0) + '% de la venta' };
+  }));
+  /* la diferencia por componente: verde a favor, rojo en contra */
+  var difs = comps.map(function(k){ return tot.v[k[1]] - tot.c[k[1]]; });
+  var mxd = Math.max.apply(null, difs.map(Math.abs).concat([1e-9]));
+  var desv = hxBarras(comps.map(function(k, i){
+    var x = difs[i];
+    return { n: k[0], txt: (x > 0 ? '+' : x < 0 ? '−' : '') + fmt(Math.abs(x)), w: Math.abs(x) / mxd, t: null, cl: x < 0 ? 'mal' : 'bien',
+             title: k[0] + ': venta − costo ' + fmt(x) };
+  }));
+  /* horas contra la proforma a la fecha, y la disponibilidad y el uso */
+  var corte = SEP.corteDia || 0, dias = SEP.diasMes || 30, hFecha = tot.hrProf * corte / dias;
+  var mxh = Math.max(h, hFecha, 1e-9);
+  var oper = hxBarras([
+    { n: 'Hrs', txt: hFecha ? (h / hFecha * 100).toFixed(0) + '%' : '—', w: h / mxh, t: hFecha ? hFecha / mxh : null,
+      cl: hFecha && h < hFecha ? 'mal' : 'bien', title: 'Horas reales ' + fmt(h) + ' contra ' + fmt(hFecha) + ' proformadas a la fecha (raya)' },
+    { n: 'DM', txt: tot.dm === null ? '—' : (tot.dm * 100).toFixed(0) + '%', w: tot.dm || 0, t: 0.85,
+      cl: tot.dm !== null && Math.round(tot.dm * 100) < 85 ? 'mal' : 'bien', title: 'Disponibilidad mecánica; la raya es 85%' },
+    { n: 'Uso', txt: tot.use === null ? '—' : (tot.use * 100).toFixed(0) + '%', w: tot.use || 0, t: null, cl: 'neu',
+      title: 'Uso: horas trabajadas sobre horas disponibles' }
+  ]);
   htm('hx-cifras-' + s,
-      it('COSTO REAL AL DÍA ' + hxCorte(), 'US$ ' + fmt(tc),
-         'RyM ' + fmt(tot.c[0]) + ' · MOV ' + fmt(tot.c[1])
-         + (ter ? ' · ' + (esProp ? 'Dep ' : 'Alq ') + fmt(tot.c[2]) : (esProp ? ' · sin depreciación' : ' · sin alquiler')))
-    + it('VENTA INTERNA', 'US$ ' + fmt(tv), 'tarifa de venta × horas reales')
-    + it('DESVIACIÓN VENTA − COSTO', (d > 0 ? '+' : d < 0 ? '−' : '') + 'US$ ' + fmt(Math.abs(d)),
-         d < 0 ? 'el costo supera a la venta' : 'la venta cubre el costo', d < 0 ? 'alza' : 'bien')
-    + it('HORAS MÁQUINA', fmt(h) + ' h', 'de ' + fmt(tot.hrProf) + ' h proformadas en el mes')
-    + it('TARIFA REAL', 'US$ ' + (h ? (tc / h).toFixed(1) : '—') + '/h',
-         'contra US$ ' + (h ? (tv / h).toFixed(1) : '—') + '/h de venta')
-    + it('COSTO ACUMULADO 2026', 'US$ ' + fmtK(hxTac(tot, ter)),
-         'venta US$ ' + fmtK(hxTav(tot, ter)) + ' · ' + fmt(tot.n) + ' equipos'));
+      tarjeta('COSTO REAL AL DÍA ' + hxCorte(), 'US$ ' + fmt(tc),
+              cv(tot.c, tot.v, 1) + (ter ? '' : gd(esProp ? 'sin depreciación' : 'sin alquiler')))
+    + tarjeta('VENTA INTERNA', 'US$ ' + fmt(tv), ventas + gd('tarifa de venta × horas reales'))
+    + tarjeta('VENTA − COSTO', (d > 0 ? '+' : d < 0 ? '−' : '') + 'US$ ' + fmt(Math.abs(d)),
+              desv + gd(d < 0 ? 'el costo supera a la venta' : 'la venta cubre el costo'), d < 0 ? 'alza' : 'bien')
+    + tarjeta('HORAS MÁQUINA', fmt(h) + ' h', oper + gd('proforma del mes ' + fmt(tot.hrProf) + ' h'))
+    + tarjeta('TARIFA REAL', 'US$ ' + (h ? (tc / h).toFixed(1) : '—') + '/h',
+              (h ? cv(tot.c, tot.v, h) : '') + gd('contra US$ ' + (h ? (tv / h).toFixed(1) : '—') + '/h de venta'))
+    + hxTarjetaAcum(st, tot, ter, esProp, comps));
+  /* recortadas, las tarjetas llevan una raya azul: no son de toda la hoja */
+  var cif = $('hx-cifras-' + s);
+  if(cif) cif.classList.toggle('recorte', hxHayRecorte(st));
+}
+/* barritas chicas de las tarjetas: filas { n, txt, w (0-1), t (raya 0-1 o
+   null), cl (mal / bien / neu), title } */
+function hxBarras(filas){
+  var pc = function(x){ return (Math.max(0, Math.min(1, x)) * 100).toFixed(1) + '%'; };
+  return '<div class="gMini">' + filas.map(function(f){
+    return '<div class="gm" title="' + esc(f.title || '') + '"><span class="gn">' + f.n + '</span>'
+      + '<span class="gb"><i class="' + f.cl + '" style="width:' + pc(f.w) + '"></i>'
+      + (f.t === null || f.t === undefined ? '' : '<b style="left:' + pc(f.t) + '"></b>') + '</span>'
+      + '<span class="gv">' + f.txt + '</span></div>';
+  }).join('') + '</div>';
+}
+/* la tarjeta del acumulado se despliega con su desglose: costo, venta y
+   diferencia por componente, horas y tarifas del anio */
+var HX_MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre',
+                'octubre', 'noviembre', 'diciembre'];
+function hxTarjetaAcum(st, tot, ter, esProp, comps){
+  var A = tot.A, tac = hxTac(tot, ter), tav = hxTav(tot, ter), h = A.h, t3 = esProp ? 'Depreciación' : 'Alquiler';
+  var per = SEP.acumPeriodos || [];
+  var desde = per.length ? HX_MESES[per[0] - 1] + (per.length > 1 ? ' a ' + HX_MESES[per[per.length - 1] - 1] : '') : 'ningún mes';
+  var dv = function(x){ return '<span class="' + (x < -0.5 ? 'neg' : x > 0.5 ? 'pos' : '') + '">' + (x > 0.5 ? '+' : '') + fmt(x) + '</span>'; };
+  var fila = function(n, c, v, cl){
+    return '<tr' + (cl ? ' class="' + cl + '"' : '') + '><td>' + n + '</td><td>' + fmt(c) + '</td><td>'
+      + (v === null ? '–' : fmt(v)) + '</td><td>' + (v === null ? '–' : dv(v - c)) + '</td></tr>';
+  };
+  /* en la tarjeta, el acumulado por componente: costo contra venta del anio */
+  var mx = Math.max.apply(null, (comps || []).map(function(k){ return Math.max(A.c[k[1]], A.v[k[1]]); }).concat([1e-9]));
+  var barras = hxBarras((comps || []).map(function(k){
+    var c = A.c[k[1]], v = A.v[k[1]];
+    return { n: k[0], txt: fmtK(c), w: c / mx, t: v ? v / mx : null, cl: (v ? c > v : c > 0) ? 'mal' : 'bien',
+             title: k[0] + ' acumulado: costo ' + fmt(c) + ' · venta ' + fmt(v) };
+  }));
+  return '<details class="gAcum"' + (st.acumAb ? ' open' : '') + '><summary>'
+    + '<div class="gl">COSTO ACUMULADO 2026</div><div class="gt">US$ ' + fmtK(tac) + '</div>' + barras
+    + '<div class="gd">venta US$ ' + fmtK(tav) + ' · ' + fmt(tot.n)
+      + (hxHayRecorte(st) ? ' de ' + fmt(st.total.n) : '') + ' equipos</div></summary>'
+    + '<div class="gDet"><table><thead><tr><th>ACUMULADO 2026</th><th>▼ COSTO</th><th>▲ VENTA</th><th>± V − C</th></tr></thead><tbody>'
+    + fila('RyM', A.c[0], A.v[0])
+    + fila('MOV', A.c[1], A.v[1])
+    + fila(t3 + (ter ? '' : ' · fuera del total'), A.c[2], A.v[2], ter ? '' : 'z')
+    + fila('Seg / otros', A.c[3], null)
+    + fila('Total', tac, tav, 'tot')
+    + '<tr><td>Horas</td><td colspan="3">' + fmt(h) + ' h</td></tr>'
+    + '<tr><td>Tarifa por hora</td><td colspan="3">real US$ ' + (h ? (tac / h).toFixed(1) : '—')
+      + ' · venta US$ ' + (h ? (tav / h).toFixed(1) : '—') + '</td></tr>'
+    + '</tbody></table>'
+    + '<p>Libro mayor de ' + desde + ' (bloque ACUMULADO 2026 de BASE VARIOS) más setiembre al día ' + hxCorte()
+    + ', con la misma regla para todos los equipos. ' + (ter ? '' : 'El ' + t3.toLowerCase() + ' no entra al total (botón ' + (esProp ? 'SIN DEP' : 'SIN ALQ') + '). ')
+    + 'Seg / otros no suma al costo, como en el Excel.</p></div></details>';
 }
 
 function hxTabla(s){
   var st = HX[s];
   hxArbolVista(st);
+  hxCifras(s);
   var filas = hxLista(st);
   st.vistas = filas.length;
   /* que columna es cada celda, para saber cual se comenta al hacer clic */
@@ -525,7 +693,7 @@ function hxTabla(s){
         }).join('');
       }).join('');
   /* con filtros, familias, modelos y total llevan debajo su cifra original */
-  var filt = hxHayFiltros(st), orig = {};
+  var filt = hxHayRecorte(st), orig = {};
   if(filt) st.arbol.forEach(function(f){ orig[f.k] = f; f.hijos.forEach(function(m){ orig[m.k] = m; }); });
   var cuerpo = filas.map(function(n){
     var tiene = n.hijos.length > 0, ab = st.ab[n.k] || (st.busca && n.lv < 2), m = hxMarca(st, n, 'et');
@@ -535,8 +703,8 @@ function hxTabla(s){
       + '<td class="fija' + (m ? ' cn' : '') + '"><span class="car">' + (tiene ? (ab ? '▾' : '▸') : '') + '</span>' + esc(n.et)
       + (n.lv < 2 ? '<span class="sub">' + n.o.n + (o0 ? ' de ' + o0.n : '') + (n.o.n === 1 && !o0 ? ' equipo' : ' equipos') + '</span>' : '')
       + (n.sub ? '<span class="sub">' + esc(n.sub) + '</span>' : '')
-      + (n.lv < 2 ? '<button type="button" class="xlIr" data-tb="' + esc(n.k)
-          + '" title="Abrir el tablero de análisis de ' + (n.lv ? 'este modelo' : 'esta familia') + '">TABLERO ▦</button>' : '')
+      + (n.lv < 3 ? '<button type="button" class="xlIr" data-tb="' + esc(n.k)
+          + '" title="Abrir el tablero de análisis de ' + ['esta familia', 'este modelo', 'este equipo'][n.lv] + '">TABLERO ▦</button>' : '')
       + (n.lv === 2 && byId[n.id] ? '<button type="button" class="xlIr" data-ir="' + esc(n.id)
           + '" title="Abrir este equipo en la pestaña Equipo">VER ↗</button>' : '')
       + m + '</td>' + hxCeldas(st, n, o0) + '</tr>';
@@ -550,6 +718,7 @@ function hxTabla(s){
     + '<tbody>' + cuerpo + '</tbody><tfoot>' + pie + '</tfoot>');
   hxBarraOrigen(s);
   hxEstado();
+  requestAnimationFrame(hxAjustarAlto);
 }
 /* Con el alquiler sumado la cifra no es un costo real: el consolidado lo
    calcula con la tarifa de VENTA, asi que es la misma a los dos lados. Se
@@ -585,9 +754,19 @@ function hxNivel(s, nivel){
 }
 function hxBotones(s){
   var st = HX[s];
+  /* DESPLEGAR: los botones abren la tabla hasta su nivel. SELECCIONAR: cada
+     uno abre la lista de su nivel para elegir que se ve */
+  var selec = st.modo === 'seleccionar';
+  htm('hx-modo-' + s,
+      '<button type="button" data-m="desplegar" aria-pressed="' + !selec + '" title="Los botones abren la tabla hasta ese nivel">DESPLEGAR</button>'
+    + '<button type="button" data-m="seleccionar" aria-pressed="' + selec + '" title="Los botones abren una lista para elegir qué se muestra">SELECCIONAR</button>');
   htm('hx-nivel-' + s, HX_NIVELES.map(function(n, i){
-    return '<button class="fbt" type="button" data-n="' + i + '" aria-pressed="' + (st.nivel === i) + '">'
-      + (i + 1) + ' · ' + n + '</button>';
+    if(!selec)
+      return '<button class="fbt" type="button" data-n="' + i + '" aria-pressed="' + (st.nivel === i) + '">'
+        + (i + 1) + ' · ' + n + '</button>';
+    var c = st.eleg[HX_ELEG[i]].length;
+    return '<button class="fbt" type="button" data-e="' + i + '" aria-haspopup="dialog" aria-pressed="' + (c > 0) + '"'
+      + ' title="Elegir ' + HX_ELEG_PL[i].toLowerCase() + '">' + (i + 1) + ' · ' + n + (c ? ' (' + c + ')' : '') + ' ▾</button>';
   }).join(''));
   /* el boton marcado dice que vista hay; si se plego un grupo a mano, ninguno */
   var hayOculto = st.cols.some(function(g){ return st.oculto && st.oculto[g.id]; });
@@ -616,27 +795,50 @@ function hxBarraFiltros(s){
     bar.addEventListener('click', function(ev){
       var x = ev.target.closest ? ev.target.closest('[data-fx]') : null;
       var ed = ev.target.closest ? ev.target.closest('[data-f]') : null;
+      var ex = ev.target.closest ? ev.target.closest('[data-ex]') : null;
+      var ee = ev.target.closest ? ev.target.closest('[data-ee]') : null;
       if(x){
         var c = x.getAttribute('data-fx');
-        if(c === '*') HX[s].filtros = {}; else delete HX[s].filtros[c];
-        hxCerrarFiltro(); hxTabla(s);
+        if(c === '*'){ HX[s].filtros = {}; HX[s].eleg = { fam: [], mod: [], eq: [], ot: [] }; }
+        else delete HX[s].filtros[c];
+        hxCerrarFiltro(); hxCerrarEleccion(); hxBotones(s); hxTabla(s);
+      } else if(ex){
+        var i = parseInt(ex.getAttribute('data-ex'), 10);
+        HX[s].eleg[HX_ELEG[i]] = [];
+        hxPodarEleccion(HX[s], i);
+        hxCerrarEleccion(); hxBotones(s); hxTabla(s);
+      } else if(ee){
+        ev.stopPropagation();
+        hxAbrirEleccion(s, parseInt(ee.getAttribute('data-ee'), 10), ee);
       } else if(ed){
         ev.stopPropagation();
         hxAbrirFiltro(s, ed.getAttribute('data-f'), ed);
       }
     });
   }
-  if(!hxHayFiltros(st)){ bar.hidden = true; bar.innerHTML = ''; return; }
+  if(!hxHayRecorte(st)){ bar.hidden = true; bar.innerHTML = ''; return; }
   bar.hidden = false;
   var tot = st.totalVista || st.total;
-  bar.innerHTML = '<span class="t">FILTRADO · ' + fmt(tot.n) + ' DE ' + fmt(st.total.n) + ' EQUIPOS</span>'
+  /* lo elegido con SELECCIONAR, un chip por nivel: hasta dos nombres y cuantos mas */
+  var eleg = HX_ELEG.map(function(k, i){
+    var xs = st.eleg[k];
+    if(!xs.length) return '';
+    var nom = xs.slice(0, 2).map(function(v){ return hxNombreEleg(st, i, v); }).join(', ') + (xs.length > 2 ? ' +' + (xs.length - 2) : '');
+    return '<span class="chip"><button type="button" class="ed" data-ee="' + i + '" title="Cambiar la selección de ' + HX_ELEG_PL[i].toLowerCase() + '">'
+      + HX_NIVELES[i] + ': ' + esc(nom) + '</button><button type="button" class="x" data-ex="' + i
+      + '" aria-label="Quitar esta selección" title="Quitar">×</button></span>';
+  }).join('');
+  bar.innerHTML = '<span class="t">' + (hxHayFiltros(st) ? 'FILTRADO' : 'SELECCIÓN') + ' · ' + fmt(tot.n) + ' DE ' + fmt(st.total.n) + ' EQUIPOS</span>'
+    + eleg
     + Object.keys(st.filtros).map(function(col){
         return '<span class="chip"><button type="button" class="ed" data-f="' + col + '" title="Cambiar este filtro">'
           + esc(hxTextoFiltro(st, col)) + '</button><button type="button" class="x" data-fx="' + col
           + '" aria-label="Quitar este filtro" title="Quitar">×</button></span>';
       }).join('')
-    + '<button type="button" class="todos" data-fx="*">QUITAR FILTROS</button>'
-    + '<span class="nt">Familias, modelos y total suman sólo estos equipos; la cifra chica de debajo es la original, sin filtros. Las cifras grandes de arriba siguen siendo de toda la hoja.</span>';
+    + '<button type="button" class="todos" data-fx="*">QUITAR TODO</button>'
+    + '<span class="nt">Las tarjetas de arriba, las familias, los modelos y el total suman sólo esto; la cifra chica de debajo es la original, de toda la hoja.'
+    + (st.eleg.ot.length ? ' Con órdenes elegidas, cada equipo sigue con sus cifras completas: horas, venta y depreciación no se reparten por orden.' : '')
+    + '</span>';
 }
 /* la ventanita del filtro de una columna */
 var hxFiltroAbierto = null;
@@ -705,9 +907,112 @@ function hxCerrarFiltro(){
 document.addEventListener('click', function(){ if(hxFiltroAbierto) hxCerrarFiltro(); });
 /* la ventanita va fija en pantalla: si la pagina o la tabla se desplazan, se cierra */
 window.addEventListener('scroll', function(ev){
-  var pop = $('hx-filtroPop');
+  var pop = $('hx-filtroPop'), pe = $('hx-elegirPop');
   if(hxFiltroAbierto && pop && !pop.contains(ev.target)) hxCerrarFiltro();
+  /* al marcar una casilla la tabla se repinta y la pagina puede moverse sola: eso no cierra */
+  if(hxElegirAbierto && pe && !pe.contains(ev.target) && Date.now() - (pe._quieto || 0) > 700) hxCerrarEleccion();
 }, true);
+
+/* la ventanita de SELECCIONAR: casillas de un nivel, con buscador */
+var hxElegirAbierto = null;
+var HX_ELEG_MAX = 400;        /* mas que esto no se dibuja: se pide escribir para acotar */
+function hxAbrirEleccion(s, i, ancla){
+  var st = HX[s], pop = $('hx-elegirPop');
+  if(!pop){
+    pop = document.createElement('div');
+    pop.id = 'hx-elegirPop'; pop.className = 'xlFiltroPop xlElegir'; pop.setAttribute('role', 'dialog');
+    document.body.appendChild(pop);
+    pop.addEventListener('click', function(ev){ ev.stopPropagation(); });
+    pop.addEventListener('pointerdown', function(ev){ ev.stopPropagation(); });
+  }
+  hxCerrarFiltro();
+  hxElegirAbierto = { s: s, i: i };
+  var k = HX_ELEG[i];
+  pop.innerHTML = '<div class="tt">ELEGIR <b>' + HX_ELEG_PL[i] + '</b> · <span id="hxeN"></span></div>'
+    + '<input class="busca" id="hxeBusca" type="search" autocomplete="off" placeholder="escribe para acotar la lista" aria-label="Buscar en la lista">'
+    + '<div class="lista" id="hxeLista" role="group" aria-label="' + HX_ELEG_PL[i] + '"></div>'
+    + '<small>Marca uno o varios; la tabla y las tarjetas cambian al momento. Sin ninguno marcado se ven todos.</small>'
+    + '<div class="bts"><button type="button" class="fbt" data-x="todos">TODOS</button>'
+    + '<button type="button" class="fbt" data-x="visibles">MARCAR LOS DE LA LISTA</button>'
+    + '<button type="button" class="fbt" data-x="listo">LISTO</button></div>';
+  var pinta = function(){
+    var q = ($('hxeBusca').value || '').trim().toUpperCase(), sel = st.eleg[k];
+    var ops = hxOpciones(st, i).filter(function(o){ return !q || (o.t + ' ' + o.d).toUpperCase().indexOf(q) >= 0; });
+    var vis = ops.slice(0, HX_ELEG_MAX);
+    htm('hxeLista', vis.map(function(o){
+      return '<label class="it"><input type="checkbox" value="' + esc(o.v) + '"' + (sel.indexOf(o.v) >= 0 ? ' checked' : '') + '>'
+        + '<span>' + esc(o.t) + '</span><small>' + esc(o.d) + '</small></label>';
+    }).join('') + (ops.length > vis.length ? '<div class="mas">Hay ' + fmt(ops.length) + '; se muestran ' + HX_ELEG_MAX + '. Escribe arriba para acotar.</div>' : '')
+      + (!ops.length ? '<div class="mas">Nada con «' + esc(q) + '».</div>' : ''));
+    txt('hxeN', sel.length ? sel.length + ' marcado' + (sel.length === 1 ? '' : 's') : 'todos');
+    pop._vis = vis;
+  };
+  /* una seleccion cambia: se podan los niveles de abajo, se abre la tabla
+     hasta lo elegido y se repinta todo (tarjetas incluidas) */
+  var aplicar = function(){
+    pop._quieto = Date.now();
+    hxPodarEleccion(st, i);
+    var hondo = -1;
+    HX_ELEG.forEach(function(kk, j){ if(st.eleg[kk].length) hondo = j; });
+    if(hondo >= 0) hxNivel(s, Math.max(1, hondo));
+    hxBotones(s); hxTabla(s);
+    txt('hxeN', st.eleg[k].length ? st.eleg[k].length + ' marcado' + (st.eleg[k].length === 1 ? '' : 's') : 'todos');
+  };
+  pop.onchange = function(ev){
+    var x = ev.target;
+    if(!x.matches || !x.matches('#hxeLista input')) return;
+    var a = st.eleg[k], j = a.indexOf(x.value);
+    if(x.checked && j < 0) a.push(x.value);
+    if(!x.checked && j >= 0) a.splice(j, 1);
+    aplicar();
+  };
+  pop.onclick = function(ev){
+    var b = ev.target.closest ? ev.target.closest('[data-x]') : null;
+    if(!b) return;
+    var x = b.getAttribute('data-x');
+    if(x === 'todos'){ st.eleg[k] = []; pinta(); aplicar(); }
+    else if(x === 'visibles'){
+      (pop._vis || []).forEach(function(o){ if(st.eleg[k].indexOf(o.v) < 0) st.eleg[k].push(o.v); });
+      pinta(); aplicar();
+    } else hxCerrarEleccion();
+  };
+  pop.onkeydown = function(ev){ if(ev.key === 'Escape') hxCerrarEleccion(); };
+  $('hxeBusca').addEventListener('input', pinta);
+  pinta();
+  pop.hidden = false;
+  var r = ancla.getBoundingClientRect(), w = Math.min(380, window.innerWidth - 20);
+  pop.style.width = w + 'px';
+  pop.style.left = Math.max(10, Math.min(window.innerWidth - w - 10, r.left)) + 'px';
+  /* debajo del boton si cabe entera; si no, subida lo justo para que se vea completa */
+  var alto = pop.offsetHeight;
+  pop.style.top = Math.max(10, Math.min(r.bottom + 6, window.innerHeight - alto - 10)) + 'px';
+  setTimeout(function(){ var b = $('hxeBusca'); if(b) b.focus(); }, 0);
+}
+/* el alto de la tabla: lo que queda de pantalla debajo de ella al abrir la
+   hoja, para que se vea entera con su fila Total sin bajar la pagina (como en
+   Excel). En pantalla dividida manda el alto del panel (division.html). */
+function hxAjustarAlto(){
+  ['P', 'A'].forEach(function(s){
+    var t = $('hx-tabla-' + s), env = t && t.parentElement;
+    if(!env) return;
+    if(document.body.classList.contains('dividida') || !env.offsetParent){ env.style.maxHeight = ''; return; }
+    var arriba = env.getBoundingClientRect().top + window.scrollY;
+    /* la tabla llega casi al borde de abajo: de la barra «fx» y de
+       comentarios y leyenda solo asoma el canto, y se ven al bajar la pagina */
+    env.style.maxHeight = Math.max(320, Math.round(window.innerHeight - arriba - 22)) + 'px';
+  });
+}
+window.addEventListener('resize', hxAjustarAlto);
+/* abrir una pestana, plegar algo o poner un filtro mueve la tabla: se vuelve a medir */
+document.addEventListener('click', function(){ requestAnimationFrame(hxAjustarAlto); });
+document.addEventListener('toggle', function(){ requestAnimationFrame(hxAjustarAlto); }, true);
+
+function hxCerrarEleccion(){
+  var pop = $('hx-elegirPop');
+  if(pop) pop.hidden = true;
+  hxElegirAbierto = null;
+}
+document.addEventListener('click', function(){ if(hxElegirAbierto) hxCerrarEleccion(); });
 
 function hxBuscarNodo(st, k){
   var hit = null;
@@ -727,10 +1032,37 @@ function hxIniciar(s){
   st.ter = s === 'P';
   st.cols = hxColumnas(s === 'P', st);
   st.cerrado = {}; st.oculto = {}; st.filtros = {}; st.busca = ''; st.ab = {};
+  st.modo = 'desplegar'; st.eleg = { fam: [], mod: [], eq: [], ot: [] };
   st.ord = { g: 'costo', i: 3, dir: -1 };
   hxArbol(s);
   hxNivel(s, 1);
   hxCifras(s); hxBotones(s); hxTabla(s);
+
+  /* la tarjeta del acumulado: recuerda si esta abierta al repintar y se
+     cierra con un clic fuera */
+  var cif = $('hx-cifras-' + s);
+  if(cif){
+    cif.addEventListener('toggle', function(ev){
+      if(ev.target.classList && ev.target.classList.contains('gAcum')) st.acumAb = ev.target.open;
+    }, true);
+    document.addEventListener('click', function(ev){
+      var d = cif.querySelector('.gAcum[open]');
+      if(d && !d.contains(ev.target)){ d.open = false; st.acumAb = false; }
+    });
+  }
+  /* comentarios y leyenda, y el origen de la celda: plegados o no, como
+     se dejaron la ultima vez (vale para las dos hojas) */
+  Array.prototype.forEach.call((tabla.closest ? tabla.closest('section') : document).querySelectorAll('.xlPlg'), function(d){
+    var k = 'torreSet.plg.' + d.getAttribute('data-plg');
+    try { d.open = localStorage.getItem(k) === '1'; } catch(e){}
+    d.addEventListener('toggle', function(){
+      try { localStorage.setItem(k, d.open ? '1' : '0'); } catch(e){}
+      /* el otro par de bloques (la otra hoja) sigue la misma eleccion */
+      Array.prototype.forEach.call(document.querySelectorAll('.xlPlg[data-plg="' + d.getAttribute('data-plg') + '"]'), function(x){
+        if(x !== d && x.open !== d.open) x.open = d.open;
+      });
+    });
+  });
 
   var repinta = function(foco){
     hxBotones(s); hxTabla(s);
@@ -761,7 +1093,7 @@ function hxIniciar(s){
     var nodo = tr ? hxBuscarNodo(st, tr.getAttribute('data-k')) : null;
     /* la esquina de una celda comentada abre su comentario */
     if(cn && nodo){ hxAbrirNota(s, nodo, cn.getAttribute('data-cn')); return; }
-    if(tb && nodo){ abrirTablero(st.tipo, nodo.fam, nodo.mod); return; }
+    if(tb && nodo){ abrirTablero(st.tipo, nodo.fam, nodo.mod, nodo.lv === 2 ? nodo.id : ''); return; }
     /* una cifra se elige, y la barra de arriba dice de donde sale; la primera
        columna es la que despliega, como el signo + de una dinamica */
     if(td && nodo && td.cellIndex > 0){
@@ -796,10 +1128,20 @@ function hxIniciar(s){
     }
   });
   esc_('hx-nivel-' + s, 'click', function(ev){
+    var e = ev.target.closest ? ev.target.closest('[data-e]') : null;
+    if(e){ ev.stopPropagation(); hxAbrirEleccion(s, parseInt(e.getAttribute('data-e'), 10), e); return; }
     var b = ev.target.closest ? ev.target.closest('[data-n]') : null;
     if(!b) return;
     hxNivel(s, parseInt(b.getAttribute('data-n'), 10));
     repinta();
+  });
+  /* el modo de los botones de nivel; lo ya elegido se mantiene al cambiar */
+  esc_('hx-modo-' + s, 'click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('[data-m]') : null;
+    if(!b) return;
+    st.modo = b.getAttribute('data-m');
+    hxCerrarEleccion();
+    hxBotones(s);
   });
   esc_('hx-cols-' + s, 'click', function(ev){
     var b = ev.target.closest ? ev.target.closest('[data-c]') : null;

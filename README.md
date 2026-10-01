@@ -11,11 +11,14 @@ con las mismas reglas de las tablas dinámicas del libro y lo presenta como una 
 ## Qué trae la página
 
 - **Propios** y **Alquilados**: las hojas SHGN PROP y SHGN ALQ como tablas desplegables
-  (familia › modelo › equipo › orden), con costo real, venta interna, desviación, tarifas y
-  acumulado 2026. Botones CON/SIN depreciación o alquiler, columnas plegables, filtros por valor
-  en cada columna, comentarios por celda y una barra que dice de dónde sale cada cifra.
-- **Tablero**: el análisis de una flota, familia, modelo o equipo en siete pasos (resultado, horas,
-  tarifa, causa, RyM y MOV, equipos, acumulado).
+  (familia › modelo › equipo › orden), con operación, costo real, venta interna, desviación,
+  tarifas y acumulado 2026. Tarjetas de resumen con barritas de costo contra venta, botones
+  CON/SIN depreciación o alquiler, columnas plegables, semáforo de disponibilidad (DM ≥ 85%),
+  filtros por valor en cada columna, **DESPLEGAR / SELECCIONAR** para elegir familias, modelos,
+  equipos u órdenes (las tarjetas y los totales se recalculan), comentarios por celda y una barra
+  que dice de dónde sale cada cifra.
+- **Tablero**: el análisis de una o varias familias, modelos o equipos en siete pasos (resultado,
+  horas, tarifa, causa, RyM y MOV, equipos, acumulado).
 - **Pantalla dividida** (botón ⊟ o tecla D): dos pestañas a la vez, una arriba y otra abajo.
 - **Pantalla completa** con la tecla F y una burbuja de herramientas con calculadora y suma.
 

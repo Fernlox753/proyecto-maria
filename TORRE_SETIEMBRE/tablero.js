@@ -514,9 +514,9 @@ function tbTer(s){
   if(s !== tbHoja()) return;
   tbOpciones(); tbPintar();
 }
-/* desde las hojas Propios y Alquilados: abre el tablero de esa familia o modelo */
-function abrirTablero(tipo, fam, mod){
-  TB.tipo = tipo; TB.fams = fam ? [fam] : []; TB.mods = mod ? [mod] : []; TB.eqs = []; TB.ab = {};
+/* desde las hojas Propios y Alquilados: abre el tablero de esa familia, modelo o equipo */
+function abrirTablero(tipo, fam, mod, eq){
+  TB.tipo = tipo; TB.fams = fam ? [fam] : []; TB.mods = mod ? [mod] : []; TB.eqs = eq ? [eq] : []; TB.ab = {};
   tbOpciones(); tbPintar();
   irA('v-tablero');
 }
