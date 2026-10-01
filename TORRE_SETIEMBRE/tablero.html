@@ -1,0 +1,250 @@
+<style>
+/* ---------- hoja Tablero: el analisis de una flota o un modelo, siempre
+   en el mismo orden. Cada bloque responde una pregunta y dice como leerse. */
+.tbVer{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; margin-top:18px; padding:14px 18px;
+       border:1px solid var(--tinta); background:#fff}
+.tbVer .quien{font-family:Archivo,sans-serif; font-weight:800; font-size:clamp(1.15rem,2vw,1.6rem);
+              letter-spacing:-.02em; color:var(--tinta)}
+.tbVer .sub{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em; color:var(--tinta-2)}
+.tbChip{display:inline-block; padding:6px 12px; font-family:"IBM Plex Mono",monospace; font-size:11px;
+        letter-spacing:.1em; font-weight:600; border:2px solid; background:#fff}
+.tbChip.mal{color:#B3261E; border-color:#B3261E; background:#FDECEA}
+.tbChip.bien{color:#0B6B3A; border-color:#0B6B3A; background:#E7F5EC}
+.tbChip.nd{color:var(--tinta-2); border-color:var(--tinta-3)}
+.tbSec{margin-top:clamp(26px,4vh,40px); border-top:2px solid var(--tinta); padding-top:14px}
+.tbSec > h3{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; font-family:Archivo,sans-serif;
+            font-weight:700; font-size:1.15rem; letter-spacing:-.015em; color:var(--tinta); margin:0}
+.tbSec > h3 .paso{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em;
+                  color:#fff; background:var(--sm); padding:3px 8px; font-weight:600}
+.tbSec > h3 .preg{font-family:"IBM Plex Sans",sans-serif; font-weight:400; font-size:.95rem; color:var(--tinta-2)}
+.tbComo{border-left:3px solid var(--sm); background:#fff; padding:9px 14px; margin-top:12px;
+        font-size:12.5px; line-height:1.55; color:var(--tinta-2); max-width:110ch}
+.tbComo b{color:var(--tinta)}
+.tbCifras{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:14px}
+.tbCf{background:#fff; border:1px solid var(--linea); padding:11px 14px; min-width:0}
+.tbCf .l{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.13em; color:var(--tinta-3)}
+.tbCf .v{font-family:"IBM Plex Mono",monospace; font-size:clamp(1.1rem,1.9vw,1.5rem); letter-spacing:-.03em;
+         color:var(--tinta); margin-top:4px; font-variant-numeric:tabular-nums}
+.tbCf .v.mal{color:#B3261E} .tbCf .v.bien{color:#0B6B3A}
+/* las lineas bajo cada cifra y bajo cada nube empiezan con mayuscula */
+.tbCf .d::first-letter,.tbNube .res::first-letter{text-transform:uppercase}
+.tbCf .d{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--tinta-2); margin-top:4px;
+         line-height:1.45}
+/* tabla de comparacion: una fila por concepto, real contra referencia */
+.tbEnv{overflow-x:auto; margin-top:14px; border:1px solid var(--linea); background:#fff}
+table.tb{border-collapse:collapse; width:100%; font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+         font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--tinta)}
+table.tb th{font-size:9.5px; letter-spacing:.1em; font-weight:600; color:var(--tinta-2); background:var(--luz-2);
+            padding:7px 12px; text-align:right; border-bottom:1px solid var(--tinta)}
+table.tb td{padding:6px 12px; text-align:right; border-bottom:1px solid var(--linea-2)}
+table.tb .t{text-align:left}
+table.tb tr.tot td{font-weight:700; background:var(--luz); border-top:1px solid var(--tinta)}
+table.tb tr.fuera td{color:var(--tinta-3)}
+table.tb .neg{color:#B3261E} table.tb .pos{color:#0B6B3A} table.tb .z{color:var(--tinta-3)}
+table.tb tr.eq{cursor:pointer} table.tb tr.eq:hover td{background:#EAF1FB}
+table.tb tr.eq:focus-visible{outline:2px solid var(--sm); outline-offset:-2px}
+table.tb tr.ot td{background:#FBFCFD; color:var(--tinta-2); font-size:11.5px}
+table.tb tr.ot td.t{padding-left:30px; white-space:normal; min-width:260px}
+.tbBar{display:inline-block; vertical-align:middle; width:110px; height:9px; background:var(--luz-3);
+       position:relative; margin-left:8px}
+.tbBar i{position:absolute; top:0; bottom:0; left:0; background:var(--sm)}
+.tbBar i.v{background:var(--cian)} .tbBar i.mal{background:#B3261E} .tbBar i.bien{background:#0B6B3A}
+.tbBar .ref{position:absolute; top:-3px; bottom:-3px; width:2px; background:var(--tinta)}
+.tbLey{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.08em; color:var(--tinta-2);
+       margin-top:8px}
+.tbLey i{display:inline-block; width:10px; height:10px; vertical-align:-1px; margin:0 5px 0 12px}
+.tbRefs{margin-top:12px; font-size:12.5px; line-height:1.6; color:var(--tinta-2)}
+.tbRefs a{color:var(--sm)}
+.tbRefs li{margin-left:18px}
+/* ---------- los colores y simbolos de las tablas, tambien aqui ----------
+   Cada cifra lleva el tono de su naturaleza: costo, venta, diferencia,
+   horas, por hora y acumulado. Los mismos de Propios y Alquilados. */
+.tbCf .l .sm,.tbSec > h3 .sm{display:inline-block; min-width:16px; padding:0 4px; margin-right:6px; color:#fff;
+  text-align:center; font-size:10px; letter-spacing:0; line-height:15px; vertical-align:1px}
+.tbSec > h3 .sm{font-size:11px; line-height:17px; margin:0 0 0 -4px}
+.tbCf.k-costo{border-left:4px solid #4A5A78} .tbCf.k-costo .l{color:#4A5A78} .tbCf.k-costo .l .sm{background:#4A5A78}
+.tbSec > h3 .paso.k-costo,.tbSec > h3 .sm.k-costo{background:#4A5A78}
+table.tb col.k-costo{background:#F3F5F9}
+table.tb th.k-costo{background:#E6EAF1; color:#4A5A78; box-shadow:inset 0 -3px 0 #4A5A78}
+.tbCf.k-venta{border-left:4px solid #4F7657} .tbCf.k-venta .l{color:#4F7657} .tbCf.k-venta .l .sm{background:#4F7657}
+.tbSec > h3 .paso.k-venta,.tbSec > h3 .sm.k-venta{background:#4F7657}
+table.tb col.k-venta{background:#F2F7F2}
+table.tb th.k-venta{background:#E3EEE4; color:#4F7657; box-shadow:inset 0 -3px 0 #4F7657}
+.tbCf.k-desv{border-left:4px solid #7A6A4F} .tbCf.k-desv .l{color:#7A6A4F} .tbCf.k-desv .l .sm{background:#7A6A4F}
+.tbSec > h3 .paso.k-desv,.tbSec > h3 .sm.k-desv{background:#7A6A4F}
+table.tb col.k-desv{background:#F8F6F1}
+table.tb th.k-desv{background:#EFEBE1; color:#7A6A4F; box-shadow:inset 0 -3px 0 #7A6A4F}
+.tbCf.k-oper{border-left:4px solid #3F6F72} .tbCf.k-oper .l{color:#3F6F72} .tbCf.k-oper .l .sm{background:#3F6F72}
+.tbSec > h3 .paso.k-oper,.tbSec > h3 .sm.k-oper{background:#3F6F72}
+table.tb col.k-oper{background:#F1F6F6}
+table.tb th.k-oper{background:#E2EDED; color:#3F6F72; box-shadow:inset 0 -3px 0 #3F6F72}
+.tbCf.k-treal{border-left:4px solid #5E6C88} .tbCf.k-treal .l{color:#5E6C88} .tbCf.k-treal .l .sm{background:#5E6C88}
+.tbSec > h3 .paso.k-treal,.tbSec > h3 .sm.k-treal{background:#5E6C88}
+table.tb col.k-treal{background:#F5F6FA}
+table.tb th.k-treal{background:#E9ECF3; color:#5E6C88; box-shadow:inset 0 -3px 0 #5E6C88}
+.tbCf.k-tventa{border-left:4px solid #62846A} .tbCf.k-tventa .l{color:#62846A} .tbCf.k-tventa .l .sm{background:#62846A}
+.tbSec > h3 .paso.k-tventa,.tbSec > h3 .sm.k-tventa{background:#62846A}
+table.tb col.k-tventa{background:#F4F8F4}
+table.tb th.k-tventa{background:#E6EFE7; color:#62846A; box-shadow:inset 0 -3px 0 #62846A}
+.tbCf.k-acosto{border-left:4px solid #384459} .tbCf.k-acosto .l{color:#384459} .tbCf.k-acosto .l .sm{background:#384459}
+.tbSec > h3 .paso.k-acosto,.tbSec > h3 .sm.k-acosto{background:#384459}
+table.tb col.k-acosto{background:#EFF1F5}
+table.tb th.k-acosto{background:#DFE3EA; color:#384459; box-shadow:inset 0 -3px 0 #384459}
+.tbCf.k-aventa{border-left:4px solid #3E5E46} .tbCf.k-aventa .l{color:#3E5E46} .tbCf.k-aventa .l .sm{background:#3E5E46}
+.tbSec > h3 .paso.k-aventa,.tbSec > h3 .sm.k-aventa{background:#3E5E46}
+table.tb col.k-aventa{background:#EFF5F0}
+table.tb th.k-aventa{background:#DFEAE1; color:#3E5E46; box-shadow:inset 0 -3px 0 #3E5E46}
+.tbCf.k-adesv{border-left:4px solid #5E523C} .tbCf.k-adesv .l{color:#5E523C} .tbCf.k-adesv .l .sm{background:#5E523C}
+.tbSec > h3 .paso.k-adesv,.tbSec > h3 .sm.k-adesv{background:#5E523C}
+table.tb col.k-adesv{background:#F5F2EC}
+table.tb th.k-adesv{background:#E9E3D7; color:#5E523C; box-shadow:inset 0 -3px 0 #5E523C}
+.tbCf.k-atar{border-left:4px solid #454F63} .tbCf.k-atar .l{color:#454F63} .tbCf.k-atar .l .sm{background:#454F63}
+.tbSec > h3 .paso.k-atar,.tbSec > h3 .sm.k-atar{background:#454F63}
+table.tb col.k-atar{background:#F1F2F5}
+table.tb th.k-atar{background:#E3E5EB; color:#454F63; box-shadow:inset 0 -3px 0 #454F63}
+table.tb tr.tot td{background:var(--luz)}
+table.tb tr.eq:hover td{background:#E4ECF7}
+/* ---------- los pasos como nubes ----------
+   Todos en una fila, plegados. Cada nube adelanta la cifra que responde su
+   pregunta; al elegirla se abre su contenido debajo. Asi no hay que subir
+   y bajar. */
+/* una sola fila: si no cabe, se desliza de lado en vez de partirse */
+.tbNubes{display:flex; flex-wrap:nowrap; gap:8px; margin-top:22px; padding:4px 2px 14px; overflow-x:auto;
+  scrollbar-width:thin}
+.tbNube{all:unset; box-sizing:border-box; cursor:pointer; position:relative; display:flex; flex-direction:column;
+  gap:3px; flex:1 1 0; min-width:112px; padding:9px 14px 11px; border-radius:24px; background:#fff;
+  border:1.5px solid var(--linea); box-shadow:0 3px 10px rgba(8,25,42,.07);
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease), background .18s}
+.tbNube:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(8,25,42,.12)}
+.tbNube:focus-visible{outline:2px solid var(--sm); outline-offset:3px}
+.tbNube .np{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.14em; color:var(--tinta-3)}
+.tbNube .np .sm{display:inline-block; min-width:14px; padding:0 3px; margin-left:6px; color:#fff; text-align:center;
+  font-size:9.5px; letter-spacing:0; line-height:14px}
+.tbNube b{font-family:Archivo,sans-serif; font-size:.98rem; color:var(--tinta); letter-spacing:-.01em}
+.tbNube .res{font-family:"IBM Plex Mono",monospace; font-size:10.5px; line-height:1.35; color:var(--tinta-2)}
+.tbNube .res.mal{color:#B3261E} .tbNube .res.bien{color:#0B6B3A}
+/* la elegida: con su color */
+.tbNube.on{box-shadow:0 8px 22px rgba(8,25,42,.16)}
+/* con un solo paso abierto su titulo sobra: ya lo dice la nube */
+.tbSec.solo{border-top:0; padding-top:0; margin-top:4px}
+/* la explicacion de cada paso va plegada; se abre si se quiere consultar */
+.tbDet{margin-top:4px}
+.tbDet > summary{cursor:pointer; display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10px;
+  letter-spacing:.14em; color:var(--sm); padding:4px 0}
+.tbDet > summary:hover{color:var(--tinta)}
+.tbDet > summary{list-style:none} .tbDet > summary::-webkit-details-marker{display:none}
+.tbDet > summary::before{content:"▸ "} .tbDet[open] > summary::before{content:"▾ "}
+.tbDet > summary:focus-visible{outline:2px solid var(--sm); outline-offset:2px}
+.tbDet > .tbComo{margin-top:6px}
+.tbNube.todos,.tbNube.k-nada{flex:0 0 auto; min-width:0; border-style:dashed}
+.tbPanel{margin-top:4px}
+.tbPanel > .tbSec:first-child{margin-top:0}
+@media (prefers-reduced-motion:reduce){ .tbNube{transition:none} .tbNube:hover{transform:none} }
+@media (max-width:620px){ .tbNube{min-width:140px} }
+.tbNube.k-costo .np .sm{background:#4A5A78} .tbNube.k-costo.on{border-color:#4A5A78; background:#E6EAF1} .tbNube.k-costo.on .np{color:#4A5A78}
+.tbNube.k-venta .np .sm{background:#4F7657} .tbNube.k-venta.on{border-color:#4F7657; background:#E3EEE4} .tbNube.k-venta.on .np{color:#4F7657}
+.tbNube.k-desv .np .sm{background:#7A6A4F} .tbNube.k-desv.on{border-color:#7A6A4F; background:#EFEBE1} .tbNube.k-desv.on .np{color:#7A6A4F}
+.tbNube.k-oper .np .sm{background:#3F6F72} .tbNube.k-oper.on{border-color:#3F6F72; background:#E2EDED} .tbNube.k-oper.on .np{color:#3F6F72}
+.tbNube.k-treal .np .sm{background:#5E6C88} .tbNube.k-treal.on{border-color:#5E6C88; background:#E9ECF3} .tbNube.k-treal.on .np{color:#5E6C88}
+.tbNube.k-acosto .np .sm{background:#384459} .tbNube.k-acosto.on{border-color:#384459; background:#DFE3EA} .tbNube.k-acosto.on .np{color:#384459}
+.tbNube.k-nada .np .sm{background:#5B6470} .tbNube.k-nada.on{border-color:#5B6470; background:#ECEEF1} .tbNube.k-nada.on .np{color:#5B6470}
+/* el selector de modelos: varios a la vez, como un filtro de Excel */
+.tbModBtn{min-width:190px; justify-content:space-between; box-sizing:border-box; padding:8px 12px}
+#v-tablero .despBtn{background:#fff; border-color:var(--linea); color:var(--tinta)}
+#v-tablero .despBtn:hover,#v-tablero .despBtn[aria-expanded="true"]{border-color:var(--sm)}
+#v-tablero .despCaja{background:#fff; border-color:var(--linea); box-shadow:0 18px 44px rgba(8,25,42,.16)}
+#v-tablero .despIt{color:var(--tinta-2)}
+#v-tablero .despIt:hover{background:var(--luz-2); color:var(--tinta)}
+#v-tablero .despIt input{accent-color:var(--sm)}
+#v-tablero .despIt small{margin-left:auto; color:var(--tinta-3)}
+#v-tablero .despPie{border-top-color:var(--linea)}
+#v-tablero .despPie button{border-color:var(--linea); color:var(--tinta-2)}
+#v-tablero .despPie button:hover{border-color:var(--sm); color:var(--tinta)}
+/* el filtro de equipos: lista con casillas o codigos escritos; los dos
+   eligen varios a la vez y comparten la misma seleccion */
+#v-tablero [hidden]{display:none !important}
+.tbEqF{min-width:240px; max-width:440px}
+.tbEqCab{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.tbModo{display:inline-flex}
+.tbModo button{all:unset; cursor:pointer; padding:2px 7px; border:1px solid var(--linea); background:#fff;
+               color:var(--tinta-3); font-size:10px; letter-spacing:.06em}
+.tbModo button + button{border-left:0}
+.tbModo button[aria-pressed="true"]{background:var(--sm); border-color:var(--sm); color:#fff}
+.tbModo button:focus-visible{outline:2px solid var(--sm); outline-offset:1px}
+.tbEqBusca{margin:0 0 6px}
+.tbEqNada{margin:6px 9px; color:var(--tinta-3); font-size:12px}
+.tbEqEsc{display:flex; flex-direction:column; gap:4px}
+/* las etiquetas de los equipos elegidos van dentro del mismo campo */
+.tbEqCampo{display:flex; flex-wrap:wrap; align-items:center; gap:4px; box-sizing:border-box; min-height:40px;
+           padding:4px 6px; border:1px solid var(--linea); background:#fff; cursor:text}
+.tbEqCampo:focus-within{outline:2px solid var(--sm); outline-offset:1px}
+.tbEqCampo input{all:unset; flex:1 1 150px; min-width:120px; padding:4px 2px; color:var(--tinta);
+                 font-family:"IBM Plex Mono",monospace; font-size:12px}
+.tbEqCampo input::placeholder{color:var(--tinta-3)}
+.tbChips{display:contents}
+.tbEqChip{display:inline-flex; align-items:center; gap:6px; padding:3px 4px 3px 8px; background:#E6EAF1;
+          color:var(--tinta); border:1px solid #C9D2E0; font-size:12px; letter-spacing:.02em}
+.tbEqChip button{all:unset; cursor:pointer; padding:0 4px; color:var(--tinta-3); font-size:13px; line-height:1}
+.tbEqChip button:hover{color:#B3261E}
+.tbEqChip button:focus-visible{outline:2px solid var(--sm)}
+.tbChips .tbLimpiar{all:unset; cursor:pointer; font-size:11px; color:var(--tinta-3); text-decoration:underline; padding:3px 4px}
+.tbEqMsg{font-size:11.5px; color:#B3261E; min-height:0; text-transform:none; letter-spacing:0}
+.tbEqMsg:empty{display:none}
+</style>
+
+<!-- ═══════════════════ TABLERO ═══════════════════ -->
+<section class="vista luz hojaXl" id="v-tablero" data-pes="Tablero">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">03</span><span class="lin"></span><span class="num">EL ANÁLISIS, SIEMPRE EN EL MISMO ORDEN</span></div>
+      <h2 class="d d-l">¿Estamos cumpliendo? Flota por flota, modelo por modelo.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">Elige una flota, una familia o un modelo y el tablero recorre siempre los mismos
+      siete pasos: resultado, horas, tarifa, causa, dónde se fue el costo, qué equipos lo explican y
+      cómo viene el año. La lógica es la de un presupuesto flexible: <b>la venta interna es lo que
+      Operaciones paga por las horas que el equipo realmente trabajó</b>, así que es el techo de
+      gasto del área de Equipos para esas horas. Si el costo real queda por debajo, se cumple. Todo
+      está cortado al día __CORTE__ y sale del consolidado; no sigue a los filtros de otras pestañas.</p></details>
+    </div>
+    <div class="panelF" style="margin-top:6px">
+      <label class="fl">FLOTA<select id="tb-tipo"><option value="PROPIO">PROPIA</option><option value="ALQUILADO">ALQUILADA</option></select></label>
+      <div class="fl"><span>FAMILIA · UNA O VARIAS</span>
+        <div class="desplegable">
+          <button class="despBtn tbModBtn" type="button" id="tb-famBtn" aria-expanded="false" aria-haspopup="true">
+            <span id="tb-famRot">TODAS</span> <i>▼</i></button>
+          <div class="despCaja alta" id="tb-famCaja" hidden role="group" aria-label="Familias"></div>
+        </div>
+      </div>
+      <div class="fl"><span>MODELO · UNO O VARIOS</span>
+        <div class="desplegable">
+          <button class="despBtn tbModBtn" type="button" id="tb-modBtn" aria-expanded="false" aria-haspopup="true">
+            <span id="tb-modRot">TODOS</span> <i>▼</i></button>
+          <div class="despCaja alta" id="tb-modCaja" hidden role="group" aria-label="Modelos"></div>
+        </div>
+      </div>
+      <div class="fl tbEqF"><span class="tbEqCab">EQUIPO · UNO O VARIOS
+          <span class="tbModo" role="group" aria-label="Cómo elegir los equipos">
+            <button type="button" data-m="lista" aria-pressed="true" title="Elegir de una lista con casillas">▾ LISTA</button><button type="button" data-m="escribir" aria-pressed="false" title="Escribir los códigos de los equipos">⌨ ESCRIBIR</button></span></span>
+        <div class="desplegable" id="tb-eqLista">
+          <button class="despBtn tbModBtn" type="button" id="tb-eqBtn" aria-expanded="false" aria-haspopup="true">
+            <span id="tb-eqRot">TODOS</span> <i>▼</i></button>
+          <div class="despCaja alta" id="tb-eqCaja" hidden role="group" aria-label="Equipos">
+            <input class="entradaEq tbEqBusca" id="tb-eqBusca" type="search" autocomplete="off" placeholder="filtrar la lista: FC-8, 785C…" aria-label="Filtrar la lista de equipos">
+            <div id="tb-eqItems"></div>
+            <div class="despPie"><button type="button" data-a="todos">TODOS</button><button type="button" data-a="visibles">MARCAR LOS FILTRADOS</button><button type="button" data-a="listo">LISTO</button></div>
+          </div>
+        </div>
+        <div class="tbEqEsc" id="tb-eqEsc" hidden>
+          <div class="tbEqCampo" id="tb-eqCampo">
+            <span class="tbChips" id="tb-eqChips"></span>
+            <input id="tb-eqIn" list="tb-eqDl" autocomplete="off" placeholder="p. ej. FC-87, EP-32 · Enter agrega" aria-label="Escribe códigos de equipo">
+          </div>
+          <datalist id="tb-eqDl"></datalist>
+          <small class="tbEqMsg" id="tb-eqMsg" aria-live="polite"></small>
+        </div>
+      </div>
+      <div class="fl"><span id="tb-ter-t">EN EL COSTO</span><div class="gcB" id="tb-ter"></div></div>
+    </div>
+    <div id="tb-cuerpo"></div>
+  </div>
+</section>

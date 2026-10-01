@@ -1,0 +1,1241 @@
+<style>
+/* ============================================================
+   TORRE DE CONTROL — navegacion por pestanas (no scroll continuo)
+   Fuente: RESUMEN ANALISIS 2026 — RYM EQXEQ DIARIO + DETALLE EQ X EQ
+   ============================================================ */
+:root{ --verde:#3E8E41; --verde-2:#2C6B30; --verde-cl:#6FBF73;
+  /* escala de calor del equipo, en verdes: el camion es verde en todos sus estados */
+  --g0:#C4D0C6; --g1:#A5D7A8; --g2:#6FBF73; --g3:#3E8E41; --g4:#1F5A27;
+  /* la misma escala en ambar, para los equipos Caterpillar y Komatsu */
+  --a0:#D3CDBD; --a1:#EBD489; --a2:#EDBB16; --a3:#B8860B; --a4:#6E4F06; }
+
+/* la barra de pestanas sustituye al rail de descenso */
+.rail,.progtop,.amanece,.anochece{display:none!important}
+
+.nav{position:sticky; top:0; flex-wrap:wrap; row-gap:10px;
+     background:rgba(4,17,29,.94); backdrop-filter:blur(14px); border-bottom-color:var(--hair)}
+.pestanas{width:100%; order:3; display:flex; gap:2px; overflow-x:auto; padding-top:4px;
+          scrollbar-width:none; -ms-overflow-style:none}
+.pestanas::-webkit-scrollbar{display:none}
+.pes{all:unset; cursor:pointer; white-space:nowrap; font-family:"IBM Plex Mono",monospace;
+     font-size:10.5px; letter-spacing:.16em; padding:10px 16px 11px; color:var(--claro-3);
+     border-bottom:2px solid transparent; transition:color .2s, border-color .2s, background .2s}
+.pes:hover{color:var(--claro)}
+.pes[aria-selected="true"]{color:var(--hivis); border-bottom-color:var(--hivis)}
+.pes:focus-visible{outline:2px solid var(--cian); outline-offset:-2px}
+.pes i{font-style:normal; opacity:.5; margin-right:8px}
+
+/* cada vista ocupa la pantalla; solo una visible */
+.vista{display:none; position:relative; z-index:2; padding-block:clamp(34px,5vh,68px) 90px;
+       animation:entraV .45s var(--ease)}
+.vista.on{display:block}
+.vista:not(.on){display:none!important}
+@keyframes entraV{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:none}}
+.vista.luz{background:var(--luz); color:var(--tinta); min-height:100vh; min-height:100dvh}
+.vista.luz .lede{color:var(--tinta-2)} .vista.luz .lede b{color:var(--tinta)}
+.vista.luz .nota{color:var(--tinta-3)}
+.vista .msk > span{transform:none}
+.vista .fade{opacity:1; transform:none}
+
+/* franja de titulo de cada vista */
+.tituloV{margin-bottom:clamp(26px,4vh,48px)}
+.tituloV .ord{margin-bottom:16px}
+.tituloV h2{max-width:20ch}
+.tituloV .lede{margin-top:16px}
+
+/* ---------- INICIO: mensaje de marca ---------- */
+#v-inicio.on{min-height:calc(100vh - 104px); display:flex; flex-direction:column; justify-content:center}
+/* el tajo queda detras del texto: velo lateral para que el titular se lea */
+#v-inicio::before{content:""; position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(96deg,rgba(3,16,28,.95) 0%,rgba(3,16,28,.86) 34%,
+             rgba(3,16,28,.46) 62%,rgba(3,16,28,.12) 84%,transparent 100%),
+             linear-gradient(180deg,transparent 40%,rgba(3,16,28,.55) 78%,rgba(3,16,28,.88) 100%)}
+@media (max-width:900px){
+  #v-inicio::before{background:linear-gradient(180deg,rgba(3,16,28,.55) 0%,rgba(3,16,28,.86) 38%,rgba(3,16,28,.95) 100%)}
+}
+#v-vivo::before{content:""; position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(180deg,rgba(3,16,28,.90) 0%,rgba(3,16,28,.94) 60%,rgba(3,16,28,.97) 100%)}
+.hibrido{display:inline-flex; align-items:center; gap:12px; padding:9px 16px;
+         border:1px solid var(--verde-cl); border-radius:2px; background:rgba(62,142,65,.14);
+         font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.2em;
+         color:var(--verde-cl); margin-bottom:clamp(22px,3vh,34px)}
+.hibrido .bulbo{width:8px; height:8px; border-radius:50%; background:var(--verde-cl);
+                box-shadow:0 0 0 0 rgba(111,191,115,.6); animation:lat 2.4s infinite}
+.lemaGr{font-family:Archivo,sans-serif; font-weight:800; font-stretch:118%; letter-spacing:-.04em;
+        line-height:.92; font-size:clamp(1.8rem,4.3vw,4.05rem); margin:0 0 16px; max-width:17ch}
+.lemaGr em{font-style:normal; color:var(--cian)}
+
+/* ---------- rejilla de cifras ---------- */
+.cifras{margin-top:clamp(30px,4.4vh,54px); border-top:1px solid var(--hair-fuerte);
+        display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+        background:linear-gradient(180deg,rgba(4,17,29,.62) 0%,rgba(4,17,29,.86) 34%,rgba(4,17,29,.9) 100%);
+        -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px);
+        margin-inline:calc(var(--gut) * -0.42); padding-inline:calc(var(--gut) * 0.42)}
+@media (min-width:900px){ .cifras{grid-template-columns:repeat(4,minmax(0,1fr))} }
+.cifraIt{padding:18px 18px 22px 0; border-right:1px solid var(--hair); min-width:0}
+.cifraIt:last-child{border-right:0}
+.cifraIt .v{font-family:"IBM Plex Mono",monospace; font-weight:500; font-variant-numeric:tabular-nums;
+            font-size:clamp(1.5rem,2.6vw,2.3rem); letter-spacing:-.03em; line-height:1.05; color:var(--claro)}
+.cifraIt .u{font-size:.58em; color:var(--claro-3); margin-right:.2em}
+.cifraIt .l{margin-top:10px; font-size:.8rem; line-height:1.45; color:var(--claro-3); max-width:26ch}
+@media (max-width:899px){
+  .cifraIt{border-bottom:1px solid var(--hair); padding-right:14px}
+  .cifraIt:nth-child(2n){border-right:0}
+  .cifraIt .v{font-size:clamp(1.34rem,4.6vw,1.9rem)}
+}
+/* una sola columna: dos no caben sin que los numeros se toquen */
+@media (max-width:559px){
+  .cifras{grid-template-columns:minmax(0,1fr)}
+  .cifraIt{border-right:0; padding-right:0}
+  .cifraIt .l{max-width:none}
+}
+
+/* ---------- serie mensual ---------- */
+.serieEnv{margin-top:clamp(30px,4vh,52px)}
+.serie{display:flex; align-items:flex-end; gap:2px; height:clamp(150px,26vh,250px);
+       border-bottom:1px solid var(--hair-fuerte); padding-top:10px}
+.serie .col{flex:1; min-width:0; position:relative; display:flex; flex-direction:column;
+            justify-content:flex-end; height:100%}
+.serie .col i{display:block; width:100%; background:var(--cian); height:var(--h);
+              transition:height .9s var(--ease); opacity:.85}
+.serie .col:hover i{opacity:1; background:var(--hivis)}
+.serie .col.ult i{background:var(--verde)}
+.serie .col b{position:absolute; bottom:calc(var(--h) + 7px); left:50%; transform:translateX(-50%);
+              font-family:"IBM Plex Mono",monospace; font-size:9.5px; color:var(--claro);
+              opacity:0; transition:opacity .2s; white-space:nowrap; pointer-events:none}
+.serie .col:hover b{opacity:1}
+.serieEje{display:flex; justify-content:space-between; padding-top:10px;
+          font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.14em; color:var(--claro-3)}
+.vista.luz .serie .col i{background:var(--sm)}
+.vista.luz .serie{border-bottom-color:var(--tinta)}
+.vista.luz .serie .col b{color:var(--tinta)}
+.vista.luz .serieEje{color:var(--tinta-3)}
+
+/* ---------- barra mensual: seleccionable y con globo ---------- */
+.serie .col{cursor:pointer}
+.serie .col:focus-visible{outline:2px solid var(--cian); outline-offset:2px}
+.serie .col.sel i{background:var(--hivis)!important}
+.serie .col.sel::after{content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--hivis)}
+.serie .col b{display:none}
+.globoMes{position:absolute; z-index:6; pointer-events:none; opacity:0; transform:translate(-50%,-115%);
+          background:var(--p900); border:1px solid var(--hair-fuerte); color:var(--claro);
+          padding:9px 12px; font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1.5;
+          white-space:nowrap; transition:opacity .14s; box-shadow:0 8px 26px rgba(0,0,0,.45)}
+.globoMes.on{opacity:1}
+.globoMes b{color:var(--hivis); font-weight:600; display:block; letter-spacing:.12em; margin-bottom:4px}
+.globoMes i{font-style:normal; color:var(--claro-3)}
+.vista.luz .globoMes{background:#fff; border-color:var(--linea); color:var(--tinta);
+                     box-shadow:0 8px 26px rgba(8,25,42,.16)}
+.vista.luz .globoMes b{color:var(--sm)}
+.vista.luz .globoMes i{color:var(--tinta-3)}
+.serieEnv{position:relative}
+.mesSel[hidden]{display:none}
+.mesSel{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px;
+        font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.12em; color:var(--claro-3)}
+.mesSel b{color:var(--hivis)}
+.mesSel button{all:unset; cursor:pointer; padding:5px 11px; border:1px solid var(--hair-fuerte);
+               color:var(--claro-2); font-size:10px; letter-spacing:.12em}
+.mesSel button:hover{border-color:var(--cian); color:var(--claro)}
+.mesSel button:focus-visible{outline:2px solid var(--cian); outline-offset:2px}
+
+/* ---------- ratio por flota (portada) ---------- */
+/* ---------- hoja 3: la linea del costo ---------- */
+/* ---------- ordenes del equipo ---------- */
+.avisoCj{border-left:3px solid var(--linea); padding:11px 14px; margin-top:16px;
+         font-size:12px; line-height:1.6; color:var(--tinta-2); max-width:62ch}
+.avisoCj b{color:var(--tinta)}
+.avisoCj[hidden]{display:none}
+.avisoCj.alerta{border-left-color:var(--pa); background:rgba(176,67,26,.055)}
+
+/* ---------- hoja Setiembre ---------- */
+.cump{display:inline-block; padding:3px 8px; font-family:"IBM Plex Mono",monospace;
+      font-size:9px; letter-spacing:.12em; border:1px solid}
+.cump.si{color:var(--ok); border-color:var(--ok)}
+.cump.no{color:var(--mineral); border-color:var(--mineral)}
+.barraPc{display:block; width:74px; height:5px; background:var(--luz-2); overflow:hidden}
+.barraPc i{display:block; height:100%; background:var(--sm)}
+.barraPc.use i{background:var(--cian)}
+.avisoFuente{border-left:3px solid var(--mineral); background:var(--luz); padding:16px 20px;
+             margin-top:clamp(20px,3vh,28px); max-width:88ch}
+.avisoFuente p{font-size:13px; line-height:1.65; color:var(--tinta-2); margin:0}
+.avisoFuente p + p{margin-top:10px}
+.avisoFuente b{color:var(--tinta)}
+.sepCifras{display:flex; flex-wrap:wrap; gap:22px 38px; margin-top:4px}
+.sepCifras .l{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.14em;
+              color:var(--tinta-3)}
+.sepCifras .v{font-family:"IBM Plex Mono",monospace; font-size:1.3rem; color:var(--tinta); margin-top:5px}
+.sepCifras .v.bien{color:var(--ok)}
+.sepCifras .v.alza{color:var(--mineral)}
+.sinDato{border:1px dashed var(--linea); padding:15px 18px; font-size:13px; line-height:1.65;
+         color:var(--tinta-2); background:var(--luz)}
+.sinDato b{color:var(--tinta)}
+#s-tabla td.sube,#s-dmTabla td.sube{color:var(--mineral)}
+#s-tabla td.baja,#s-dmTabla td.baja{color:var(--ok)}
+
+/* ---------- hoja Filtros ---------- */
+.rejFiltros{display:grid; gap:clamp(16px,2.2vw,26px); margin-top:clamp(20px,3vh,28px);
+            grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.fBloque{min-width:0}
+.avisoDoble{border-left:3px solid var(--hair-fuerte); padding:11px 15px; margin-top:14px;
+            font-size:12.5px; line-height:1.6; color:var(--claro-3); max-width:92ch}
+.avisoDoble b{color:var(--claro-2)}
+.fBloque .gcT{display:block; font-family:"IBM Plex Mono",monospace; font-size:9.5px;
+              letter-spacing:.18em; color:var(--tinta-3); margin-bottom:8px}
+.vista.luz .despBtn{background:#fff; border-color:var(--linea); color:var(--tinta-2)}
+.vista.luz .despBtn:hover,.vista.luz .despBtn[aria-expanded="true"]{border-color:var(--sm); color:var(--tinta)}
+.vista.luz .despCaja{background:#fff; border-color:var(--linea); box-shadow:0 18px 44px rgba(8,25,42,.14)}
+.vista.luz .despIt{color:var(--tinta-2)}
+.vista.luz .despIt:hover{background:var(--luz-2); color:var(--tinta)}
+.vista.luz .despIt input{accent-color:var(--sm)}
+.vista.luz .despPie{border-top-color:var(--linea)}
+.vista.luz .despPie button{border-color:var(--linea); color:var(--tinta-3)}
+.vista.luz .despPie button:hover{border-color:var(--sm); color:var(--tinta)}
+.despBtn.ancho{width:100%; justify-content:space-between; box-sizing:border-box}
+.despCaja.alta{max-height:340px; overflow:auto}
+
+.ajustes{display:grid; gap:10px; margin-top:16px;
+         grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.ajuste{all:unset; cursor:pointer; box-sizing:border-box; padding:14px 16px;
+        border:1px solid var(--linea); background:#fff; transition:border-color .25s var(--ease),
+        transform .25s var(--ease)}
+.ajuste:hover{border-color:var(--sm); transform:translateY(-2px)}
+.ajuste:focus-visible{outline:2px solid var(--cian); outline-offset:2px}
+.ajuste b{display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+          letter-spacing:.12em; color:var(--sm); font-weight:600}
+.ajuste span{display:block; margin-top:7px; font-size:12.5px; color:var(--tinta-2); line-height:1.5}
+
+.granTotal{display:flex; flex-wrap:wrap; align-items:baseline; gap:clamp(14px,3vw,36px);
+           border-top:1px solid var(--tinta); border-bottom:1px solid var(--linea);
+           padding:clamp(20px,3vh,30px) 0; margin-top:clamp(26px,4vh,40px)}
+.granTotal .gt.bien{color:var(--ok)}
+.granTotal .gt.alza{color:var(--mineral)}
+.granTotal .gt{font-family:"IBM Plex Mono",monospace; font-size:clamp(1.6rem,4vw,2.9rem);
+               letter-spacing:-.035em; color:var(--tinta); font-variant-numeric:tabular-nums}
+.granTotal .gl{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.16em;
+               color:var(--tinta-3)}
+.granTotal .gd{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--tinta-2)}
+
+.otsEq{margin-top:clamp(34px,5vh,60px)}
+.otsEq table.eq td.o{font-family:"IBM Plex Mono",monospace; color:var(--sm)}
+.otsEq table.eq td.cj{font-family:"IBM Plex Mono",monospace; font-size:11px}
+.otsEq table.eq tr.sel{background:var(--luz-2)}
+.marcaF{display:inline-block; margin-left:8px; padding:2px 6px; border:1px solid var(--linea);
+        font-family:"IBM Plex Mono",monospace; font-size:8.5px; letter-spacing:.12em;
+        color:var(--tinta-3); vertical-align:middle}
+.marcaF.c{border-color:var(--sm); color:var(--sm)}
+
+/* campo de equipo con autocompletado: se escribe o se elige de la lista */
+.entradaEq{all:unset; box-sizing:border-box; width:100%; margin-top:6px; padding:8px 10px;
+           border:1px solid var(--linea); background:#fff; color:var(--tinta);
+           font-family:"IBM Plex Mono",monospace; font-size:12px}
+.entradaEq::placeholder{color:var(--tinta-3)}
+.entradaEq:focus-visible{outline:2px solid var(--sm); outline-offset:1px}
+.vista:not(.luz) .entradaEq{background:rgba(4,17,29,.72); border-color:var(--hair-fuerte);
+                            color:var(--claro)}
+.vista:not(.luz) .entradaEq::placeholder{color:var(--claro-3)}
+
+.grafControles{display:flex; flex-wrap:wrap; gap:clamp(14px,2.4vw,34px); margin-top:clamp(24px,3.5vh,38px)}
+.gc{min-width:0}
+.gcT{display:block; font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.18em;
+     color:var(--tinta-3); margin-bottom:8px}
+.gcB{display:flex; flex-wrap:wrap; gap:6px}
+.grafEnv{position:relative; margin-top:clamp(18px,2.5vh,26px)}
+#graf{display:block; width:100%; height:auto; overflow:visible}
+.gFondo{fill:#fff; stroke:var(--linea)}
+.gFuera{fill:var(--luz-2); opacity:.72}
+.gRejilla{stroke:var(--linea); stroke-width:1; stroke-dasharray:2 4}
+.gCero{stroke:var(--tinta-3); stroke-width:1}
+.gCruz{stroke:var(--tinta-3); stroke-width:1; stroke-dasharray:3 3}
+.gBrocha{fill:var(--cian); opacity:.16}
+/* halo blanco: el rotulo cae sobre la propia linea de objetivo y a veces
+   sobre una serie, y asi se lee sin depender de lo que haya debajo */
+.gObjRot{fill:var(--pa); font-family:"IBM Plex Mono",monospace; font-size:10px;
+          letter-spacing:.1em; paint-order:stroke; stroke:#fff; stroke-width:3.5px;
+          stroke-linejoin:round}
+.gcObj{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.entradaObj{all:unset; box-sizing:border-box; width:120px; padding:7px 9px;
+            border:1px solid var(--linea); background:#fff; color:var(--tinta);
+            font-family:"IBM Plex Mono",monospace; font-size:12px}
+.entradaObj:focus{outline:2px solid var(--cian); outline-offset:1px}
+.gcObj .u{font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.12em;
+          color:var(--pa)}
+.gEjeY{fill:var(--tinta-3); font-family:"IBM Plex Mono",monospace; font-size:11px; text-anchor:end}
+.gEjeX{fill:var(--tinta-3); font-family:"IBM Plex Mono",monospace; font-size:11px; text-anchor:middle}
+/* En el telefono el lienzo del grafico es de 420 de ancho en vez de 1000,
+   pero aun asi se dibuja reducido: el rotulo hay que subirlo o queda en
+   nueve pixeles. Va DESPUES de la regla base o no la gana. */
+@media (max-width:620px){
+  .gEjeY,.gEjeX{font-size:15px}
+  .gObjRot{font-size:13px}
+}
+.grafGlobo{position:absolute; top:6px; transform:translateX(-50%); pointer-events:none;
+           background:var(--tinta); color:#fff; padding:10px 13px; font-family:"IBM Plex Mono",monospace;
+           font-size:11px; line-height:1.65; white-space:nowrap; opacity:0; transition:opacity .15s var(--ease)}
+.grafGlobo.on{opacity:1}
+.grafGlobo .gm{display:block; font-size:9.5px; letter-spacing:.16em; opacity:.6; margin-bottom:5px}
+.grafGlobo i{display:inline-block; width:8px; height:8px; margin-right:7px; vertical-align:baseline}
+.grafGlobo b{font-weight:600}
+.grafGlobo em{display:block; font-style:normal; font-size:10px; margin-top:6px; opacity:.85}
+.grafGlobo em.sube{color:var(--hivis)}
+.grafGlobo em.baja{color:var(--verde-cl)}
+.grafLeyenda{display:flex; flex-wrap:wrap; gap:16px; margin-top:14px}
+.gLeg{display:inline-flex; align-items:center; font-family:"IBM Plex Mono",monospace;
+      font-size:10px; letter-spacing:.12em; color:var(--tinta-2)}
+.gLeg i{display:inline-block; width:12px; height:3px; margin-right:8px}
+#g-tabla tr{cursor:pointer}
+#g-tabla tr.fuera{opacity:.42}
+#g-tabla tr.dentro td.id{color:var(--sm)}
+#g-tabla td.sube{color:var(--mineral)}
+#g-tabla td.baja{color:var(--ok)}
+.panelCifras .v.sube{color:var(--mineral)}
+.panelCifras .v.baja{color:var(--ok)}
+
+/* ---------- fila de filtros de equipo activos ---------- */
+.activos{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:14px}
+.activos[hidden]{display:none}
+.activos .et{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.16em;
+             color:var(--claro-3)}
+.quitar{all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:8px;
+        padding:6px 11px; border:1px solid var(--verde-cl); color:var(--verde-cl);
+        font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em}
+.quitar:hover{background:var(--verde-cl); color:#03121f}
+.quitar:focus-visible{outline:2px solid var(--cian); outline-offset:2px}
+.quitar b{font-weight:600}
+
+.panelT2{margin-top:18px; padding-top:16px; border-top:1px solid var(--hair)}
+.vista.luz .panelT2{border-top-color:var(--linea)}
+
+.filtros2{display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start;
+          margin-top:clamp(20px,3vh,30px)}
+.desplegable{position:relative}
+.despBtn{all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:10px;
+         padding:9px 14px; border:1px solid var(--hair-fuerte); background:rgba(4,17,29,.55);
+         font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.13em;
+         color:var(--claro-2); transition:border-color .25s var(--ease), color .25s var(--ease)}
+.despBtn:hover{border-color:var(--verde-cl); color:var(--claro)}
+.despBtn:focus-visible{outline:2px solid var(--cian); outline-offset:2px}
+.despBtn i{font-style:normal; font-size:8px; opacity:.6}
+.despBtn[aria-expanded="true"]{border-color:var(--verde-cl); color:var(--claro)}
+.despCaja{position:absolute; z-index:40; top:calc(100% + 6px); left:0; min-width:270px;
+          background:#04131f; border:1px solid var(--hair-fuerte); padding:8px;
+          box-shadow:0 18px 44px rgba(0,0,0,.55)}
+.despCaja[hidden]{display:none}
+.despIt{display:flex; align-items:center; gap:10px; padding:8px 9px; cursor:pointer;
+        font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em;
+        color:var(--claro-2)}
+.despIt:hover{background:rgba(110,191,115,.12); color:var(--claro)}
+.despIt input{accent-color:var(--verde-cl); width:13px; height:13px; margin:0}
+.despIt span.v{margin-left:auto; opacity:.55; letter-spacing:.04em}
+.despPie{display:flex; gap:8px; border-top:1px solid var(--hair); margin-top:6px; padding-top:8px}
+.despPie button{all:unset; cursor:pointer; padding:6px 10px; border:1px solid var(--hair-fuerte);
+                font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.12em;
+                color:var(--claro-3)}
+.despPie button:hover{border-color:var(--verde-cl); color:var(--claro)}
+
+.filtroProy{display:flex; flex-wrap:wrap; gap:8px; margin-top:clamp(20px,3vh,30px)}
+.pchip{all:unset; cursor:pointer; display:inline-flex; align-items:baseline; gap:9px;
+       padding:9px 14px; border:1px solid var(--hair-fuerte); background:rgba(4,17,29,.55);
+       font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.13em;
+       color:var(--claro-2); transition:border-color .25s var(--ease), color .25s var(--ease),
+       background .25s var(--ease)}
+.pchip:hover{border-color:var(--sm-cl); color:var(--claro)}
+.pchip:focus-visible{outline:2px solid var(--cian); outline-offset:2px}
+.pchip small{font-size:.9em; opacity:.6; letter-spacing:.06em}
+/* el proyecto activo va en azul, no en verde: el verde de la torre es el
+   de los camiones hibridos y confundia las dos cosas */
+.pchip[aria-pressed="true"]{background:linear-gradient(180deg,#3C6BC0,#25498E);
+   border-color:#4F7FD6; color:#fff; box-shadow:0 6px 18px rgba(37,73,142,.45)}
+.pchip[aria-pressed="true"] small{opacity:.8; color:#CFE0FF}
+.filtroProy.sec{margin-top:10px}
+/* la ficha de tipo va en cian para que se distinga de un vistazo de las de
+   proyecto, que son azules: son dos cortes distintos, no una misma lista */
+.filtroProy.sec .pchip[aria-pressed="true"]{background:linear-gradient(180deg,#1C6E7E,#12505C);
+   border-color:#2A93A8; box-shadow:0 6px 18px rgba(18,80,92,.45)}
+.filtroProy.sec .pchip[aria-pressed="true"] small{color:#BFEAF2}
+.filtroProyPie{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em;
+               color:var(--claro-3); margin-top:11px}
+
+.ratio.ir{cursor:pointer; transition:border-color .25s var(--ease), transform .25s var(--ease)}
+.ratio.ir:hover,.ratio.ir:focus-visible{border-color:var(--verde-cl); transform:translateY(-2px)}
+.ratio.ir:focus-visible{outline:2px solid var(--cian); outline-offset:2px}
+.ratio .rir{margin-top:9px; font-family:"IBM Plex Mono",monospace; font-size:9px;
+            letter-spacing:.16em; color:var(--verde-cl); opacity:0; transition:opacity .25s var(--ease)}
+.ratio.ir:hover .rir,.ratio.ir:focus-visible .rir{opacity:1}
+@media (hover:none){ .ratio .rir{opacity:.8} }
+
+.roGrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; margin-top:16px}
+.roIt{border:1px solid var(--hair); padding:14px 15px 15px; background:rgba(4,17,29,.72); min-width:0}
+.roIt .rn{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.14em; color:var(--claro-3)}
+.roIt .rv{font-family:"IBM Plex Mono",monospace; font-size:clamp(1.15rem,1.8vw,1.55rem);
+          color:var(--claro); margin-top:8px; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.roIt .rp{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--claro-3); margin-top:6px}
+.roIt .rb{height:4px; background:rgba(159,182,204,.16); margin-top:10px; overflow:hidden}
+.roIt .rb i{display:block; height:100%; width:0; background:var(--verde-cl); transition:width .9s var(--ease)}
+.roIt:first-child .rb i{background:var(--hivis)}
+.vista.luz .roIt{background:#fff; border-color:var(--linea)}
+.vista.luz .roIt .rn,.vista.luz .roIt .rp{color:var(--tinta-3)}
+.vista.luz .roIt .rv{color:var(--tinta)}
+
+.ratios{display:grid; grid-template-columns:repeat(auto-fit,minmax(196px,1fr)); gap:10px; margin-top:18px}
+.ratio{background:rgba(4,17,29,.72); border:1px solid var(--hair); padding:15px 16px 16px; min-width:0}
+.ratio .rn{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.16em;
+           color:var(--claro-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ratio .rv{font-family:"IBM Plex Mono",monospace; font-size:clamp(1.3rem,2vw,1.8rem);
+           color:var(--claro); margin-top:9px; letter-spacing:-.03em; font-variant-numeric:tabular-nums}
+.ratio .rv .u{font-size:.52em; color:var(--claro-3); margin-right:.28em}
+.ratio .rv .h{font-size:.5em; color:var(--claro-3); margin-left:.15em}
+.ratio .rb{height:4px; background:rgba(159,182,204,.16); margin-top:11px; overflow:hidden}
+.ratio .rb i{display:block; height:100%; width:0; background:var(--verde-cl);
+             transition:width 1s var(--ease)}
+.ratio:first-child .rb i{background:var(--hivis)}
+.ratio .rd{margin-top:10px; font-family:"IBM Plex Mono",monospace; font-size:9.5px;
+           color:var(--claro-3); line-height:1.5}
+.tituloRatios{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-top:clamp(26px,4vh,44px)}
+.tituloRatios h3{font-family:Archivo,sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:-.015em}
+.tituloRatios span{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.16em; color:var(--claro-3)}
+
+/* ---------- panel de periodo (Costos) ---------- */
+.panel{border:1px solid var(--linea); background:var(--luz-2); padding:18px 20px 20px;
+       margin-bottom:clamp(24px,3.4vh,38px)}
+.panelT{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.18em;
+        color:var(--tinta-3); margin-bottom:14px}
+.panelF{display:flex; flex-wrap:wrap; gap:16px 22px; align-items:flex-end}
+.fl{display:flex; flex-direction:column; gap:6px; font-family:"IBM Plex Mono",monospace;
+    font-size:9.5px; letter-spacing:.14em; color:var(--tinta-3)}
+.fl select{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--tinta);
+  background-color:#fff; border:1px solid var(--linea); padding:8px 30px 8px 10px;
+  min-width:132px; cursor:pointer; appearance:none; -webkit-appearance:none; border-radius:0;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),
+                   linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 16px) 54%, calc(100% - 11px) 54%;
+  background-size:5px 5px,5px 5px; background-repeat:no-repeat;
+  transition:border-color .18s}
+.fl select:hover{border-color:var(--tinta-3)}
+.fl select:focus-visible{outline:2px solid var(--sm); outline-offset:2px}
+.atajos{display:flex; flex-wrap:wrap; gap:6px; margin-top:16px}
+.panelCifras{display:flex; flex-wrap:wrap; gap:26px 40px; margin-top:18px; padding-top:16px;
+             border-top:1px solid var(--linea)}
+.panelCifras div{min-width:0}
+.panelCifras .l{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.14em; color:var(--tinta-3)}
+.panelCifras .v{font-family:"IBM Plex Mono",monospace; font-size:1.25rem; color:var(--tinta); margin-top:5px}
+
+/* ---------- pantalla completa ---------- */
+.pantalla{all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:8px;
+          padding:5px 11px; border:1px solid var(--hair-fuerte); white-space:nowrap;
+          font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.14em;
+          color:var(--claro-2); transition:border-color .25s var(--ease),
+          color .25s var(--ease), background .25s var(--ease)}
+.pantalla i{font-style:normal; font-size:13px; line-height:1}
+.pantalla:hover{border-color:var(--hivis); color:var(--hivis)}
+.pantalla:focus-visible{outline:2px solid var(--hivis); outline-offset:3px}
+.nav.claro .pantalla{border-color:var(--linea); color:var(--tinta-2)}
+.nav.claro .pantalla:hover{border-color:var(--sm); color:var(--sm)}
+.nav.claro .pantalla:focus-visible{outline-color:var(--sm)}
+.pantalla[aria-pressed="true"]{border-color:var(--hivis); color:var(--hivis)}
+.nav.claro .pantalla[aria-pressed="true"]{border-color:var(--sm); color:var(--sm)}
+@media (max-width:1100px){ .pantalla span{display:none} .pantalla{padding:5px 8px} }
+
+/* a pantalla completa la barra estorba menos y el contenido respira */
+body.enPantalla .nav{padding-block:10px}
+body.enPantalla .demo{display:none}
+
+/* aviso cuando el navegador no deja salir del marco */
+.avisoPantalla{position:fixed; z-index:90; left:50%; bottom:26px; transform:translateX(-50%);
+               background:var(--tinta); color:#fff; padding:13px 18px; max-width:min(92vw,520px);
+               font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1.65;
+               box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.avisoPantalla[hidden]{display:none}
+.avisoPantalla b{color:var(--hivis)}
+.avisoPantalla button{all:unset; cursor:pointer; margin-left:14px; text-decoration:underline;
+                      color:var(--claro-3)}
+
+/* La firma: va al lado del sello de PILOTO, en tono bajo. Marca la autoría
+   sin pelearse con las cifras, que es lo que la barra tiene que dejar leer. */
+.autoria{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.15em;
+         color:var(--claro-3); white-space:nowrap; opacity:.85}
+.autoria b{color:var(--claro-2); font-weight:600}
+.nav.claro .autoria{color:var(--tinta-3)}
+.nav.claro .autoria b{color:var(--tinta-2)}
+/* en pantalla estrecha se queda el apellido, que es lo que identifica */
+.autoria .largo{display:inline}
+@media (max-width:820px){
+  .autoria{font-size:8.5px; letter-spacing:.1em}
+  .autoria .largo{display:none}
+}
+
+/* periodo activo, siempre visible en la barra */
+.periodo{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.14em;
+         color:var(--hivis); border:1px solid rgba(252,230,36,.4); padding:4px 10px; white-space:nowrap}
+.nav.claro .periodo{color:var(--sm); border-color:var(--linea)}
+
+/* ---------- 01 FLOTA sobre el tajo ---------- */
+#v-flota::before{content:""; position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(180deg,rgba(3,16,28,.42) 0%,rgba(3,16,28,.72) 18%,
+             rgba(3,16,28,.90) 46%,rgba(3,16,28,.95) 100%)}
+#v-flota .panel{background:rgba(4,17,29,.72); border-color:var(--hair)}
+#v-flota .panelT{color:var(--claro-3)}
+#v-flota .fl{color:var(--claro-3)}
+#v-flota .fl select{background-color:rgba(3,16,28,.9); color:var(--claro); border-color:var(--hair-fuerte)}
+#v-flota .fl select:hover{border-color:var(--cian)}
+#v-flota .fbt{border-color:var(--hair-fuerte); color:var(--claro-2)}
+#v-flota .fbt:hover{border-color:var(--cian); color:var(--claro)}
+#v-flota .fbt[aria-pressed="true"]{background:var(--cian); border-color:var(--cian); color:#04111D}
+#v-flota .tituloRatios h3{color:var(--claro)}
+#v-flota table.eq thead th{background:transparent; color:var(--claro-3); border-bottom-color:var(--hair-fuerte)}
+#v-flota table.eq tbody td{color:var(--claro-2); border-bottom-color:var(--hair)}
+#v-flota table.eq tbody tr:hover td{background:rgba(159,182,204,.08)}
+/* filas que llevan a otra pagina */
+table.eq tbody tr.ir{cursor:pointer}
+table.eq tbody tr.ir:hover td{background:rgba(37,73,142,.07)}
+table.eq tbody tr.ir:focus-visible{outline:2px solid var(--cian); outline-offset:-2px}
+#v-flota table.eq td.id{color:var(--claro)}
+#v-flota table.eq td.nn{color:var(--claro)}
+#v-flota .rank{color:var(--claro-3)}
+#v-flota .tablaEnv{border-top:1px solid var(--hair-fuerte)}
+
+.vista.luz .ratios .ratio{background:#fff; border-color:var(--linea)}
+.vista.luz .ratio .rn{color:var(--tinta-3)}
+.vista.luz .ratio .rv{color:var(--tinta)}
+.vista.luz .ratio .rv .u,.vista.luz .ratio .rv .h{color:var(--tinta-3)}
+.vista.luz .ratio .rb{background:var(--luz-3)}
+.vista.luz .ratio .rb i{background:var(--sm)}
+.vista.luz .ratio:first-child .rb i{background:var(--cian)}
+.vista.luz .ratio .rd{color:var(--tinta-3)}
+
+/* ---------- tabla de equipos ---------- */
+.barraFiltros{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px}
+.fbt{all:unset; cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:10px;
+     letter-spacing:.12em; padding:7px 13px; border:1px solid var(--linea); color:var(--tinta-2)}
+.fbt:hover{border-color:var(--sm); color:var(--tinta)}
+.fbt[aria-pressed="true"]{background:var(--sm); border-color:var(--sm); color:#fff}
+.fbt:focus-visible{outline:2px solid var(--sm); outline-offset:2px}
+
+/* ---------- ordenes ---------- */
+.otsEnv{border:1px solid var(--linea); max-height:min(62vh,560px); overflow:auto}
+table.tot{border-collapse:collapse; width:100%; min-width:820px; font-size:.82rem}
+table.tot thead th{position:sticky; top:0; z-index:2; background:var(--luz-2); text-align:left;
+  padding:11px 14px; font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--tinta-3); font-weight:600; border-bottom:1px solid var(--tinta)}
+table.tot th.r{text-align:right}
+table.tot td{padding:10px 14px; border-bottom:1px solid var(--linea-2); color:var(--tinta-2); white-space:nowrap}
+table.tot tbody tr:hover td{background:#fff}
+table.tot td.o{font-family:"IBM Plex Mono",monospace; color:var(--sm)}
+table.tot td.q{font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--tinta)}
+table.tot td.d{white-space:normal; min-width:250px; color:var(--tinta)}
+table.tot td.n{font-family:"IBM Plex Mono",monospace; text-align:right; color:var(--tinta); font-variant-numeric:tabular-nums}
+.pmc{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.08em;
+     padding:3px 7px; background:var(--luz-3); color:var(--tinta-2)}
+.pmc.PM01{background:rgba(176,67,26,.13); color:var(--pa)}
+.pmc.PM02{background:rgba(42,143,203,.15); color:var(--h3)}
+.pmc.PM03{background:rgba(138,98,6,.13); color:var(--at)}
+
+/* las barras de fase nacieron para fondo oscuro: en las vistas claras
+   hay que devolverles el contraste */
+.vista.luz .fases{border-top-color:var(--tinta)}
+.vista.luz .fase{border-bottom-color:var(--linea-2)}
+.vista.luz .fase .nm{color:var(--tinta)}
+.vista.luz .fase .vl{color:var(--tinta)}
+.vista.luz .fase .pc{color:var(--tinta-3)}
+.vista.luz .fase .via{background:var(--luz-3)}
+.vista.luz .fase .via i{background:var(--h3)}
+.vista.luz .fase.top .via i{background:var(--sm)}
+@media (min-width:680px){
+  .vista.luz .fase{grid-template-columns:minmax(140px,1fr) minmax(0,2.3fr) 112px 150px}
+}
+.vista.luz .fase .pc{white-space:nowrap}
+
+/* ---------- dos columnas genericas ---------- */
+.duo{display:grid; gap:clamp(26px,5vw,70px); grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){ .duo{grid-template-columns:repeat(2,minmax(0,1fr))} }
+</style>
+
+<header class="nav" id="nav">
+  <a class="marcaSM" href="#" aria-label="San Martin, Torre de Control de equipos">
+    <img class="iso" id="iso-nav" alt="" src="">
+    <img class="word" id="word-nav" alt="San Martin Contratistas Generales" src="">
+    <span class="sep" aria-hidden="true"></span>
+    <span class="rot">Torre de Control<i>San Martín en general</i></span>
+  </a>
+  <div class="navcap">
+    <span class="demo">PILOTO</span>
+    <span class="autoria"><span class="largo">CREADO POR </span><b>JOAQUÍN ZAVALETA</b></span>
+    <span class="periodo" id="proyAct">TODOS LOS PROYECTOS</span>
+    <span class="periodo" id="periodoAct">—</span>
+    <span class="vivo"><span class="punto off" id="punto"></span><span id="reloj">sin movimientos nuevos</span></span>
+    <button class="pantalla" type="button" id="btnPantalla" aria-pressed="false"
+            title="Ver a pantalla completa">
+      <i aria-hidden="true">⛶</i><span id="btnPantallaTx">PANTALLA COMPLETA</span>
+    </button>
+  </div>
+  <nav class="pestanas" id="pestanas" role="tablist" aria-label="Secciones"></nav>
+</header>
+
+<main>
+
+<!-- ═══════════════════ INICIO ═══════════════════ -->
+<section class="vista on" id="v-inicio" data-pes="Inicio" data-tajo="1">
+  <div class="wrap">
+    <span class="hibrido"><span class="bulbo"></span>SAN MARTÍN · PIONEROS EN CAMIONES HÍBRIDOS</span>
+    <h1 class="lemaGr">Toda la flota de <em>San Martín</em>, medida hora por hora.</h1>
+    <div class="filtroProy" id="filtroProy" role="group" aria-label="Proyecto"></div>
+    <div class="filtroProy sec" id="filtroTipo" role="group" aria-label="Tipo de flota"></div>
+    <div class="filtros2">
+      <div class="desplegable">
+        <button class="despBtn" type="button" id="roBtn" aria-expanded="false" aria-haspopup="true">
+          <b>TIPO DE COSTO:</b> <span id="roRotulo">TODO EL COSTO</span> <i>▼</i>
+        </button>
+        <div class="despCaja" id="roCaja" hidden role="group" aria-label="Tipo de costo (RO)"></div>
+      </div>
+    </div>
+    <div class="activos" id="activosEq" hidden></div>
+    <p class="filtroProyPie" id="filtroProyPie">PROYECTO = COLUMNA A · TIPO DE COSTO = COLUMNA C (RO) · PROPIO/ALQUILADO = COLUMNA O ·
+    UNA SOLA SELECCIÓN PARA LAS NUEVE PESTAÑAS</p>
+
+    <div class="cifras">
+      <div class="cifraIt"><div class="v"><span class="u">US$</span><span class="n" id="k-total">0</span></div>
+        <div class="l" id="k-total-l">costo total de equipos del periodo, en dólares</div></div>
+      <div class="cifraIt"><div class="v n" id="k-hm">0</div>
+        <div class="l">horas máquina del periodo, contadas una vez por equipo y mes</div></div>
+      <div class="cifraIt"><div class="v n" id="k-eq">0</div>
+        <div class="l" id="k-eq-l">equipos con costo imputado en el periodo</div></div>
+      <div class="cifraIt"><div class="v" style="font-size:clamp(1rem,1.5vw,1.3rem)" id="k-periodo">—</div>
+        <div class="l">periodo mostrado; se elige en Flota, Tendencia o Filtros, o haciendo clic en un mes</div></div>
+    </div>
+
+    <div class="tituloRatios">
+      <h3>Costo por hora máquina, flota por flota</h3>
+      <span id="ratiosNotaInicio">US$ POR HORA · CLIC EN UNA FLOTA PARA VER SU DETALLE</span>
+    </div>
+    <div class="ratios" id="ratios"></div>
+
+    <div class="serieEnv">
+      <div class="serie" id="serie"></div>
+      <div class="globoMes" id="globoMes"></div>
+      <div class="serieEje"><span id="serie-ini">—</span><span>COSTO MENSUAL · CLIC EN UN MES PARA VERLO</span><span id="serie-fin">—</span></div>
+      <div class="mesSel" id="mesSel" hidden><span>MOSTRANDO <b id="mesSel-n">—</b></span>
+        <button id="mesSel-x">VER TODO EL PERIODO</button></div>
+      <p class="nota" style="margin-top:16px; max-width:78ch"><b>Ojo con agosto 2026.</b>
+      Es el único mes del periodo con combustible imputado al equipo: US$ 8.11 M de los
+      US$ 8.13 M que la cuenta «CONSUMO SUM COMBUST» registra en los diecisiete meses. Eso
+      explica que la barra sea el doble que las demás y el 44 % de ese mes. Para comparar mes
+      contra mes conviene dejarlo fuera, o cargar el combustible en los otros dieciséis.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FLOTA ═══════════════════ -->
+<section class="vista" id="v-flota" data-pes="Flota" data-tajo="1">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">01</span><span class="lin"></span><span class="num">LA FLOTA POR DENTRO</span></div>
+      <h2 class="d d-l">Primero el concepto, después la máquina.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">Todos los controles están arriba: periodo, flota, modelo y proveedor. Debajo,
+      la misma selección leída dos veces —en qué concepto se va el dinero y cuánto cuesta la hora
+      de cada flota— y al final el detalle equipo por equipo.</p></details>
+    </div>
+
+    <div class="panel">
+      <div class="panelT">PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO</div>
+      <div class="panelF">
+        <label class="fl">DESDE<select id="mesDesde2"></select></label>
+        <label class="fl">HASTA<select id="mesHasta2"></select></label>
+      </div>
+      <div class="atajos" id="atajos2"></div>
+      <div class="panelT panelT2">FLOTA, MODELO Y PROVEEDOR</div>
+      <div class="panelF" id="filtrosEq"></div>
+    </div>
+
+    <h3 class="d d-m" style="margin:clamp(30px,4vh,52px) 0 6px">En qué se va el costo de esta selección</h3>
+    <p class="nota" id="f-roNota">CLASIFICACIÓN RO DEL ASIENTO · <span id="f-roPeriodo">—</span></p>
+    <div class="roGrid" id="f-ro"></div>
+
+    <div class="tituloRatios" style="margin-top:clamp(30px,4vh,52px)">
+      <h3>Costo por hora máquina, flota por flota</h3>
+      <span id="ratiosNota">US$ POR HORA</span>
+    </div>
+    <div class="ratios" id="ratiosFlota"></div>
+
+    <h3 class="d d-m" style="margin:clamp(30px,4vh,52px) 0 6px">Los equipos que más consumen</h3>
+    <p class="lede"><b id="f-neq">0</b> equipos cumplen el filtro en el periodo activo, sobre los
+    <b>1,291 del libro</b>; se listan los 40 de mayor costo. Elige uno y pasa a <b>Equipo</b> para
+    verlo por dentro. El ratio de arriba sale exactamente de estos mismos equipos, así que coincide
+    siempre con la tarjeta del inicio.</p>
+    <div class="tablaEnv" style="margin-top:18px">
+      <table class="eq">
+        <thead><tr>
+          <th></th><th>Equipo</th><th>Familia</th><th>Modelo</th><th>Proveedor</th>
+          <th class="r">Horas máq.</th><th class="r">Costo US$</th><th class="r">US$ hora</th>
+        </tr></thead>
+        <tbody id="tablaEq"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ COSTOS ═══════════════════ -->
+<section class="vista luz" id="v-costos" data-pes="Tendencia">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">02</span><span class="lin"></span><span class="num">LA LÍNEA DEL COSTO</span></div>
+      <h2 class="d d-l">El costo como una cotización.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo. El eje
+      horizontal se ajusta al periodo elegido y se puede agrupar <b>mes a mes</b>, <b>por año</b> o
+      en <b>un solo punto</b>. Arrastra sobre el gráfico para acotar, o haz clic en un punto para
+      aislarlo: el recorte queda puesto en toda la torre. Por debajo del mes no hay nada que
+      dibujar —el libro contabiliza cada mes en su último día—, y la tabla de abajo conserva
+      siempre los diecisiete meses para volver a abrir el periodo. Puedes fijar un <b>objetivo</b>
+      —de tarifa, de costo o de horas— y se dibuja como línea a trazos contra la que medir cada
+      punto.</p></details>
+    </div>
+
+    <div class="panel">
+      <div class="panelT">PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO</div>
+      <div class="panelF">
+        <label class="fl">DESDE<select id="mesDesde3"></select></label>
+        <label class="fl">HASTA<select id="mesHasta3"></select></label>
+      </div>
+      <div class="atajos" id="atajos3"></div>
+      <div class="panelT panelT2">FLOTA, MODELO Y PROVEEDOR</div>
+      <div class="panelF" id="filtrosEq3"></div>
+      <div class="panelT panelT2">UN EQUIPO EN CONCRETO</div>
+      <div class="panelF">
+        <label class="fl" style="flex:1 1 280px">CÓDIGO DE EQUIPO
+          <input class="entradaEq" id="fEq3" list="listaEq" autocomplete="off"
+                 placeholder="TODOS — escribe o elige, p. ej. CH-08" aria-label="Equipo">
+        </label>
+      </div>
+      <div class="panelCifras">
+        <div><div class="l">COSTO DEL PERIODO</div><div class="v" id="t3-total">—</div></div>
+        <div><div class="l">HORAS MÁQUINA</div><div class="v" id="t3-hm">—</div></div>
+        <div><div class="l" id="t3-cph-l">COSTO POR HORA</div><div class="v" id="t3-cph">—</div></div>
+        <div><div class="l" id="t3-var-l">DEL PRIMER AL ÚLTIMO MES</div><div class="v" id="t3-var">—</div></div>
+      </div>
+    </div>
+
+    <div class="grafControles">
+      <div class="gc"><span class="gcT">MÉTRICA</span><div class="gcB" id="g-metrica"></div></div>
+      <div class="gc"><span class="gcT">ESCALA DEL TIEMPO</span><div class="gcB" id="g-escalax"></div></div>
+      <div class="gc"><span class="gcT">ESCALA VERTICAL</span><div class="gcB" id="g-escala"></div></div>
+      <div class="gc"><span class="gcT">COMPARAR</span><div class="gcB" id="g-comparar"></div></div>
+      <div class="gc"><span class="gcT">LÍNEAS A LA VEZ</span><div class="gcB" id="g-lineas"></div></div>
+      <div class="gc"><span class="gcT">OBJETIVO</span>
+        <div class="gcB gcObj">
+          <input class="entradaObj" id="g-obj" inputmode="decimal" placeholder="sin objetivo"
+                 aria-label="Valor objetivo">
+          <span class="u" id="g-obj-u">—</span>
+          <button class="fbt" type="button" id="g-obj-x" hidden>QUITAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grafEnv">
+      <svg id="graf" viewBox="0 0 1000 356" role="img" aria-label="Evolución mensual"></svg>
+      <div class="grafGlobo" id="g-globo"></div>
+    </div>
+    <div class="grafLeyenda" id="g-leyenda"></div>
+    <p class="nota" id="g-pie" style="margin-top:14px">—</p>
+
+    <h3 class="d d-m" style="margin:clamp(30px,4vh,48px) 0 6px">Mes a mes</h3>
+    <p class="nota">CLIC EN UN MES PARA AISLARLO · LOS MESES FUERA DEL PERIODO VAN ATENUADOS</p>
+    <div class="tablaEnv" style="margin-top:16px">
+      <table class="eq">
+        <thead><tr>
+          <th>Mes</th><th class="r">Costo US$</th><th class="r">Horas máq.</th>
+          <th class="r">US$ hora</th><th class="r">Variación</th>
+        </tr></thead>
+        <tbody id="g-tabla"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ EQUIPO ═══════════════════ -->
+<section class="vista luz" id="v-equipo" data-pes="Equipo">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">03</span><span class="lin"></span><span class="num">LA MÁQUINA</span></div>
+      <h2 class="d d-l">Dónde duele, pieza por pieza.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">Las cifras de arriba salen del libro mayor, como el resto de la torre. Gira el
+      modelo, toca una pieza y al costado aparecen sus órdenes; más abajo está la lista completa.
+      <b>Las órdenes vienen del detalle de mantenimiento de SHGN</b>, que tiene dos orígenes:
+      agosto 2026 sale del consolidado <b>0 SHGN_RO EQUIPOS</b> —órdenes reales de SAP con su
+      conjunto y su costo— y el resto de los meses, de RESUMEN ANALISIS, que sólo guarda las
+      cuarenta más caras de cada mes. Ninguna de las dos cuadra con el importe contable.</p></details>
+    </div>
+
+    <div class="selEq">
+      <select id="selector" aria-label="Elegir equipo"></select>
+      <span class="ficha" id="ficha"></span>
+    </div>
+
+    <div class="eqCifras">
+      <div><div class="l">COSTO DEL PERIODO</div><div class="v" id="q-costo">US$ 0</div><div class="d" id="q-costo-d"></div></div>
+      <div><div class="l">HORAS MÁQUINA</div><div class="v" id="q-hrs">0</div><div class="d">HM reales del periodo</div></div>
+      <div><div class="l">COSTO POR HORA</div><div class="v" id="q-cph">US$ 0</div><div class="d" id="q-cph-d"></div></div>
+      <div><div class="l">SISTEMAS CON COSTO</div><div class="v" id="q-sis">0</div><div class="d">conjuntos SAP</div></div>
+      <div><div class="l">ÓRDENES</div><div class="v" id="q-ot">0</div><div class="d">con costo imputado</div></div>
+    </div>
+
+    <div class="maq">
+      <div>
+        <div class="visor">
+          <div class="vistas">
+            <button class="vb" id="v-3d" aria-pressed="true">MODELO</button>
+            <button class="vb" id="v-2d" aria-pressed="false">ESQUEMA</button>
+            <button class="vb" id="v-giro" aria-pressed="true">GIRO</button>
+          </div>
+          <div class="estudio" id="estudio">
+            <canvas id="lienzo-eq"></canvas>
+            <div class="pista3d" id="pista3d">arrastra para girar · rueda para acercar · clic en una pieza</div>
+            <div class="globo" id="globo"></div>
+          </div>
+          <div class="svgEsq" id="esquema" hidden></div>
+        </div>
+        <div class="escala" id="escalaCalor">
+          <span>COSTO POR SISTEMA</span>
+          <span><i data-n="0"></i>sin consumo</span>
+          <span><i data-n="1"></i>bajo</span>
+          <span><i data-n="2"></i>medio</span>
+          <span><i data-n="3"></i>alto</span>
+          <span><i data-n="4"></i>crítico</span>
+        </div>
+        <div class="llantasMapa" id="llantas"></div>
+        <p class="nota" style="margin-top:16px">Modelo genérico de camión rígido de acarreo,
+        construido para ubicar el costo por sistema. No reproduce ningún modelo de fabricante en
+        particular. <b>El color es el de la marca</b>: Caterpillar y Komatsu en amarillo, el resto
+        de marcas en verde. Los equipos que no son de acarreo se muestran como esquema de sistemas.</p>
+      </div>
+      <div>
+        <p class="nota" id="sis-nota" style="margin-bottom:14px">—</p>
+        <div class="sistemas" id="sistemas"></div>
+        <p class="avisoCj" id="sis-cobertura" hidden></p>
+        <div class="detalle" id="detalle" style="margin-top:26px"></div>
+      </div>
+    </div>
+
+    <div class="otsEq">
+      <h3 class="d d-m" style="margin-bottom:6px">Tarifa proyectada, disponibilidad y usaje</h3>
+      <div id="q-sep" style="margin-top:14px"></div>
+    </div>
+
+    <div class="otsEq">
+      <h3 class="d d-m" style="margin-bottom:6px">Órdenes de trabajo de este equipo</h3>
+      <p class="nota" id="q-ots-nota">—</p>
+      <div class="tablaEnv" style="margin-top:16px">
+        <table class="eq">
+          <thead><tr>
+            <th>Orden</th><th>Fecha</th><th>Clase</th><th>Conjunto</th>
+            <th>Trabajo</th><th class="r">Costo US$</th>
+          </tr></thead>
+          <tbody id="q-ots"></tbody>
+        </table>
+      </div>
+
+      <h3 class="d d-m" style="margin:clamp(30px,4vh,48px) 0 6px">Costo por conjunto, según esas órdenes</h3>
+      <p class="nota" id="q-cj-nota">—</p>
+      <div class="fases" id="q-cj"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ ÓRDENES ═══════════════════ -->
+<section class="vista luz" id="v-ordenes" data-pes="Órdenes">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">04</span><span class="lin"></span><span class="num">LA ORDEN DE TRABAJO</span></div>
+      <h2 class="d d-l">Cada peso tiene una orden detrás.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede"><b>Esta vista viene del detalle de mantenimiento de SHGN</b>, no del libro mayor,
+      y tiene dos orígenes. <b>Agosto 2026</b> sale del consolidado <b>0 SHGN_RO EQUIPOS</b>: 131
+      órdenes reales de SAP con su conjunto y su costo, marcadas con <span class="marcaF c">SAP</span>.
+      El resto de los meses sale de <b>RESUMEN ANALISIS</b>, que sólo guarda las cuarenta más caras de
+      cada mes. Su costo no suma con el de las demás pestañas.</p></details>
+    </div>
+    <p class="lede" style="margin-bottom:14px">Periodo mostrado: <b id="o-periodo">—</b>.
+    Se cambia en <b>Flota</b>, <b>Tendencia</b> o <b>Filtros</b>.</p>
+    <div class="barraFiltros" id="filtrosPM" role="group" aria-label="Filtrar por clase de orden"></div>
+    <div class="otsEnv">
+      <table class="tot">
+        <thead><tr>
+          <th>Orden</th><th>Equipo</th><th>Clase</th><th>Sistema</th><th>Descripción</th>
+          <th>Fecha</th><th class="r">Costo US$</th>
+        </tr></thead>
+        <tbody id="tablaOts"></tbody>
+      </table>
+    </div>
+    <p class="nota" style="margin-top:16px">Se listan las órdenes de mayor costo de cada mes incluido
+    en el periodo, de un total de <b id="o-tot">0</b> registradas en los 32 meses.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ ARTÍCULOS ═══════════════════ -->
+<section class="vista luz" id="v-articulos" data-pes="Cortes">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">05</span><span class="lin"></span><span class="num">LOS OTROS CORTES</span></div>
+      <h2 class="d d-l">El mismo dinero, por otros cortes.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">El costo del periodo visto por quién lo factura, qué modelo lo genera, en qué
+      cuenta contable cae, de qué naturaleza es el gasto y a qué proyecto se carga. Son cinco lecturas
+      de la misma cifra: cada bloque suma el total del periodo.</p></details>
+    </div>
+    <p class="lede" style="margin-bottom:18px">Proyecto: <b id="a-proy">—</b> · periodo mostrado:
+    <b id="a-periodo">—</b>. El proyecto se cambia en <b>Inicio</b> y el periodo en <b>Flota</b>, <b>Tendencia</b> o <b>Filtros</b>.</p>
+    <div class="dosListas">
+      <div class="lista fade"><div class="tt">MODELOS DE MAYOR COSTO</div><div id="lista-art"></div></div>
+      <div class="lista fade"><div class="tt">PROVEEDORES</div><div id="lista-prov"></div></div>
+    </div>
+    <div class="duo" style="margin-top:clamp(34px,5vh,60px)">
+      <div>
+        <h3 class="d d-m" style="margin-bottom:16px">Por clasificación de equipo</h3>
+        <div class="fases" id="categorias"></div>
+      </div>
+      <div>
+        <h3 class="d d-m" style="margin-bottom:16px">Por cuenta contable</h3>
+        <div class="fases" id="sistemasGlob"></div>
+      </div>
+    </div>
+    <div class="duo" style="margin-top:clamp(34px,5vh,60px)">
+      <div>
+        <h3 class="d d-m" style="margin-bottom:16px">Por naturaleza del gasto</h3>
+        <div class="fases" id="gastosGlob"></div>
+      </div>
+      <div>
+        <h3 class="d d-m" style="margin-bottom:16px">Por proyecto</h3>
+        <div class="fases" id="proyGlob"></div>
+        <p class="nota" style="margin-top:16px">Shougang concentra el grueso; el resto de operaciones
+        aparece aquí porque comparte el mismo libro de costos de equipos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ EN VIVO ═══════════════════ -->
+<section class="vista" id="v-vivo" data-pes="En vivo" data-tajo="1">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">06</span><span class="lin"></span><span class="num">TORRE DE CONTROL</span></div>
+      <h2 class="d d-l">El mes se arma día a día, OT por OT.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">El costo no llega de golpe: entra imputación por imputación desde SAP.
+      <b>El latido de esta pantalla es simulado</b>; las magnitudes de base son las del periodo real.</p></details>
+    </div>
+  </div>
+  <div class="ticker" id="ticker" aria-hidden="true"><div class="pista" id="pista"></div></div>
+  <div class="wrap">
+    <div class="vivoGrid">
+      <div>
+        <div class="reloj"><span id="reloj-2">FLUJO ACTIVO</span></div>
+        <div class="flujo" id="flujo"></div>
+      </div>
+      <div class="pulso">
+        <div class="pulsoIt"><div class="v n" id="p-mov">0</div><div class="l">movimientos registrados en esta sesión</div></div>
+        <div class="pulsoIt"><div class="v n" id="p-acum">US$ 0</div><div class="l" id="p-acum-l">acumulado del año, con el flujo en curso</div></div>
+        <div class="pulsoIt"><div class="v n" id="p-cph">US$ 0</div><div class="l">costo por hora promedio de la flota</div></div>
+        <div class="pulsoIt"><div class="v n" id="p-ot">0</div><div class="l">órdenes de trabajo en el periodo</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════ FICHA ═══════════════════ -->
+<section class="vista luz" id="v-ficha" data-pes="Ficha">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">07</span><span class="lin"></span><span class="num">QUÉ ESTÁ VIENDO</span></div>
+      <h2 class="d d-l">De dónde sale cada número.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">Una torre de control sirve para decidir, y sólo se decide sobre cifras que
+      alguien pueda auditar. Esto es lo que hay detrás de cada una.</p></details>
+    </div>
+    <div class="duo">
+      <div>
+        <p class="lede"><b>Una sola fuente para el dinero.</b> Todo el costo y todas las horas de
+        esta torre salen de <b>00 TARIFAS_LM_2025_2026</b>, hoja <b>Data ABR2025_26</b>: el libro
+        mayor de costos de equipos, <b id="fi-lin">0</b> asientos contables entre
+        <b id="fi-rango">—</b>. El importe es la <b>columna V, «Importe valorado en ML3»</b>, que
+        suma <b id="fi-total">—</b> en todo el periodo y cuadra con el Excel. La columna U, «ML2»,
+        es otra moneda paralela de SAP y da US$ 179.1 M: no se usa.</p>
+
+        <p class="lede" style="margin-top:18px"><b>Las horas, contadas una sola vez.</b> En el libro
+        mayor la columna AS repite el mismo valor de horas máquina en cada asiento del mismo equipo
+        y del mismo mes. EP-153-AL en el periodo 9 de 2025 tiene seis asientos y los seis dicen 209.
+        Sumar la columna entera da <b>19,391,373</b> horas; contar cada equipo y cada mes una sola
+        vez da <b id="fi-hm">—</b>, que es exactamente lo que muestra la tabla dinámica
+        <b>«Prom Tarifa acumulado»</b> del mismo libro. La torre usa esta segunda cifra: con la
+        primera el costo por hora saldría 6.5 veces más bajo.</p>
+
+        <p class="lede" style="margin-top:18px"><b>El detalle técnico es aparte y está marcado.</b>
+        El reparto por sistema del modelo 3D y las órdenes de trabajo vienen de
+        <b>RESUMEN ANALISIS 2026</b>, el detalle de mantenimiento de la sede SHGN. Hoy alcanzan a
+        <b id="fi-det">0</b> de los 1,291 equipos del libro y su costo no suma con el financiero; sirven
+        para ver en qué sistema se concentra el gasto, no para cerrar el mes.</p>
+
+        <p class="lede" style="margin-top:18px"><b>Un hueco conocido.</b> El combustible aparece
+        imputado al equipo en un solo mes, agosto 2026, por <b>US$ 8.11 M</b>; en los otros
+        dieciséis la cuenta «CONSUMO SUM COMBUST» está en cero. No es un error de esta torre:
+        viene así del libro. Mientras no se corrija en origen, agosto no es comparable con el
+        resto y el costo por hora del periodo completo lo lleva incorporado.</p>
+
+        <p class="lede" style="margin-top:18px"><b>Una tercera fuente, para un solo mes.</b>
+        La pestaña <b>Setiembre</b> sale del consolidado <b>0 SHGN_RO EQUIPOS</b> y es la única que
+        trae tarifa proyectada, disponibilidad mecánica y usaje. Va por modelo, está cortada al día
+        6 y cubre sólo Shougang, así que no se suma con el libro mayor ni entra en el periodo de
+        las demás pestañas.</p>
+
+        <p class="lede" style="margin-top:18px"><b>Qué es simulación.</b> El flujo de movimientos de
+        la pestaña <b>En vivo</b> y el desplazamiento de los camiones por el tajo son una recreación
+        para la demostración. Ninguna cifra de esta pantalla reemplaza al cierre contable.</p>
+      </div>
+      <div class="fases" id="fichaDatos"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ SETIEMBRE ═══════════════════ -->
+<section class="vista luz" id="v-setiembre" data-pes="Setiembre">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">08</span><span class="lin"></span><span class="num">EL MES EN CURSO</span></div>
+      <h2 class="d d-l">¿Se está cumpliendo la tarifa?</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">Ésta es la única pestaña que no sale del libro mayor. Setiembre 2026 viene
+      del consolidado de Shougang, y es lo único que trae las tres cosas que el libro no tiene:
+      <b>tarifa proyectada contra real</b>, <b>disponibilidad mecánica</b> y <b>usaje</b>.</p></details>
+    </div>
+
+    <p class="nota" id="s-total">—</p>
+
+    <div class="granTotal">
+      <div>
+        <div class="gl">COSTO REAL DEL MES</div>
+        <div class="gt" id="s-costo">—</div>
+        <div class="gd">venta interna <span id="s-venta">—</span></div>
+      </div>
+      <div>
+        <div class="gl">HORAS MÁQUINA</div>
+        <div class="gt" id="s-horas">—</div>
+        <div class="gd" id="s-horasProf">—</div>
+      </div>
+      <div>
+        <div class="gl">TARIFA REAL</div>
+        <div class="gt" id="s-treal">—</div>
+        <div class="gd" id="s-tproy">—</div>
+      </div>
+      <div>
+        <div class="gl">MODELOS DENTRO DE TARIFA</div>
+        <div class="gt" id="s-cumple">—</div>
+        <div class="gd">de los que tienen tarifa y horas</div>
+      </div>
+      <div>
+        <div class="gl">DISPONIBILIDAD MECÁNICA</div>
+        <div class="gt" id="s-dm">—</div>
+        <div class="gd">ponderada por horas</div>
+      </div>
+      <div>
+        <div class="gl">USAJE</div>
+        <div class="gt" id="s-use">—</div>
+        <div class="gd">ponderado por horas</div>
+      </div>
+    </div>
+
+    <div class="avisoFuente">
+      <p><b>De dónde sale y qué no es.</b> Hojas <b>SHGN PROP</b> y <b>SHGN ALQ</b> del consolidado
+      <b>0 SHGN_RO EQUIPOS</b>. Va por <b>modelo</b>, no por equipo; está cortado al <b>día 6</b>
+      de setiembre; y cubre <b>sólo Shougang</b>. Por eso setiembre no se suma a los diecisiete
+      meses del libro mayor ni aparece en las demás pestañas: son dos mediciones distintas y
+      juntarlas daría una cifra que no cuadra con nada.</p>
+      <p><b>El tercer componente no es el mismo en las dos flotas.</b> En la propia la tarifa se
+      abre en RyM + mano de obra + <b>depreciación</b>; en la alquilada, en RyM + mano de obra +
+      <b>alquiler</b>. El total es comparable; los componentes, no.</p>
+    </div>
+
+    <h3 class="d d-m" style="margin:clamp(32px,4.5vh,52px) 0 6px">Cumplimiento de tarifa, modelo por modelo</h3>
+    <p class="nota" id="s-nTabla">—</p>
+    <div class="panelF" id="s-filtros" style="margin-top:16px"></div>
+    <div class="tablaEnv" style="margin-top:16px">
+      <table class="eq">
+        <thead><tr>
+          <th>Modelo</th><th>Familia</th><th>Flota</th>
+          <th class="r">Horas</th><th class="r">Tarifa real</th><th class="r">Proyectada</th>
+          <th class="r">Desv. US$/h</th><th class="r">Desv. %</th><th></th>
+        </tr></thead>
+        <tbody id="s-tabla"></tbody>
+      </table>
+    </div>
+
+    <h3 class="d d-m" style="margin:clamp(32px,4.5vh,52px) 0 6px">Disponibilidad mecánica y usaje</h3>
+    <p class="nota" id="s-nDm">—</p>
+    <div class="tablaEnv" style="margin-top:16px">
+      <table class="eq">
+        <thead><tr>
+          <th>Modelo</th><th>Familia</th><th class="r">Equipos</th><th class="r">Horas</th>
+          <th class="r">DM</th><th></th><th class="r">Usaje</th><th></th>
+        </tr></thead>
+        <tbody id="s-dmTabla"></tbody>
+      </table>
+    </div>
+
+    <p class="nota" style="margin-top:clamp(28px,4vh,40px); max-width:84ch">
+    <b>Qué falta para que esto valga para todos los meses.</b> Haría falta el mismo consolidado
+    cerrado de cada mes, o un histórico de tarifas proyectadas por mes. Hoy el Excel guarda un
+    solo corte —el del mes en curso— y se pisa cada vez que se regenera, así que no hay serie que
+    dibujar. En cuanto haya varios meses, esta pestaña se convierte en una tendencia de
+    cumplimiento.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════ FILTROS ═══════════════════ -->
+<section class="vista luz" id="v-filtros" data-pes="Filtros">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">08</span><span class="lin"></span><span class="num">SALA DE MÁQUINAS</span></div>
+      <h2 class="d d-l">Cualquier corte, sin ensuciar las demás hojas.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">Los filtros de uso diario están donde se usan: proyecto y tipo de costo en
+      <b>Inicio</b>, periodo y flota en <b>Flota</b> y <b>Tendencia</b>. Aquí quedan los demás —centro
+      de coste, cuenta contable, naturaleza del gasto, marca, clasificación y propio contra
+      alquilado—, para cuando alguien pida un corte que no estaba previsto. Todo lo que se marque
+      aquí vale en las nueve pestañas y se anuncia en el inicio.</p></details>
+    </div>
+
+    <div class="granTotal">
+      <div>
+        <div class="gl">COSTO DE LA SELECCIÓN</div>
+        <div class="gt" id="f-total">—</div>
+        <div class="gd" id="f-pc">—</div>
+      </div>
+      <div>
+        <div class="gl">HORAS MÁQUINA</div>
+        <div class="gt" id="f-hm">—</div>
+        <div class="gd" id="f-cph">—</div>
+      </div>
+      <div>
+        <div class="gl">EQUIPOS</div>
+        <div class="gt" id="f-eq">—</div>
+        <div class="gd">con costo en el periodo</div>
+      </div>
+      <div>
+        <div class="gl">CELDAS DEL LIBRO</div>
+        <div class="gt" id="f-celdas">—</div>
+        <div class="gd">que pasan el filtro</div>
+      </div>
+    </div>
+    <p class="nota" id="f-sel" style="margin-top:14px">—</p>
+
+    <h3 class="d d-m" style="margin:clamp(30px,4vh,48px) 0 6px">Ajustes rápidos</h3>
+    <p class="nota">CADA UNO REPRODUCE UN RECORTE CONCRETO · SIRVEN PARA COMPARAR CONTRA EL EXCEL</p>
+    <div class="ajustes" id="f-ajustes"></div>
+
+    <h3 class="d d-m" style="margin:clamp(30px,4vh,48px) 0 6px">Periodo</h3>
+    <div class="panel">
+      <div class="panelT">DESDE / HASTA O UN ATAJO</div>
+      <div class="panelF">
+        <label class="fl">DESDE<select id="mesDesde4"></select></label>
+        <label class="fl">HASTA<select id="mesHasta4"></select></label>
+      </div>
+      <div class="atajos" id="atajos4"></div>
+    </div>
+
+    <h3 class="d d-m" style="margin:clamp(30px,4vh,48px) 0 6px">Dimensiones del asiento contable</h3>
+    <p class="nota">COLUMNAS DEL LIBRO · SELECCIÓN MÚLTIPLE · EL IMPORTE AL COSTADO ES EL TOTAL DE LOS 17 MESES</p>
+    <div class="rejFiltros">
+      <div class="fBloque">
+        <span class="gcT">CENTRO DE COSTE (COLUMNA AB)</span>
+        <div class="desplegable">
+          <button class="despBtn ancho" type="button" id="fCecoBtn" aria-expanded="false" aria-haspopup="true">
+            <span id="fCecoRot">TODOS</span> <i>▼</i></button>
+          <div class="despCaja alta" id="fCecoCaja" hidden role="group" aria-label="Centro de coste"></div>
+        </div>
+      </div>
+      <div class="fBloque">
+        <span class="gcT">CUENTA CONTABLE (COLUMNA F)</span>
+        <div class="desplegable">
+          <button class="despBtn ancho" type="button" id="fCuentaBtn" aria-expanded="false" aria-haspopup="true">
+            <span id="fCuentaRot">TODAS</span> <i>▼</i></button>
+          <div class="despCaja alta" id="fCuentaCaja" hidden role="group" aria-label="Cuenta contable"></div>
+        </div>
+      </div>
+      <div class="fBloque">
+        <span class="gcT">NATURALEZA DEL GASTO (COLUMNA B)</span>
+        <div class="desplegable">
+          <button class="despBtn ancho" type="button" id="fGastoBtn" aria-expanded="false" aria-haspopup="true">
+            <span id="fGastoRot">TODOS</span> <i>▼</i></button>
+          <div class="despCaja alta" id="fGastoCaja" hidden role="group" aria-label="Tipo de gasto"></div>
+        </div>
+      </div>
+      <div class="fBloque">
+        <span class="gcT">RESULTADO OPERATIVO · RO (COLUMNA C)</span>
+        <div class="desplegable">
+          <button class="despBtn ancho" type="button" id="fRo2Btn" aria-expanded="false" aria-haspopup="true">
+            <span id="fRo2Rot">TODOS</span> <i>▼</i></button>
+          <div class="despCaja alta" id="fRo2Caja" hidden role="group" aria-label="Resultado operativo"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="avisoDoble"><b>Hay dos «MANO DE OBRA» y no valen lo mismo.</b> La del
+    <b>resultado operativo</b> —antes rotulada FIJO— son US$ 16.89 MM; la del
+    <b>tipo de gasto</b>, US$ 16.39 MM. No es una contradicción: el RO contiene todo el gasto de
+    mano de obra más US$ 498 mil clasificados como gasto general. Todo el gasto de mano de obra
+    cae dentro de ese RO, nada se queda fuera.</p>
+
+    <h3 class="d d-m" style="margin:clamp(30px,4vh,48px) 0 6px">Atributos del equipo</h3>
+    <p class="nota">MAESTRO DE EQUIPOS · UN VALOR A LA VEZ</p>
+    <div class="panelF" style="margin-top:16px">
+      <label class="fl">PROPIO / ALQUILADO<select id="fTipo"></select></label>
+      <label class="fl">MARCA<select id="fMarca"></select></label>
+      <label class="fl">CLASIFICACIÓN<select id="fClasif"></select></label>
+    </div>
+    <div class="panelF" style="margin-top:12px">
+      <label class="fl">FLOTA / FAMILIA<select id="fFam4"></select></label>
+      <label class="fl">MODELO<select id="fMod4"></select></label>
+      <label class="fl">PROVEEDOR<select id="fProv4"></select></label>
+    </div>
+    <div class="panelF" style="margin-top:12px">
+      <label class="fl" style="flex:1 1 280px">UN EQUIPO EN CONCRETO
+        <input class="entradaEq" id="fEq4" list="listaEq" autocomplete="off"
+               placeholder="TODOS — escribe o elige, p. ej. CH-08" aria-label="Equipo">
+      </label>
+    </div>
+
+    <h3 class="d d-m" style="margin:clamp(34px,5vh,56px) 0 6px">Dónde está el dinero de esta selección</h3>
+    <p class="nota">LOS SEIS CORTES SUMAN LO MISMO: EL TOTAL DE ARRIBA</p>
+    <div class="duo" style="margin-top:20px">
+      <div>
+        <h4 class="gcT">POR RESULTADO OPERATIVO</h4>
+        <div class="fases" id="f-porRo"></div>
+        <h4 class="gcT" style="margin-top:28px">POR CENTRO DE COSTE</h4>
+        <div class="fases" id="f-porCeco"></div>
+        <h4 class="gcT" style="margin-top:28px">POR PROYECTO</h4>
+        <div class="fases" id="f-porProy"></div>
+      </div>
+      <div>
+        <h4 class="gcT">POR CUENTA CONTABLE</h4>
+        <div class="fases" id="f-porCuenta"></div>
+        <h4 class="gcT" style="margin-top:28px">POR NATURALEZA DEL GASTO</h4>
+        <div class="fases" id="f-porGasto"></div>
+        <h4 class="gcT" style="margin-top:28px">PROPIO CONTRA ALQUILADO</h4>
+        <div class="fases" id="f-porTipo"></div>
+      </div>
+    </div>
+
+    <p class="nota" style="margin-top:clamp(30px,4vh,44px); max-width:82ch">
+    <b>Por qué esta hoja existe.</b> La tabla dinámica «Prom Tarifa acumulado» del Excel mostraba
+    US$ 9,886,200.13 para agosto 2026 mientras la torre decía US$ 18,407,642, y actualizarla no lo
+    arreglaba. La causa es un filtro: esa dinámica tiene oculto el elemento en blanco del campo
+    <b>Centro de coste</b>, y en agosto hay 863 líneas sin centro de coste por
+    <b>US$ 8,478,845</b> —de las cuales US$ 8,113,807 son el combustible—. Con el ajuste
+    «Como la dinámica» de arriba la torre da <b>US$ 9,928,797</b>, que es esa misma cifra salvo
+    US$ 42,597 de movimientos posteriores al día en que se refrescó el caché.</p>
+  </div>
+</section>
+
+</main>
+
+<datalist id="listaEq"></datalist>
+<div class="avisoPantalla" id="avisoPantalla" hidden role="status"></div>

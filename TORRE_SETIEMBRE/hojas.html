@@ -1,0 +1,321 @@
+<style>
+/* ---------- quitar y poner el encabezado, como ocultar la cinta en Excel ----------
+   Vale para toda la torre. Se van el logo, los sellos de la barra y el titulo
+   de cada hoja; quedan las pestanas y el boton para volver, que va al
+   comienzo de la fila de pestanas para no quitarles sitio. Las tablas
+   aprovechan el alto que se libera. */
+.encBtn{all:unset; cursor:pointer; order:3; flex:0 0 auto; align-self:center; box-sizing:border-box;
+  width:30px; height:28px; text-align:center; line-height:26px; font-size:14px; margin-right:4px;
+  border:1px solid var(--hair-fuerte); color:var(--claro-2); background:rgba(4,17,29,.6)}
+.encBtn:hover{border-color:var(--hivis); color:var(--hivis)}
+.encBtn:focus-visible{outline:2px solid var(--hivis); outline-offset:2px}
+.nav.claro .encBtn{border-color:var(--linea); color:var(--tinta-2); background:#fff}
+.nav.claro .encBtn:hover{border-color:var(--sm); color:var(--sm)}
+.nav .pestanas{width:auto; flex:1 1 calc(100% - 90px); min-width:0}
+.nav .pes{padding-left:8px; padding-right:8px; letter-spacing:.05em}
+/* En las hojas claras el amarillo de seguridad de la pestana elegida no se
+   lee sobre el fondo blanco: ahi va el azul de la marca, con su subrayado.
+   Las demas pestanas pasan al gris de tinta, que si contrasta. */
+.nav.claro .pes{color:var(--tinta-3)}
+.nav.claro .pes:hover{color:var(--tinta)}
+.nav.claro .pes[aria-selected="true"]{color:var(--sm); border-bottom-color:var(--sm); font-weight:600}
+.nav.claro .pes[aria-selected="true"] i{opacity:.8}
+.nav.claro .pes:focus-visible{outline-color:var(--sm)}
+body.sinEnc .nav .marcaSM,body.sinEnc .nav .navcap{display:none}
+body.sinEnc .nav{padding-block:2px 0; row-gap:0}
+body.sinEnc .vista{padding-block:10px 60px}
+body.sinEnc .vista .tituloV{display:none}
+body.sinEnc .xlEnv{max-height:calc(100vh - 150px); max-height:calc(100dvh - 150px)}
+
+/* ---------- hojas Propios y Alquilados: el consolidado, en tabla ----------
+   Una sola tabla por hoja que se despliega como la dinamica del Excel:
+   familia > modelo > equipo > orden de trabajo. La primera columna y las
+   dos filas de cabecera se quedan fijas al desplazar; los grupos de
+   columnas se pliegan con el boton de su cabecera. */
+.xlEnv{border:1px solid var(--tinta-3); background:#fff; overflow:auto; max-height:min(78vh,820px);
+       margin-top:12px}
+table.xl{border-collapse:separate; border-spacing:0; min-width:100%; white-space:nowrap;
+         font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-variant-numeric:tabular-nums;
+         color:var(--tinta)}
+table.xl th,table.xl td{padding:3px 7px; text-align:right; border-bottom:1px solid var(--linea-2);
+                        line-height:1.35}
+table.xl thead th{position:sticky; z-index:3; font-weight:600; font-size:9.5px; letter-spacing:.05em}
+table.xl thead tr.g th{top:0; height:24px; box-sizing:border-box; background:var(--sm); color:#fff;
+                       text-align:center; border-bottom:0; border-left:2px solid #fff; padding:0 8px}
+table.xl thead tr.g th.ac{background:var(--tinta)}
+table.xl thead tr.c th{top:24px; background:var(--luz-2); color:var(--tinta); cursor:pointer;
+                       border-bottom:1px solid var(--tinta); user-select:none}
+table.xl thead tr.c th:hover{background:var(--luz-3)}
+table.xl thead tr.c th.xord::after{content:" ▼"; font-size:8px}
+table.xl thead tr.c th.xord.asc::after{content:" ▲"}
+.xlG{all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:7px; color:#fff;
+     font:inherit; letter-spacing:inherit; padding:2px}
+.xlG i{font-style:normal; display:inline-block; width:12px; height:12px; line-height:11px;
+       border:1px solid rgba(255,255,255,.75); text-align:center; font-size:10px}
+.xlG:focus-visible{outline:2px solid var(--hivis); outline-offset:2px}
+/* filtro por valor: un ▾ en la esquina de cada cabecera (no le quita ancho) */
+table.xl thead tr.c th .xlF{all:unset; position:absolute; left:1px; top:1px; cursor:pointer; padding:0 3px;
+  font-size:9px; line-height:12px; color:inherit; opacity:.3}
+table.xl thead tr.c th:hover .xlF,table.xl thead tr.c th .xlF:focus-visible{opacity:1}
+table.xl thead tr.c th .xlF:focus-visible{outline:2px solid var(--sm)}
+table.xl thead tr.c th .xlF.on{opacity:1; background:var(--sm); color:#fff}
+table.xl thead tr.c th.xf{text-decoration:underline; text-decoration-color:var(--sm); text-underline-offset:3px}
+/* con filtros: la cifra original (sin filtrar) debajo de cada subtotal y del total */
+table.xl .xo{display:block; font-size:9.5px; font-weight:400; line-height:1.1; color:var(--tinta-3); opacity:.85}
+table.xl tfoot .xo{color:rgba(255,255,255,.62)}
+table.xl .fija .xo{font-family:"IBM Plex Sans",sans-serif; letter-spacing:.02em}
+.xlFiltros{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin-top:10px; padding:7px 10px;
+  background:#E6EAF1; border-left:3px solid var(--sm); font-family:"IBM Plex Mono",monospace; font-size:11.5px}
+.xlFiltros[hidden]{display:none}
+.xlFiltros .t{font-weight:600; color:var(--sm); letter-spacing:.06em}
+.xlFiltros .chip{display:inline-flex; align-items:center; background:#fff; border:1px solid #C9D2E0}
+.xlFiltros .chip button{all:unset; cursor:pointer; padding:3px 6px; color:var(--tinta)}
+.xlFiltros .chip .x{color:var(--tinta-3); border-left:1px solid #C9D2E0}
+.xlFiltros .chip .x:hover{color:#B3261E}
+.xlFiltros .chip button:focus-visible,.xlFiltros .todos:focus-visible{outline:2px solid var(--sm)}
+.xlFiltros .todos{all:unset; cursor:pointer; padding:3px 8px; border:1px solid var(--sm); color:var(--sm); letter-spacing:.04em}
+.xlFiltros .todos:hover{background:var(--sm); color:#fff}
+.xlFiltros .nt{flex-basis:100%; font-family:"IBM Plex Sans",sans-serif; font-size:11.5px; color:var(--tinta-3)}
+.xlFiltroPop{position:fixed; z-index:120; background:#fff; color:var(--tinta); border:1px solid var(--tinta-3);
+  box-shadow:0 18px 44px rgba(8,25,42,.22); padding:12px; box-sizing:border-box; display:flex; flex-direction:column; gap:9px;
+  font-family:"IBM Plex Mono",monospace; font-size:12px}
+.xlFiltroPop[hidden],.xlFiltroPop [hidden]{display:none !important}
+.xlFiltroPop .tt{font-size:11.5px; letter-spacing:.04em; color:var(--tinta-2)}
+.xlFiltroPop .tt b{color:var(--sm)}
+.xlFiltroPop .vals{display:flex; align-items:center; gap:6px}
+.xlFiltroPop input{all:unset; box-sizing:border-box; flex:1; min-width:0; padding:7px 8px; border:1px solid var(--linea);
+  background:#fff; text-align:right; font-variant-numeric:tabular-nums}
+.xlFiltroPop input:focus{outline:2px solid var(--sm); outline-offset:1px}
+.xlFiltroPop small{font-family:"IBM Plex Sans",sans-serif; font-size:11.5px; color:var(--tinta-3); line-height:1.4}
+.xlFiltroPop .bts{display:flex; gap:6px; flex-wrap:wrap}
+.xlFiltroPop .err{color:#B3261E; font-size:11.5px}
+.xlFiltroPop .err:empty{display:none}
+/* con grupos plegados (SÓLO TOTALES o a mano) la tabla deja de estirarse a
+   todo el ancho, y el titulo de cada grupo plegado va corto y en dos lineas:
+   asi ningun titulo ensancha su columna. La tabla ocupa justo el ancho de
+   la hoja: las columnas se reparten el sitio que sobra, sin huecos al
+   costado y sin desplazamiento lateral mientras quepa. */
+table.xl.plegada{width:100%; min-width:0}
+table.xl.plegada thead tr.g th{height:50px}
+table.xl.plegada thead tr.c th{top:50px}
+table.xl.plegada th,table.xl.plegada td{padding-left:5px; padding-right:5px}
+table.xl thead tr.g th.cerr{white-space:normal; padding:2px 3px; line-height:1.1; letter-spacing:.02em}
+table.xl thead tr.g th.cerr .xlG{flex-wrap:wrap; justify-content:center; gap:1px 4px; text-align:center}
+table.xl thead tr.g th.cerr .gt{flex-basis:100%}
+table.xl.plegada thead tr.c th.cerr{white-space:normal; line-height:1.15}
+table.xl .t{text-align:left}
+table.xl .fija{position:sticky; left:0; z-index:2; background:#fff; text-align:left;
+               border-right:1px solid var(--tinta-3); max-width:min(56vw,300px); overflow:hidden;
+               text-overflow:ellipsis}
+table.xl thead .fija{z-index:4}
+table.xl thead tr.g .fija{background:var(--sm); border-left:0}
+table.xl thead tr.c .fija{background:var(--luz-2)}
+table.xl .ini{border-left:2px solid var(--linea)}
+table.xl .z{color:var(--tinta-3); opacity:.6}
+table.xl .neg{color:#B3261E} table.xl .pos{color:#0B6B3A}
+table.xl tbody tr{cursor:pointer}
+table.xl tbody tr:hover td{background:#EAF1FB}
+table.xl tbody tr:focus-visible{outline:2px solid var(--sm); outline-offset:-2px}
+/* los cuatro niveles: cuanto mas arriba, mas peso */
+table.xl tr.n0 td{background:var(--luz-3); font-weight:700; border-bottom-color:var(--tinta-3)}
+table.xl tr.n1 td{background:var(--luz); font-weight:600}
+table.xl tr.n2 td{background:#fff}
+table.xl tr.n3 td{background:#FBFCFD; color:var(--tinta-2); font-size:11px}
+table.xl tr.n1 .fija{padding-left:20px} table.xl tr.n2 .fija{padding-left:34px}
+table.xl tr.n3 .fija{padding-left:50px}
+table.xl .car{display:inline-block; width:13px; color:var(--sm); font-size:10px}
+table.xl .sub{font-family:"IBM Plex Sans",sans-serif; font-weight:400; font-size:10.5px;
+              color:var(--tinta-2); margin-left:6px}
+table.xl .xlIr{all:unset; cursor:pointer; margin-left:6px; padding:0 4px; border:1px solid var(--linea);
+               color:var(--sm); font-size:9px; letter-spacing:.04em}
+table.xl .xlIr:hover{border-color:var(--sm); background:#fff}
+table.xl .xlIr:focus-visible{outline:2px solid var(--sm)}
+/* la celda comentada lleva una esquina roja, como en Excel; al tocarla
+   se abre el comentario. El boton es mas grande que el triangulo que pinta,
+   para que se pueda acertar con el dedo. */
+table.xl tbody tr td.cn{position:relative; background:#FFF3B0}
+table.xl tbody tr td.fija.cn{position:sticky}
+.xlC{all:unset; cursor:pointer; position:absolute; top:0; right:0; width:16px; height:16px}
+.xlC::before{content:""; position:absolute; top:0; right:0; border-style:solid;
+             border-width:0 9px 9px 0; border-color:transparent #D1242F transparent transparent}
+.xlC:hover::before,.xlC:focus-visible::before{border-width:0 12px 12px 0}
+.xlC:focus-visible{outline:2px solid var(--sm)}
+/* la celda elegida y la barra que dice de donde sale, como la de formulas */
+table.xl tbody tr td.sel{outline:2px solid var(--sm); outline-offset:-2px; background:#DCE8FA}
+table.xl tbody td:not(.fija){cursor:cell}
+.xlOrigen{display:flex; gap:12px; align-items:flex-start; margin-top:10px; padding:9px 12px; background:#fff;
+          border:1px solid var(--tinta-3); min-height:44px; box-sizing:border-box}
+.xlOrigen .fx{font-family:Georgia,serif; font-style:italic; font-weight:700; color:var(--sm); font-size:15px;
+              line-height:1.3}
+.xlOrigen .txt{flex:1; min-width:0; font-size:12.5px; line-height:1.5; color:var(--tinta-2)}
+.xlOrigen .txt b{color:var(--tinta); font-family:"IBM Plex Mono",monospace; font-size:12px}
+.xlOrigen .nt{display:inline-block; margin-top:3px; padding:1px 7px; background:#FFF3B0; color:var(--tinta)}
+.xlOrigen .fbt{white-space:nowrap; align-self:center}
+@media (max-width:620px){ .xlOrigen{flex-wrap:wrap} }
+/* ---------- cada grupo de columnas con su color ----------
+   Mismo tono para el mismo tipo de dato; el acumulado, mas oscuro. */
+table.xl thead tr.g th.g-costo{background:#4A5A78}
+table.xl thead tr.c th.g-costo{background:#E6EAF1; color:#4A5A78; box-shadow:inset 0 -3px 0 #4A5A78}
+table.xl tbody tr td.g-costo{background:#F3F5F9}
+table.xl tbody tr.n0 td.g-costo,table.xl tbody tr.n1 td.g-costo{background:#E6EAF1}
+table.xl thead tr.g th.g-oper{background:#3F6F72}
+table.xl thead tr.c th.g-oper{background:#E2EDED; color:#3F6F72; box-shadow:inset 0 -3px 0 #3F6F72}
+table.xl tbody tr td.g-oper{background:#F1F6F6}
+table.xl tbody tr.n0 td.g-oper,table.xl tbody tr.n1 td.g-oper{background:#E2EDED}
+table.xl thead tr.g th.g-venta{background:#4F7657}
+table.xl thead tr.c th.g-venta{background:#E3EEE4; color:#4F7657; box-shadow:inset 0 -3px 0 #4F7657}
+table.xl tbody tr td.g-venta{background:#F2F7F2}
+table.xl tbody tr.n0 td.g-venta,table.xl tbody tr.n1 td.g-venta{background:#E3EEE4}
+table.xl thead tr.g th.g-desv{background:#7A6A4F}
+table.xl thead tr.c th.g-desv{background:#EFEBE1; color:#7A6A4F; box-shadow:inset 0 -3px 0 #7A6A4F}
+table.xl tbody tr td.g-desv{background:#F8F6F1}
+table.xl tbody tr.n0 td.g-desv,table.xl tbody tr.n1 td.g-desv{background:#EFEBE1}
+table.xl thead tr.g th.g-treal{background:#5E6C88}
+table.xl thead tr.c th.g-treal{background:#E9ECF3; color:#5E6C88; box-shadow:inset 0 -3px 0 #5E6C88}
+table.xl tbody tr td.g-treal{background:#F5F6FA}
+table.xl tbody tr.n0 td.g-treal,table.xl tbody tr.n1 td.g-treal{background:#E9ECF3}
+table.xl thead tr.g th.g-tventa{background:#62846A}
+table.xl thead tr.c th.g-tventa{background:#E6EFE7; color:#62846A; box-shadow:inset 0 -3px 0 #62846A}
+table.xl tbody tr td.g-tventa{background:#F4F8F4}
+table.xl tbody tr.n0 td.g-tventa,table.xl tbody tr.n1 td.g-tventa{background:#E6EFE7}
+table.xl thead tr.g th.g-tacum{background:#454F63}
+table.xl thead tr.c th.g-tacum{background:#E3E5EB; color:#454F63; box-shadow:inset 0 -3px 0 #454F63}
+table.xl tbody tr td.g-tacum{background:#F1F2F5}
+table.xl tbody tr.n0 td.g-tacum,table.xl tbody tr.n1 td.g-tacum{background:#E3E5EB}
+table.xl thead tr.g th.g-cacum{background:#384459}
+table.xl thead tr.c th.g-cacum{background:#DFE3EA; color:#384459; box-shadow:inset 0 -3px 0 #384459}
+table.xl tbody tr td.g-cacum{background:#EFF1F5}
+table.xl tbody tr.n0 td.g-cacum,table.xl tbody tr.n1 td.g-cacum{background:#DFE3EA}
+table.xl thead tr.g th.g-vacum{background:#3E5E46}
+table.xl thead tr.c th.g-vacum{background:#DFEAE1; color:#3E5E46; box-shadow:inset 0 -3px 0 #3E5E46}
+table.xl tbody tr td.g-vacum{background:#EFF5F0}
+table.xl tbody tr.n0 td.g-vacum,table.xl tbody tr.n1 td.g-vacum{background:#DFEAE1}
+table.xl thead tr.g th.g-dacum{background:#5E523C}
+table.xl thead tr.c th.g-dacum{background:#E9E3D7; color:#5E523C; box-shadow:inset 0 -3px 0 #5E523C}
+table.xl tbody tr td.g-dacum{background:#F5F2EC}
+table.xl tbody tr.n0 td.g-dacum,table.xl tbody tr.n1 td.g-dacum{background:#E9E3D7}
+/* el pase del raton, la celda comentada y la elegida mandan sobre el color del grupo */
+table.xl tbody tr:hover td{background:#E4ECF7}
+table.xl tbody tr td.cn{background:#FFF3B0}
+table.xl tbody tr td.sel{background:#DCE8FA}
+.xlG .sim{font-size:12px; opacity:.95; margin-right:2px}
+.xlLey{display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:10px; font-family:"IBM Plex Mono",monospace;
+       font-size:10px; letter-spacing:.06em; color:var(--tinta-2)}
+.xlLey span{display:inline-flex; align-items:center; gap:6px}
+.xlLey i{font-style:normal; display:inline-flex; align-items:center; justify-content:center; min-width:18px;
+         height:16px; padding:0 3px; color:#fff; font-size:10px}
+table.xl tfoot td{position:sticky; bottom:0; z-index:2; background:var(--tinta); color:#fff;
+                  font-weight:600; border-bottom:0}
+table.xl tfoot .fija{background:var(--tinta); color:#fff; z-index:3}
+table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl tfoot .z{color:#fff}
+/* aqui se viene a leer la tabla: titulo y cifras ocupan poco */
+.hojaXl .tituloV{margin-bottom:14px}
+.hojaXl .tituloV h2{font-size:clamp(1.4rem,2.4vw,2rem); max-width:none}
+.hojaXl .granTotal{margin-top:14px; padding:14px 0; gap:14px clamp(18px,3vw,40px)}
+.hojaXl .granTotal .gt{font-size:clamp(1.2rem,2.1vw,1.7rem); margin:3px 0}
+.xlBarra{display:flex; flex-wrap:wrap; gap:12px 22px; align-items:flex-end; margin-top:18px}
+.xlBarra .entradaEq{width:min(100%,260px); margin-top:0}
+.xlBarra .gcB{display:flex; flex-wrap:wrap; gap:6px}
+.xlEstado{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em; color:var(--tinta-2);
+          margin-top:10px}
+.xlEstado b{color:var(--sm)}
+/* el editor de comentarios: una ficha fija abajo a la derecha */
+.xlEditor{position:fixed; z-index:95; right:18px; bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+          width:min(calc(100vw - 36px),420px); background:#fff; color:var(--tinta);
+          border:1px solid var(--tinta); box-shadow:0 18px 50px rgba(8,25,42,.35); padding:16px 18px}
+.xlEditor h4{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.14em;
+             color:var(--tinta-3); margin:0 0 4px}
+.xlEditor .fila{font-family:Archivo,sans-serif; font-weight:700; font-size:1.05rem; margin-bottom:10px;
+                overflow-wrap:anywhere}
+.xlEditor textarea{box-sizing:border-box; width:100%; min-height:110px; resize:vertical; padding:9px 10px;
+                   border:1px solid var(--tinta-3); background:#FFFBE6; color:var(--tinta);
+                   font-family:"IBM Plex Sans",sans-serif; font-size:14px; line-height:1.45}
+.xlEditor textarea:focus{outline:2px solid var(--sm); outline-offset:1px}
+.xlEditor .meta{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--tinta-2);
+                margin-top:8px; min-height:1.2em}
+.xlEditor .meta.mal{color:#B3261E}
+.xlEditor .bot{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+@media (max-width:620px){
+  table.xl tr.n1 .fija{padding-left:14px} table.xl tr.n2 .fija{padding-left:22px}
+  table.xl tr.n3 .fija{padding-left:30px}
+}
+</style>
+
+<!-- ═══════════════════ PROPIOS ═══════════════════ -->
+<section class="vista luz hojaXl" id="v-propios" data-pes="Propios">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">01</span><span class="lin"></span><span class="num">FLOTA PROPIA · COMO SHGN PROP</span></div>
+      <h2 class="d d-l">Flota propia, al día __CORTE__.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">Es la hoja <b>SHGN PROP</b> del consolidado. Se despliega como su tabla dinámica:
+      familia, modelo, equipo y orden de trabajo; clic en la primera columna o las flechas del teclado.
+      Clic en una cifra para ver de dónde sale y comentarla; el botón TABLERO de cada familia y modelo
+      abre su análisis. El costo
+      es RyM (materiales y servicios) + MOV (mano de obra) + depreciación; la venta es la tarifa de
+      venta por las horas reales. Los grupos de columnas se pliegan con el botón de su cabecera y
+      cada columna ordena al hacer clic en su nombre. El <b>acumulado</b> es el libro mayor de
+      __PERIODOS__ más setiembre al día __CORTE__, con la misma regla para todos los equipos: en el
+      Excel unas filas suman el mes y otras no, y por eso esas columnas no coinciden con la hoja.
+      Esta tabla es el reporte completo al día __CORTE__ y no sigue a los filtros de otras pestañas.</p></details>
+    </div>
+    <div class="granTotal" id="hx-cifras-P"></div>
+    <div class="xlBarra">
+      <div><span class="gcT">DESPLEGAR HASTA</span><div class="gcB" id="hx-nivel-P"></div></div>
+      <div><span class="gcT">DEPRECIACIÓN EN EL COSTO</span><div class="gcB" id="hx-ter-P"></div></div>
+      <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-P"></div></div>
+      <label class="fl">BUSCAR EQUIPO, MODELO O FAMILIA
+        <input class="entradaEq" id="hx-buscar-P" autocomplete="off" placeholder="p. ej. FC-87 o 785C"></label>
+    </div>
+    <div class="xlEstado" id="hx-estado-P"></div>
+    <div class="xlLey" aria-label="Leyenda de columnas"><span><i style="background:#4A5A78">▼</i>costo</span><span><i style="background:#4F7657">▲</i>venta interna</span><span><i style="background:#7A6A4F">±</i>venta − costo</span><span><i style="background:#3F6F72">◷</i>horas y operación</span><span><i style="background:#5E6C88">/h</i>por hora</span><span><i style="background:#384459">Σ</i>acumulado 2026</span></div>
+    <div class="xlOrigen" id="hx-origen-P" aria-live="polite"></div>
+    <div class="xlEnv"><table class="xl" id="hx-tabla-P"></table></div>
+  </div>
+</section>
+
+<!-- ═══════════════════ ALQUILADOS ═══════════════════ -->
+<section class="vista luz hojaXl" id="v-alquilados" data-pes="Alquilados">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">02</span><span class="lin"></span><span class="num">FLOTA ALQUILADA · COMO SHGN ALQ</span></div>
+      <h2 class="d d-l">Flota alquilada, al día __CORTE__.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">Es la hoja <b>SHGN ALQ</b> del consolidado. Se despliega como su tabla dinámica:
+      familia, modelo, equipo y orden de trabajo; clic en la primera columna o las flechas del teclado.
+      Clic en una cifra para ver de dónde sale y comentarla; el botón TABLERO de cada familia y modelo
+      abre su análisis. Igual que
+      en el Excel, <b>los totales son RyM + MOV y no suman el alquiler</b>: la columna Alq va aparte y
+      <b>no es un costo real</b>, porque el Excel la calcula con la tarifa de venta de alquiler × horas.
+      El <b>acumulado</b> es el libro mayor de __PERIODOS__ más setiembre al día __CORTE__. RyM, MOV,
+      costo y horas acumulados coinciden con la hoja; la venta acumulada y el alquiler acumulado no,
+      porque en el Excel la venta cuenta el mes dos veces y el alquiler busca el equipo de nueve filas
+      más abajo. Esta tabla es el reporte completo al día __CORTE__ y no sigue a los filtros de otras
+      pestañas.</p></details>
+    </div>
+    <div class="granTotal" id="hx-cifras-A"></div>
+    <div class="xlBarra">
+      <div><span class="gcT">DESPLEGAR HASTA</span><div class="gcB" id="hx-nivel-A"></div></div>
+      <div><span class="gcT">ALQUILER EN EL COSTO</span><div class="gcB" id="hx-ter-A"></div></div>
+      <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-A"></div></div>
+      <label class="fl">BUSCAR EQUIPO, MODELO, FAMILIA O PROVEEDOR
+        <input class="entradaEq" id="hx-buscar-A" autocomplete="off" placeholder="p. ej. V-2401-AL o TLH 135"></label>
+    </div>
+    <div class="xlEstado" id="hx-estado-A"></div>
+    <div class="xlLey" aria-label="Leyenda de columnas"><span><i style="background:#4A5A78">▼</i>costo</span><span><i style="background:#4F7657">▲</i>venta interna</span><span><i style="background:#7A6A4F">±</i>venta − costo</span><span><i style="background:#3F6F72">◷</i>horas y operación</span><span><i style="background:#5E6C88">/h</i>por hora</span><span><i style="background:#384459">Σ</i>acumulado 2026</span></div>
+    <div class="xlOrigen" id="hx-origen-A" aria-live="polite"></div>
+    <div class="xlEnv"><table class="xl" id="hx-tabla-A"></table></div>
+  </div>
+</section>
+
+<div class="xlEditor" id="hx-editor" hidden role="dialog" aria-label="Comentario de la celda">
+  <h4>COMENTARIO DE LA CELDA</h4>
+  <div class="fila" id="hx-ed-fila">—</div>
+  <textarea id="hx-ed-txt" aria-label="Comentario" placeholder="Escribe el comentario de esta celda"></textarea>
+  <div class="meta" id="hx-ed-meta"></div>
+  <div class="bot">
+    <button class="fbt" type="button" id="hx-ed-guardar" aria-pressed="true">GUARDAR</button>
+    <button class="fbt" type="button" id="hx-ed-borrar">BORRAR</button>
+    <button class="fbt" type="button" id="hx-ed-cerrar">CERRAR</button>
+  </div>
+</div>

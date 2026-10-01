@@ -1,0 +1,9 @@
+# los libros de Excel del consolidado no se suben
+*.xlsx
+*.xlsm
+*.xls
+~$*
+__pycache__/
+*.pyc
+_prev.html
+.playwright-mcp/

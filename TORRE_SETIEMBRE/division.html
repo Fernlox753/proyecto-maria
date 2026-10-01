@@ -1,0 +1,60 @@
+<style>
+/* ---------- pantalla dividida ----------
+   Dos pestanas a la vez, una arriba y otra abajo, cada una con su propio
+   desplazamiento. Las separa una barra horizontal que se arrastra para
+   repartir el alto. La pestana que se elige arriba se abre en el panel
+   marcado (el ultimo en que se hizo clic). */
+:root{--divH:30px}
+.divBtn{all:unset; cursor:pointer; order:3; flex:0 0 auto; align-self:center; box-sizing:border-box;
+  width:30px; height:28px; text-align:center; line-height:26px; font-size:15px; margin-right:4px;
+  border:1px solid var(--hair-fuerte); color:var(--claro-2); background:rgba(4,17,29,.6)}
+.divBtn:hover{border-color:var(--hivis); color:var(--hivis)}
+.divBtn:focus-visible{outline:2px solid var(--hivis); outline-offset:2px}
+.divBtn[aria-pressed="true"]{border-color:var(--hivis); color:var(--hivis)}
+.nav.claro .divBtn{border-color:var(--linea); color:var(--tinta-2); background:#fff}
+.nav.claro .divBtn:hover,.nav.claro .divBtn[aria-pressed="true"]{border-color:var(--sm); color:var(--sm)}
+
+body.dividida{overflow:hidden}
+body.dividida .vista.on{position:fixed; left:0; right:0; overflow:auto; overscroll-behavior:contain;
+  min-height:0; animation:none; padding-block:14px 40px}
+body.dividida .vista.divA{top:var(--navH); height:var(--hA)}
+body.dividida .vista.divB{top:calc(var(--navH) + var(--hA) + var(--divH)); bottom:0}
+/* el panel que recibe la proxima pestana lleva una raya arriba */
+body.dividida .vista.divAct{box-shadow:inset 0 3px 0 var(--hivis)}
+body.dividida .vista.luz.divAct{box-shadow:inset 0 3px 0 var(--sm)}
+/* con medio alto, los titulos grandes de cada hoja se achican */
+body.dividida .vista .tituloV h2{font-size:clamp(20px,2.2vw,28px); margin-block:4px 6px}
+body.dividida .vista .tituloV .ord{margin-bottom:2px}
+/* las tablas de Propios y Alquilados no pasan del alto de su panel */
+body.dividida .vista.divA .xlEnv{max-height:max(160px, calc(var(--hA) - 70px))}
+body.dividida .vista.divB .xlEnv{max-height:max(160px, calc(100vh - var(--navH) - var(--hA) - var(--divH) - 70px))}
+
+.divisor{display:none}
+body.dividida .divisor{display:flex; position:fixed; left:0; right:0; z-index:20;
+  top:calc(var(--navH) + var(--hA)); height:var(--divH); box-sizing:border-box;
+  align-items:center; gap:10px; padding:0 10px; background:var(--tinta); color:#fff;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em;
+  cursor:row-resize; user-select:none; touch-action:none; box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.divisor .lado{all:unset; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  max-width:32%; opacity:.7; padding:2px 4px}
+.divisor .lado.act{opacity:1; color:var(--hivis)}
+.divisor .lado:focus-visible{outline:2px solid var(--hivis)}
+.divisor .asa{flex:1; text-align:center; opacity:.45; letter-spacing:-1px; font-size:12px}
+.divisor .acc{all:unset; cursor:pointer; white-space:nowrap; padding:2px 8px; border:1px solid rgba(255,255,255,.35)}
+.divisor .acc:hover{border-color:var(--hivis); color:var(--hivis)}
+.divisor .acc:focus-visible{outline:2px solid var(--hivis); outline-offset:1px}
+body.divArrastre,body.divArrastre *{cursor:row-resize !important; user-select:none !important}
+
+/* en las pestanas: ▲ la de arriba, ▼ la de abajo */
+.pes[data-div]::before{content:attr(data-div); margin-right:5px; font-size:9px}
+.pes.divOtra{border-bottom:2px dashed currentColor}
+@media (max-width:620px){ .divisor .lado{max-width:24%} .divisor .acc{padding:2px 5px} }
+</style>
+
+<div class="divisor" id="divisor" role="separator" aria-orientation="horizontal" aria-label="Separador de los dos paneles: arrástralo para repartir el alto">
+  <button type="button" class="lado" id="divLadoA" data-p="a" title="La próxima pestaña se abre arriba">▲ —</button>
+  <span class="asa" aria-hidden="true">═══════</span>
+  <button type="button" class="lado" id="divLadoB" data-p="b" title="La próxima pestaña se abre abajo">▼ —</button>
+  <button type="button" class="acc" id="divCambiar" title="Pasar la de arriba abajo y la de abajo arriba">⇅ INTERCAMBIAR</button>
+  <button type="button" class="acc" id="divSalir" title="Volver a una sola pestaña (D)">✕ UNA SOLA</button>
+</div>

@@ -1,0 +1,185 @@
+{
+ "libro": "0 SHGN_RO EQUIPOS_27.09.xlsx",
+ "hoja": "BASE DATOS 29.09 13",
+ "corte": 27,
+ "diasMes": 30,
+ "mes": 9,
+ "anio": 2026,
+ "fechaMaxBase": "2026-09-29",
+ "generado": "2026-09-30 15:51",
+ "reglas": {
+  "PROPIO": {
+   "RECURSO": [
+    "MAT",
+    "SERV",
+    "MO"
+   ],
+   "TIPO": [
+    "PROPIO"
+   ],
+   "CONSIDERAR": [
+    "(vacío)",
+    "OPEX",
+    "PROCESO CAPEX"
+   ]
+  },
+  "ALQUILADO": {
+   "RECURSO": [
+    "MAT",
+    "SERV",
+    "MO"
+   ],
+   "TIPO": [
+    "ALQUILADO"
+   ],
+   "CONSIDERAR": [
+    "(vacío)",
+    "OPEX",
+    "CAPEX",
+    "PASAR A VENTA",
+    "PROCESO CAPEX"
+   ]
+  }
+ },
+ "reglasFuera": {
+  "PROPIO": {
+   "RECURSO": [
+    "(vacío)"
+   ],
+   "TIPO": [
+    "ALQUILADO",
+    "(vacío)"
+   ],
+   "CONSIDERAR": [
+    "CAPEX",
+    "PASAR A VENTA",
+    "Parte de la Tarifa"
+   ]
+  },
+  "ALQUILADO": {
+   "RECURSO": [
+    "(vacío)"
+   ],
+   "TIPO": [
+    "PROPIO",
+    "(vacío)"
+   ],
+   "CONSIDERAR": [
+    "Parte de la Tarifa"
+   ]
+  }
+ },
+ "fuenteHoras": "EXPORT_20260929_104452.xlsx",
+ "alqPorDias": [
+  "MH-91-AL",
+  "MH-92-AL",
+  "MH-93-AL",
+  "R-218-AL"
+ ],
+ "depPorDias": [
+  "EP-40",
+  "EP-41"
+ ],
+ "propio": {
+  "hoja": {
+   "rym": 327777.7,
+   "mov": 316223.25,
+   "terc": 723513.34,
+   "seg": 15289.73,
+   "hr": 8504.96,
+   "nEq": 33.0
+  },
+  "calc": {
+   "rym": 327777.7,
+   "mov": 316223.25,
+   "terc": 723513.34,
+   "hr": 8504.96,
+   "nEq": 33
+  }
+ },
+ "alquilado": {
+  "hoja": {
+   "rym": 807230.38,
+   "mov": 313187.7,
+   "terc": 4853200.13,
+   "seg": 454116.85,
+   "hr": 96952.27,
+   "nEq": 358.0
+  },
+  "calc": {
+   "rym": 807230.38,
+   "mov": 313187.7,
+   "terc": 4853200.13,
+   "hr": 96952.27,
+   "nEq": 358
+  }
+ },
+ "acumPeriodos": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+ ],
+ "acumPropio": {
+  "hoja": {
+   "rym": 2961295.42,
+   "mov": 2829192.58,
+   "terc": 4776165.6,
+   "costo": 10566653.6,
+   "hr": 62983.28,
+   "venta": 10449012.41
+  },
+  "calc": {
+   "rym": 3149447.14,
+   "mov": 3024132.78,
+   "terc": 5345718.1,
+   "costo": 11519298.02,
+   "hr": 70161.54,
+   "venta": 10128865.69
+  }
+ },
+ "acumAlquilado": {
+  "hoja": {
+   "rym": 8635127.34,
+   "mov": 2929080.53,
+   "terc": 45527365.35,
+   "costo": 11564207.87,
+   "hr": 1048013.8,
+   "venta": 10116317.18
+  },
+  "calc": {
+   "rym": 8635127.34,
+   "mov": 2929080.53,
+   "terc": 48232340.7,
+   "costo": 11564207.87,
+   "hr": 1048013.8,
+   "venta": 9250248.3
+  }
+ },
+ "difMovAlq": 0.0,
+ "difEqAlq": 0,
+ "difHrAlq": 0.0,
+ "fueraCorte": {
+  "SERV": 96598.31,
+  "MAT": 82791.39,
+  "MO": 14770.0
+ },
+ "sinFecha": 0.0,
+ "sinTarifa": 28,
+ "sinHoras": 56,
+ "sinDM": 136,
+ "parteTarifa": 78900.03,
+ "serviciosFueraBase": {
+  "n": 18,
+  "v": 78862.95
+ },
+ "horasFuera": {
+  "n": 1,
+  "h": 84.0
+ },
+ "horasDescuadre": []
+}

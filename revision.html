@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Incongruencias del consolidado 27.09</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Una hoja de revision: cada hallazgo es una ficha con el sitio exacto en el
+   libro y un recorte de la hoja tal como se ve en Excel, con la celda mala
+   marcada y su formula arriba. */
+:root{
+  --papel:#F2F4F7; --hoja:#FFFFFF; --tinta:#10202F; --tinta-2:#4A5668; --tinta-3:#6E7A8A;
+  --linea:#D6DCE4; --cab:#EDF0F4; --acento:#1F4E8C;
+  --excel:#1D6F42;
+  --mal:#B3261E; --mal-bg:#FCE8E6; --ojo:#8A5A00; --ojo-bg:#FFF3D1; --bien:#1D6F42; --bien-bg:#E4F2E9;
+  --alta:#B3261E; --media:#9A6700; --baja:#5B6B80;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --papel:#0D131A; --hoja:#141C25; --tinta:#E4E9EF; --tinta-2:#A7B2C0; --tinta-3:#8592A3;
+  --linea:#29343F; --cab:#1B2530; --acento:#86AEE6; --excel:#5CC08C;
+  --mal:#F2877D; --mal-bg:#3B1C1A; --ojo:#E9B54A; --ojo-bg:#382C10; --bien:#6FCB98; --bien-bg:#16301F;
+  --alta:#F2877D; --media:#E9B54A; --baja:#9AA8BA; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --papel:#0D131A; --hoja:#141C25; --tinta:#E4E9EF; --tinta-2:#A7B2C0; --tinta-3:#8592A3;
+  --linea:#29343F; --cab:#1B2530; --acento:#86AEE6; --excel:#5CC08C;
+  --mal:#F2877D; --mal-bg:#3B1C1A; --ojo:#E9B54A; --ojo-bg:#382C10; --bien:#6FCB98; --bien-bg:#16301F;
+  --alta:#F2877D; --media:#E9B54A; --baja:#9AA8BA; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--papel); color:var(--tinta); font-family:var(--sans); font-size:15px; line-height:1.55}
+.pag{max-width:1120px; margin:0 auto; padding:32px 20px 64px}
+a{color:var(--acento)}
+code,.mono{font-family:var(--mono)}
+h1,h2,h3{text-wrap:balance; margin:0}
+
+/* cabecera */
+.cab{display:grid; gap:10px; padding-bottom:22px; border-bottom:2px solid var(--tinta)}
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--tinta-3); text-transform:uppercase}
+h1{font-size:clamp(26px,4vw,38px); font-weight:700; letter-spacing:-.01em; line-height:1.15}
+.lede{max-width:70ch; color:var(--tinta-2); margin:0}
+.lede b{color:var(--tinta)}
+.libro{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12.5px; background:var(--hoja);
+       border:1px solid var(--linea); padding:4px 10px; width:fit-content; max-width:100%; overflow-wrap:anywhere}
+.libro i{width:10px; height:12px; background:var(--excel); display:inline-block; flex:0 0 auto}
+
+/* resumen y filtros */
+.barra{display:flex; flex-wrap:wrap; gap:14px 28px; align-items:end; margin:22px 0 8px}
+.cuenta{display:flex; gap:22px; flex-wrap:wrap}
+.cuenta div{display:grid}
+.cuenta b{font-family:var(--mono); font-size:28px; font-weight:500; font-variant-numeric:tabular-nums; line-height:1.1}
+.cuenta span{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-3)}
+.cuenta .a b{color:var(--alta)} .cuenta .m b{color:var(--media)} .cuenta .bj b{color:var(--baja)}
+.filtros{display:flex; flex-wrap:wrap; gap:6px; margin-left:auto}
+.filtros button,.chk{font:inherit; font-family:var(--mono); font-size:12px; letter-spacing:.04em; cursor:pointer;
+  background:var(--hoja); color:var(--tinta-2); border:1px solid var(--linea); padding:6px 10px}
+.filtros button[aria-pressed="true"]{background:var(--tinta); color:var(--papel); border-color:var(--tinta)}
+.filtros button:focus-visible,.chk:focus-within,.idx a:focus-visible{outline:2px solid var(--acento); outline-offset:2px}
+.chk{display:inline-flex; align-items:center; gap:6px}
+.chk input{margin:0; accent-color:var(--excel)}
+
+/* indice */
+.idxEnv{overflow-x:auto; margin:14px 0 36px; border:1px solid var(--linea); background:var(--hoja)}
+table.idx{border-collapse:collapse; width:100%; min-width:720px; font-size:13.5px}
+.idx th{font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--tinta-3);
+        text-align:left; font-weight:500; padding:9px 12px; border-bottom:1px solid var(--linea); background:var(--cab)}
+.idx td{padding:8px 12px; border-bottom:1px solid var(--linea); vertical-align:top}
+.idx tr:last-child td{border-bottom:0}
+.idx td.n{font-family:var(--mono); color:var(--tinta-3); width:36px}
+.idx td.imp{font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap; text-align:right}
+.idx td.dn{font-family:var(--mono); font-size:12.5px; color:var(--tinta-2); white-space:nowrap}
+.idx a{text-decoration:none; color:var(--tinta); font-weight:500}
+.idx a:hover{text-decoration:underline}
+.idx tr.hecho td{opacity:.45}
+.sev{display:inline-block; font-family:var(--mono); font-size:11px; letter-spacing:.08em; font-weight:600; padding:2px 7px;
+     border:1px solid currentColor; white-space:nowrap}
+.sev.alta{color:var(--alta)} .sev.media{color:var(--media)} .sev.baja{color:var(--baja)}
+
+/* fichas */
+.ficha{display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr); gap:22px 30px; padding:28px 0 30px;
+       border-top:1px solid var(--linea); scroll-margin-top:12px}
+.ficha[hidden]{display:none}
+.ficha.hecho .txt,.ficha.hecho .vis{opacity:.5}
+@media (max-width:860px){ .ficha{grid-template-columns:minmax(0,1fr)} }
+.fichaCab{grid-column:1 / -1; display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 14px}
+.fichaCab .num{font-family:var(--mono); font-size:13px; color:var(--tinta-3)}
+.fichaCab h2{font-size:21px; font-weight:600; flex:1 1 380px; line-height:1.3}
+.fichaCab .chk{margin-left:auto}
+.txt{display:grid; gap:14px; align-content:start; min-width:0}
+.donde{display:flex; flex-wrap:wrap; gap:4px; align-items:center; font-family:var(--mono); font-size:12.5px}
+.donde span{background:var(--hoja); border:1px solid var(--linea); padding:2px 8px}
+.donde em{font-style:normal; color:var(--tinta-3)}
+.bloque h3{font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--tinta-3);
+           font-weight:500; margin-bottom:3px}
+.bloque p{margin:0; max-width:62ch}
+.bloque code{font-size:.9em; background:var(--cab); padding:1px 4px; overflow-wrap:anywhere}
+.impacto{border-left:3px solid var(--alta); padding:4px 0 4px 12px}
+.ficha[data-sev="media"] .impacto{border-left-color:var(--media)}
+.ficha[data-sev="baja"] .impacto{border-left-color:var(--baja)}
+.torre{font-size:13.5px; color:var(--tinta-2); background:var(--hoja); border:1px dashed var(--linea); padding:8px 12px}
+.torre b{color:var(--tinta)}
+
+/* el recorte de Excel */
+.vis{display:grid; gap:12px; align-content:start; min-width:0}
+figure.xl{margin:0; background:var(--hoja); border:1px solid var(--linea); min-width:0}
+.fx{display:flex; align-items:stretch; border-bottom:1px solid var(--linea); font-family:var(--mono); font-size:12.5px}
+.fx .ref{flex:0 0 auto; min-width:64px; padding:6px 8px; border-right:1px solid var(--linea); color:var(--tinta-2); text-align:center}
+.fx .fxi{flex:0 0 auto; padding:6px 8px; color:var(--tinta-3); font-style:italic; border-right:1px solid var(--linea)}
+.fx code{padding:6px 10px; overflow-wrap:anywhere; min-width:0; line-height:1.5}
+.fx mark{background:var(--mal-bg); color:var(--mal); font-weight:600; outline:1px solid var(--mal); padding:0 1px}
+.fx mark.ok{background:var(--bien-bg); color:var(--bien); outline-color:var(--bien)}
+.xlEnv{overflow-x:auto}
+table.g{border-collapse:collapse; font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums; width:100%}
+.g th{background:var(--cab); color:var(--tinta-3); font-weight:500; border:1px solid var(--linea); padding:3px 8px; text-align:center; white-space:nowrap}
+.g th.rn{width:44px}
+.g td{border:1px solid var(--linea); padding:4px 6px; white-space:nowrap; color:var(--tinta)}
+.g td.nm{text-align:right}
+.g td.enc{background:var(--cab); color:var(--tinta-2); font-weight:500}
+.g td.gap{color:var(--tinta-3); text-align:center; padding:0 8px; font-size:11px}
+.g td.mal{background:var(--mal-bg); color:var(--mal); font-weight:600; outline:2px solid var(--mal); outline-offset:-2px}
+.g td.ojo{background:var(--ojo-bg); color:var(--ojo); font-weight:600}
+.g td.bien{background:var(--bien-bg); color:var(--bien); font-weight:600}
+.g td.sel{outline:2px solid var(--excel); outline-offset:-2px}
+.g td.mal.sel{outline-color:var(--mal); box-shadow:inset 0 0 0 3px var(--hoja)}
+figcaption{display:flex; align-items:stretch; border-top:1px solid var(--linea); font-size:12.5px}
+figcaption .tab{flex:0 0 auto; font-family:var(--mono); padding:5px 12px; background:var(--hoja); color:var(--excel);
+                border-right:1px solid var(--linea); box-shadow:inset 0 -2px 0 var(--excel); font-weight:600}
+figcaption .cap{padding:5px 10px; color:var(--tinta-2); background:var(--cab); flex:1; min-width:0}
+.ley{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color:var(--tinta-3)}
+.ley i{display:inline-block; width:12px; height:12px; vertical-align:-2px; margin-right:5px}
+.ley .m{background:var(--mal-bg); outline:2px solid var(--mal); outline-offset:-2px}
+.ley .o{background:var(--ojo-bg)} .ley .b{background:var(--bien-bg)}
+
+/* el filtro de una dinamica, dibujado */
+.filtro{background:var(--hoja); border:1px solid var(--linea); width:min(300px,100%); font-size:13px; box-shadow:0 8px 22px rgba(15,30,50,.12)}
+.filtro .t{font-family:var(--mono); font-size:12px; padding:7px 10px; border-bottom:1px solid var(--linea); background:var(--cab); color:var(--tinta-2)}
+.filtro label{display:flex; align-items:center; gap:8px; padding:5px 10px}
+.filtro .x{width:14px; height:14px; border:1px solid var(--tinta-3); display:inline-grid; place-items:center; font-size:11px; line-height:1; flex:0 0 auto}
+.filtro .x.si{background:var(--excel); border-color:var(--excel); color:#fff}
+.filtro label.mal{background:var(--mal-bg); color:var(--mal); font-weight:600}
+.dos{display:flex; flex-wrap:wrap; gap:12px}
+
+.pie{margin-top:40px; padding-top:16px; border-top:2px solid var(--tinta); font-size:13.5px; color:var(--tinta-2); max-width:78ch}
+@media (prefers-reduced-motion:reduce){ *{scroll-behavior:auto} }
+</style>
+
+<div class="pag">
+  <header class="cab">
+    <div class="eyebrow">Revisión del consolidado · SHGN · setiembre 2026</div>
+    <h1>Incongruencias del consolidado 27.09</h1>
+    <p class="lede">Lo que encontré al recalcular el libro desde <b>BASE DATOS</b>. Los totales del mes de
+    <b>SHGN PROP</b> y <b>SHGN ALQ</b> (RyM, MOV, horas y número de equipos) cuadran al centavo con la base: la
+    tabla dinámica está bien refrescada. Los problemas están en las columnas calculadas al lado de la dinámica,
+    en el acumulado y en lo que no llega a la base. Cada ficha dice <b>dónde está</b>, <b>cómo verlo en
+    segundos</b> y trae el recorte de la hoja con la celda marcada.</p>
+    <span class="libro"><i aria-hidden="true"></i>CONSOLIDADO\0 SHGN_RO EQUIPOS_27.09.xlsx · base hasta el 29/09 · corte al 27</span>
+  </header>
+
+  <div class="barra">
+    <div class="cuenta" id="cuenta"></div>
+    <div class="filtros" role="group" aria-label="Filtrar por gravedad">
+      <button type="button" data-f="todas" aria-pressed="true">TODAS</button>
+      <button type="button" data-f="alta" aria-pressed="false">ALTA</button>
+      <button type="button" data-f="media" aria-pressed="false">MEDIA</button>
+      <button type="button" data-f="baja" aria-pressed="false">BAJA</button>
+      <label class="chk"><input type="checkbox" id="ocultarHechas">OCULTAR REVISADAS</label>
+    </div>
+  </div>
+  <div class="ley"><span><i class="m"></i>celda con el error</span><span><i class="o"></i>celda donde se nota</span><span><i class="b"></i>cómo debería quedar</span><span>Alta = cambia una cifra del reporte · Media = cambia un indicador o deja costo fuera · Baja = orden y control</span></div>
+
+  <div class="idxEnv"><table class="idx" id="indice"></table></div>
+
+  <main id="fichas"></main>
+
+  <p class="pie">Para comprobar: todo se leyó del archivo tal como está en la carpeta CONSOLIDADO, con los valores
+  guardados en la última grabación. Las filas citadas son las de ese archivo; si se refresca la dinámica o se
+  insertan filas, cambian. La Torre de Control Setiembre ya está leyendo este libro y aplica las correcciones
+  que se indican en cada ficha, sin tocar el Excel.</p>
+</div>
+
+<script>
+(function(){
+/* Cada hallazgo. La hoja «g» es el recorte de Excel: columnas, filas y las
+   celdas marcadas (mal / ojo / bien); «fx» es la barra de formulas. */
+var H = [
+{ id:'alq-venta', sev:'alta', hoja:'SHGN ALQ',
+  t:'El alquiler se calcula con la tarifa de venta, no con lo que se le paga al proveedor',
+  donde:['SHGN ALQ','columna N «Alq»','filas 82 a 439','con AJ y AO'],
+  imp:'US$ 4,853,200', impTxt:'N74 = US$ 4,853,200 aparece como costo de alquiler, pero es venta.',
+  que:'N multiplica <code>AJ × V</code>. AJ trae la columna 4 del rango <code>BASE VARIOS!I:N</code>, que es <b>DEP/ALQ del bloque TARIFAS VENTA</b>: lo que se le cobra a Operaciones. AO, la tarifa de venta, hace exactamente la misma búsqueda. Por eso costo y venta de alquiler salen iguales.',
+  ver:'Mira la columna AF (desviación Alq): es 0 en casi todas las filas. Dos cifras de fuentes distintas no dan lo mismo en 295 equipos.',
+  arreglo:'Traer el costo de alquiler de la proforma (<code>BASE VARIOS</code> columna AC «Tarif Alq», o la valorización del proveedor) y dejar AJ/AO sólo para la venta.',
+  torre:'Lo muestra aparte con la etiqueta «no es costo real» y no lo suma al costo.',
+  g:{ tab:'SHGN ALQ', cap:'Fila 82, RE-1220-AL: costo y venta de alquiler idénticos',
+      cols:['D','N','V','AA','AF','AJ','AO'],
+      enc:{n:81, c:{D:'Equipo',N:'Alq',V:'HM Real',AA:'Alq (venta)',AF:'Alq (desv.)',AJ:'Alq (tarifa)',AO:'Alq (tarifa venta)'}},
+      filas:[{n:82, c:{D:'RE-1220-AL',N:'30,039.00',V:'316.2',AA:'30,039.00',AF:'0.00',AJ:'95.00',AO:'95.00'}}],
+      marca:{N82:'mal sel',AJ82:'mal',AO82:'ojo',AF82:'ojo'},
+      fx:{ref:'AJ82', f:'=IFERROR(+VLOOKUP(D82,\'BASE VARIOS\'!$I:$N,<mark>4</mark>,0),0)'} },
+  g2:{ fx:{ref:'N82', f:'=IFERROR(IF(OR(D82="MH-91-AL",D82="MH-92-AL",D82="MH-93-AL",D82="R-218-AL"),AJ82/$W$1*$V$1,<mark>AJ82</mark>*V82),0)'} } },
+
+{ id:'flat', sev:'alta', hoja:'SHGN ALQ',
+  t:'Las tarifas mensuales se multiplican por horas en la venta de alquiler',
+  donde:['SHGN ALQ','columna AA','filas 434, 437 y 438'],
+  imp:'US$ 2,220,355', impTxt:'Toda la desviación de alquiler del total (AF74 = US$ 2,220,355) sale de estas tres filas.',
+  que:'MH-91-AL, MH-92-AL, MH-93-AL y R-218-AL tienen tarifa <b>mensual</b>. La columna N lo sabe y prorratea (tarifa ÷ 30 × 27). La columna AA no: hace <code>AO × V</code> como si fuera tarifa por hora, y 11,000 × 108 h da más de un millón.',
+  ver:'Ordena la columna AF de mayor a menor: arriba salen estas filas, con millones en equipos de tarifa flat.',
+  arreglo:'En AA, la misma condición que en N: <code>=IFERROR(IF(OR(D434="MH-91-AL",D434="MH-92-AL",D434="MH-93-AL",D434="R-218-AL"),AO434/$W$1*$V$1,AO434*$V434),0)</code>',
+  torre:'La venta de alquiler usa el mismo prorrateo por días que el costo.',
+  g:{ tab:'SHGN ALQ', cap:'AA multiplica la tarifa mensual por las horas',
+      cols:['D','N','V','AA','AF','AO'],
+      enc:{n:81, c:{D:'Equipo',N:'Alq',V:'HM Real',AA:'Alq (venta)',AF:'Alq (desv.)',AO:'Alq (tarifa)'}},
+      filas:[{n:434, c:{D:'R-218-AL',N:'9,900.00',V:'108.0',AA:'1,188,000.00',AF:'1,178,100.00',AO:'11,000.00'}},
+             {gap:true},
+             {n:437, c:{D:'MH-92-AL',N:'4,095.00',V:'230.6',AA:'1,049,230.00',AF:'1,045,135.00',AO:'4,550.00'}},
+             {n:438, c:{D:'MH-93-AL',N:'2,880.00',V:'0.0',AA:'0.00',AF:'−2,880.00',AO:'3,200.00'}}],
+      marca:{AA434:'mal sel',AA437:'mal',AF434:'ojo',AF437:'ojo',N434:'bien',N437:'bien'},
+      fx:{ref:'AA434', f:'=IFERROR(+<mark>AO434*$V434</mark>,0)'} } },
+
+{ id:'corrido', sev:'alta', hoja:'SHGN ALQ',
+  t:'El alquiler acumulado busca el equipo de nueve filas más abajo',
+  donde:['SHGN ALQ','columna BA','todas las filas desde la 82'],
+  imp:'US$ 2.70 MM', impTxt:'El total BA74 (US$ 45.53 MM) queda US$ 2.70 MM por debajo de lo que da cada equipo con su propia fila.',
+  que:'Las demás columnas del acumulado (AY, AZ, BB, BD) buscan <code>$D82</code>. BA busca <code>$D91</code>. En la fila 82 (RE-1220-AL) suma el alquiler del libro de RE-1278-AL.',
+  ver:'Haz clic en cualquier celda de BA y compara el número de fila del <code>$D</code> con el de la celda: siempre hay 9 de diferencia.',
+  arreglo:'En BA82 cambiar <code>$D91</code> por <code>$D82</code> y copiar hacia abajo.',
+  torre:'Suma el alquiler del libro de cada equipo con su propio código.',
+  g:{ tab:'SHGN ALQ', cap:'BA82 trae el alquiler de otro equipo',
+      cols:['D','N','AY','BA','BD'],
+      enc:{n:81, c:{D:'Equipo',N:'Alq',AY:'RYM acum',BA:'Alq acum',BD:'HM acum'}},
+      filas:[{n:82, c:{D:'RE-1220-AL',N:'30,039.00',AY:'5,924.72',BA:'477,666.40',BD:'516.2'}},
+             {gap:true},
+             {n:91, c:{D:'RE-1278-AL',N:'',AY:'',BA:'',BD:''}}],
+      marca:{BA82:'mal sel',D91:'ojo'},
+      fx:{ref:'BA82', f:'=+SUMIF(\'BASE VARIOS\'!$AP$9:$AP$1048576,<mark>$D91</mark>,\'BASE VARIOS\'!$AV$9:$AV$1048576)+N82'},
+      nota:'Con $D82 daría US$ 22,265.20 (el libro de RE-1220-AL más su alquiler del mes).' } },
+
+{ id:'doble', sev:'alta', hoja:'SHGN ALQ · SHGN PROP',
+  t:'La venta acumulada cuenta el mes dos veces',
+  donde:['SHGN ALQ','columnas BF, BG, BH'],
+  donde2:['SHGN PROP','columnas BC, BD, BE','filas 27 a 32'],
+  imp:'US$ 866,069', impTxt:'En SHGN ALQ la venta acumulada (BI74) está inflada exactamente en la venta del mes: US$ 866,069 (AB74).',
+  que:'<code>BF82 = AM82 × BD82 + Y82</code>. BD82 son las horas acumuladas <b>ya con el mes</b> (<code>SUMIF(…HM…)+V82</code>), así que <code>AM × BD</code> ya incluye la venta del mes. Sumarle Y82 (venta del mes) la cuenta otra vez. En SHGN PROP pasa lo mismo sólo en las filas donde BA suma el mes (27 a 32, ver la ficha siguiente).',
+  ver:'En la fila 82: BD82 (516.2 h) = horas del libro (200) + V82 (316.2). Si BD ya lleva V, no debe sumarse Y.',
+  arreglo:'<code>=AM82*$BD82</code> (sin <code>+Y82</code>); igual en BG y BH. En PROP, decidir primero la regla de la ficha 5.',
+  torre:'Venta acumulada = tarifa de venta × horas acumuladas (libro + mes), una sola vez.',
+  g:{ tab:'SHGN ALQ', cap:'BF82: la venta del mes entra por BD y otra vez por Y',
+      cols:['V','Y','AM','BD','BF'],
+      enc:{n:81, c:{V:'HM Real',Y:'RyM (venta mes)',AM:'RyM (tarifa)',BD:'HM acum',BF:'RyM (venta acum)'}},
+      filas:[{n:82, c:{V:'316.2',Y:'649.69',AM:'2.0547',BD:'516.2',BF:'1,710.31'}}],
+      marca:{BF82:'mal sel',Y82:'ojo',BD82:'ojo'},
+      fx:{ref:'BF82', f:'=AM82*$BD82<mark>+Y82</mark>'},
+      nota:'Sin +Y82 daría 1,060.62.' } },
+
+{ id:'mes-prop', sev:'alta', hoja:'SHGN PROP',
+  t:'En SHGN PROP sólo 6 filas suman el mes al acumulado',
+  donde:['SHGN PROP','columnas AV a BA','filas 27–32 sí · 33–59 no'],
+  imp:'US$ 188,152', impTxt:'RYM acumulado: la hoja dice US$ 2,961,295; sumando el mes en todas las filas serían US$ 3,149,447. Lo mismo en MOV, Dep y horas (62,983 h contra 70,162 h).',
+  que:'En las filas 27 a 32 (CH-08, CH-04, CH-06, EP-32, EP-28, EP-19) las fórmulas terminan en <code>+L27</code>, <code>+M27</code>, <code>+N27</code>, <code>+O27</code>, <code>+V27</code>. Desde la 33 terminan sin eso: sólo el libro mayor, sin setiembre.',
+  ver:'Compara AV32 con AV33: la de la 33 termina sin «+L33». O mira EP-41 (fila 33): tiene US$ 2,592 de RyM en el mes y su AV es igual al libro.',
+  arreglo:'Copiar la fórmula de la fila 27 hacia abajo en AV:BA. Después quitar el <code>+Y</code> de BC:BE (ficha 4).',
+  torre:'Todos los equipos: libro mayor (enero a agosto) más setiembre al día 27.',
+  g:{ tab:'SHGN PROP', cap:'Misma columna, dos reglas',
+      cols:['D','L','AV','BA'],
+      enc:{n:26, c:{D:'Equipo',L:'RYM (mes)',AV:'RYM acum',BA:'HM acum'}},
+      filas:[{n:27, c:{D:'CH-08',L:'53,647.18',AV:'461,626.21',BA:'2,621.8'}},
+             {gap:true},
+             {n:32, c:{D:'EP-19',L:'6,060.68',AV:'111,827.26',BA:'1,903.0'}},
+             {n:33, c:{D:'EP-41',L:'2,591.81',AV:'107,074.90',BA:'1,733.2'}}],
+      marca:{AV27:'bien',AV32:'bien',AV33:'mal sel'},
+      fx:{ref:'AV33', f:'=+SUMIF(\'BASE VARIOS\'!$AP$9:$AP$1048576,$D33,\'BASE VARIOS\'!$AS$9:$AS$1048576)<mark>(falta +L33)</mark>'},
+      nota:'AV27 termina en +L27; AV33 no suma su L33.' } },
+
+{ id:'zserv', sev:'media', hoja:'Z SERV',
+  t:'18 servicios conformados no llegan a BASE DATOS',
+  donde:['Z SERV','CECO 011030SHEP','columnas S «OT» y X «Equipo papa» vacías'],
+  imp:'US$ 78,863', impTxt:'TABLA SERV suma US$ 384,653; los servicios de BASE DATOS, US$ 305,790. La diferencia son estas 18 líneas.',
+  que:'Son alimentación, alojamiento, lavandería y house keeping de los operadores de equipos alquilados («EQ. TER. ALQ», agosto). No tienen equipo ni orden de trabajo, y la base se arma por equipo y OT, así que se caen. Ni SHGN PROP ni SHGN ALQ los ven.',
+  ver:'Compara el total de TABLA SERV con la suma de SERV en BASE DATOS. En Z SERV, filtra CECO = 011030SHEP y «Equipo papa» vacío.',
+  arreglo:'Decidir: repartirlos entre la flota alquilada (por horas, por ejemplo) o dejarlos fuera a propósito y anotarlo en el reporte.',
+  torre:'No los cuenta, igual que el Excel, y los informa en la Ficha.',
+  g:{ tab:'Z SERV', cap:'Las tres más grandes: sin OT ni equipo',
+      cols:['C','N','S','X','AB','AL'],
+      enc:{n:1, c:{C:'COSTO',N:'CECO',S:'OT',X:'Equipo papa',AB:'Descripción de OC',AL:'Fecha conf.'}},
+      filas:[{n:1093, c:{C:'23,942.49',N:'011030SHEP',S:'',X:'',AB:'SERV. ALIMENTACIÓN AGT26 EQ. TER. ALQ',AL:'28/09/2026'}},
+             {n:690, c:{C:'21,884.92',N:'011030SHEP',S:'',X:'',AB:'SER. ALIMENTACIÓN AGT26 EQ. TER. ALQ',AL:'17/09/2026'}},
+             {n:930, c:{C:'7,620.68',N:'011030SHEP',S:'',X:'',AB:'SERV. ALOJAMIENTO_AGT_EQ. TER. ALQ',AL:'18/09/2026'}}],
+      marca:{S1093:'mal',X1093:'mal',S690:'mal',X690:'mal',S930:'mal',X930:'mal',C1093:'ojo sel'},
+      fx:{ref:'X1093', f:'(vacía)'} } },
+
+{ id:'parte', sev:'media', hoja:'BASE DATOS',
+  t:'Lo marcado «Parte de la Tarifa» no aparece en ningún reporte',
+  donde:['BASE DATOS 29.09 13','columna S «CONSIDERAR»','filas 175, 184, 189, 191, 198, 203, 212, 221, 225'],
+  imp:'US$ 78,900', impTxt:'9 servicios de US$ 8,766.67 del 17/09, en perforadoras alquiladas (EP-129-AL a EP-156-AL).',
+  que:'Las dos dinámicas tienen desmarcado «Parte de la Tarifa» en el filtro CONSIDERAR. Si la mano de obra externa de esas perforadoras ya está dentro de la tarifa de alquiler, está bien excluirla; si no, es costo que se pierde.',
+  ver:'Abre el filtro CONSIDERAR de SHGN ALQ (arriba de la tabla): «Parte de la Tarifa» es el único sin marcar.',
+  arreglo:'Confirmar con el contrato de las perforadoras y dejarlo escrito en la hoja.',
+  torre:'Lo lleva en su propio alcance, PARTE DE LA TARIFA: se ve al elegir «todo lo cargado».',
+  g:{ tab:'BASE DATOS 29.09 13', cap:'OTs 51279885 a 51279894 · SERV. M.O. EXTERNA',
+      cols:['A','B','C','H','J','S'],
+      enc:{n:1, c:{A:'RECURSO',B:'Equipo',C:'OT',H:'Fecha de Tran',J:'COSTO RYM',S:'CONSIDERAR'}},
+      filas:[{n:175, c:{A:'SERV',B:'EP-129-AL',C:'51279885',H:'17/09/2026',J:'8,766.67',S:'Parte de la Tarifa'}},
+             {n:184, c:{A:'SERV',B:'EP-130-AL',C:'51279886',H:'17/09/2026',J:'8,766.67',S:'Parte de la Tarifa'}},
+             {gap:true},
+             {n:225, c:{A:'SERV',B:'EP-156-AL',C:'51279894',H:'17/09/2026',J:'8,766.67',S:'Parte de la Tarifa'}}],
+      marca:{S175:'mal sel',S184:'mal',S225:'mal'},
+      fx:{ref:'S175', f:'Parte de la Tarifa'} },
+  filtro:{ t:'SHGN ALQ · filtro CONSIDERAR', items:[['(vacías)',1],['OPEX',1],['CAPEX',1],['PASAR A VENTA',1],['PROCESO CAPEX',1],['Parte de la Tarifa',0]] },
+  filtro2:{ t:'SHGN PROP · filtro CONSIDERAR', items:[['(vacías)',1],['OPEX',1],['PROCESO CAPEX',1],['CAPEX',0],['PASAR A VENTA',0],['Parte de la Tarifa',0]] } },
+
+{ id:'seg', sev:'media', hoja:'SHGN ALQ · SHGN PROP',
+  t:'El «Seg» de SHGN ALQ trae el MOV de la proforma',
+  donde:['SHGN ALQ','columna O «Seg»','BUSCARV columna 7'],
+  imp:'US$ 454,117', impTxt:'O74 = US$ 454,117 no es seguro: es la mano de obra proformada, prorrateada al día 27.',
+  que:'En <code>BASE VARIOS!R:AC</code> la columna 5 es <b>Seg</b> y la 7 es <b>MOV</b>. SHGN PROP usa 5; SHGN ALQ usa 7. Aparte, en SHGN PROP el Costo Real (<code>P = SUMA(L:N)</code>) no incluye el Seg de la columna O (US$ 15,290): confirmar si es a propósito.',
+  ver:'Cuenta columnas desde R en la fila 8 de BASE VARIOS: la 7 cae en MOV.',
+  arreglo:'En O82 cambiar el 7 por 5 y copiar hacia abajo.',
+  torre:'No usa el Seg del mes (ninguna de las dos hojas lo suma al costo).',
+  g:{ tab:'BASE VARIOS', cap:'BUSCARV desde R: la columna 7 es MOV',
+      cols:['R','S','T','U','V','W','X'],
+      enc:{n:'#', c:{R:'1',S:'2',T:'3',U:'4',V:'5',W:'6',X:'7'}},
+      filas:[{n:8, enc:true, c:{R:'Equipo',S:'HM',T:'Dep',U:'Alq',V:'Seg',W:'RYM',X:'MOV'}}],
+      marca:{X8:'mal',V8:'bien'},
+      fx:{ref:'O82', f:'=IFERROR(+VLOOKUP(D82,\'BASE VARIOS\'!$R$9:$AC$1048576,<mark>7</mark>,0),0)/$W$1*$V$1'} },
+  g2:{ fx:{ref:'O27', f:'=IFERROR(+VLOOKUP(D27,\'BASE VARIOS\'!$R$9:$AC$1048576,<mark class="ok">5</mark>,0),0)/$T$1*$S$1', hoja:'SHGN PROP'} } },
+
+{ id:'au', sev:'media', hoja:'SHGN ALQ',
+  t:'La tarifa acumulada de alquiler suma dólares a una tarifa',
+  donde:['SHGN ALQ','columna AU'],
+  imp:'30,964 US$/h', impTxt:'AU82 dice que la hora de alquiler acumulada de RE-1220-AL cuesta US$ 30,964.',
+  que:'<code>AU82 = BA82 ÷ BD82 + N82</code>. BA ya incluye el alquiler del mes; sumarle N82 (dólares del mes) a una tarifa por hora mezcla unidades.',
+  ver:'Cualquier valor de miles en una columna de US$/h.',
+  arreglo:'<code>=IFERROR(BA82/$BD82,0)</code>, después de corregir BA (ficha 3).',
+  torre:'Tarifa acumulada = costo acumulado ÷ horas acumuladas.',
+  g:{ tab:'SHGN ALQ', cap:'US$/h más US$',
+      cols:['N','BA','BD','AU'],
+      enc:{n:81, c:{N:'Alq',BA:'Alq acum',BD:'HM acum',AU:'Alq (tarifa acum)'}},
+      filas:[{n:82, c:{N:'30,039.00',BA:'477,666.40',BD:'516.2',AU:'30,964.35'}}],
+      marca:{AU82:'mal sel'},
+      fx:{ref:'AU82', f:'=IFERROR(BA82/$BD82,0)<mark>+N82</mark>'} } },
+
+{ id:'cobertura', sev:'media', hoja:'BASE VARIOS',
+  t:'Equipos con costo pero sin tarifa de venta, sin horas o sin DM',
+  donde:['BASE VARIOS','bloques TARIFAS VENTA · HOROMETRO REAL · DM-USAJE'],
+  imp:'48 sin horas', impTxt:'Flota propia (33): 3 sin tarifa, 8 sin horas, 9 sin DM. Alquilada (358): 25 sin tarifa, 48 sin horas, 127 sin DM.',
+  que:'Un equipo con costo y sin horas o sin tarifa muestra todo su costo como desviación y una tarifa real vacía. Tu comentario en SHGN ALQ D1 ya lista siete (TV-330-AL, T-582-AL, R-218-AL, MO-266-AL, RE-1268-AL, TV-327-AL, RE-1220-AL).',
+  ver:'En SHGN ALQ filtra V (HM Real) = 0 con P mayor que 0. El más grande: RE-1297-AL, US$ 11,539 de costo y 0 horas.',
+  arreglo:'Completar la tarifa o las horas en origen, o marcar esos equipos para que no entren al indicador de tarifa.',
+  torre:'Los cuenta en la Ficha y los marca en la tabla.',
+  g:{ tab:'SHGN ALQ', cap:'Costo sin horas: la tarifa real no se puede calcular',
+      cols:['D','P','V','AL'],
+      enc:{n:81, c:{D:'Equipo',P:'Costo Real',V:'HM Real',AL:'Real (US$/h)'}},
+      filas:[{n:'…', c:{D:'RE-1297-AL',P:'11,539',V:'0.0',AL:'#¡DIV/0! → ""'}}],
+      marca:{'V…':'mal','AL…':'ojo'} } },
+
+{ id:'horas', sev:'baja', hoja:'BASE VARIOS · dife',
+  t:'Dos fuentes de horas y un equipo con horas fuera del reporte',
+  donde:['BASE VARIOS','bloque HOROMETRO REAL'],
+  donde2:['hoja oculta «dife»','columnas B, C, D'],
+  imp:'84 h', impTxt:'El horómetro suma 105,541.2 h; las dos hojas, 105,457.2 h. La diferencia es EI-2349-AL: 84 h y ninguna línea de costo, así que la dinámica no lo lista.',
+  que:'Las horas vienen ahora de una exportación de SAP (EXPORT_20260929_104452.xlsx). La hoja oculta «dife» todavía compara SAP del 15/09 contra el parte diario (C-372-AL: 94 h contra 169 h), y sigue vinculado un «20260913_Base RDP.xlsx» guardado en la caché de Outlook de otro usuario.',
+  ver:'Datos › Editar vínculos: aparece la ruta …\\INetCache\\Content.Outlook\\…\\20260913_Base RDP.xlsx.',
+  arreglo:'Actualizar o borrar «dife» y romper el vínculo al Base RDP si ya no se usa.',
+  torre:'Usa el horómetro de SAP del bloque HOROMETRO REAL, igual que la columna V.',
+  g:{ tab:'dife', cap:'Comparación vieja: SAP 15/09 contra parte diario',
+      cols:['A','B','C','D'],
+      enc:{n:2, c:{A:'',B:'SAP 15/09 14:30',C:'PARTE DIARIO',D:''}},
+      filas:[{n:5, c:{A:'C-368-AL',B:'125',C:'125',D:'0'}},
+             {n:6, c:{A:'C-372-AL',B:'94',C:'169',D:'75'}}],
+      marca:{D6:'ojo sel',B6:'ojo',C6:'ojo'} } },
+
+{ id:'vl', sev:'baja', hoja:'SHGN PROP',
+  t:'Dos filas de «VL Agosto» leen el informe de julio',
+  donde:['SHGN PROP','columna BL','filas 58 (TV-34) y 59 (C-66)'],
+  imp:'2 filas', impTxt:'Las otras 31 filas leen [2] = 08. Informe de Act. Fijos – Agosto Final; estas dos leen [3] = 07. Informe… – Julio Final.',
+  que:'La fórmula es la misma BUSCARV pero con otro libro externo. El valor libro de esos dos equipos es el de julio.',
+  ver:'Clic en BL58 y mira el número entre corchetes.',
+  arreglo:'Copiar BL57 sobre BL58:BL59.',
+  torre:'No usa esta columna.',
+  g:{ tab:'SHGN PROP', cap:'[2] agosto · [3] julio',
+      cols:['D','BL'],
+      enc:{n:26, c:{D:'Equipo',BL:'VL Agosto'}},
+      filas:[{n:57, c:{D:'…',BL:'[2] agosto'}},{n:58, c:{D:'TV-34',BL:'[3] julio'}},{n:59, c:{D:'C-66',BL:'[3] julio'}}],
+      marca:{BL58:'mal sel',BL59:'mal',BL57:'bien'},
+      fx:{ref:'BL58', f:'=IFERROR(+VLOOKUP(D58,<mark>[3]</mark>Equipos!$B$5:$BE$464,49,0),"")'} } },
+
+{ id:'corte', sev:'baja', hoja:'SHGN PROP · SHGN ALQ',
+  t:'El corte está escrito a mano en tres sitios',
+  donde:['SHGN PROP','S1 = 27 · T1 = 30'],
+  donde2:['SHGN ALQ','V1 = 27 · W1 = 30','y el filtro «Fecha de Tran» de las dos dinámicas'],
+  imp:'control', impTxt:'Hoy coinciden: filtro del 01 al 27 visible, 28 y 29 ocultos, y 27 en S1 y V1.',
+  que:'Los prorrateos por días (EP-40 y EP-41, las tarifas flat, el Seg) usan S1/T1 y V1/W1. Si se cambia el filtro de fechas y no esas celdas, las líneas del mes y los prorrateos quedan en cortes distintos.',
+  ver:'Antes de enviar: el último día visible del filtro «Fecha de Tran» = S1 de PROP = V1 de ALQ.',
+  arreglo:'Poner el corte en una sola celda y hacer que las otras la referencien.',
+  torre:'Lee el corte del filtro de la dinámica y avisa si PROP y ALQ no coinciden.',
+  g:{ tab:'SHGN PROP', cap:'Fila 1',
+      cols:['S','T','V'],
+      enc:{n:'', c:{S:'S',T:'T',V:'V'}, oculto:true},
+      filas:[{n:1, c:{S:'27',T:'30',V:'0.9'}}],
+      marca:{S1:'ojo sel',T1:'ojo'} } },
+
+{ id:'fecha30', sev:'baja', hoja:'Z SERV',
+  t:'Una conformidad con fecha 30/09 en una descarga del 29/09',
+  donde:['Z SERV','fila 1031','columna AL'],
+  imp:'US$ 393', impTxt:'CECO 013001TCGE: no es de SHGN y no afecta el reporte.',
+  que:'La fecha de conformidad va un día por delante de la fecha de creación del registro (29/09). Sólo sirve de aviso: las conformidades pueden venir con fecha adelantada y entrar a un corte que no les toca.',
+  ver:'Filtra la columna AL por fechas mayores al día de la descarga.',
+  arreglo:'Nada en este archivo; tenerlo presente al revisar cortes.',
+  torre:'Sólo toma fechas visibles en el filtro de la dinámica.',
+  g:{ tab:'Z SERV', cap:'Fecha de conformidad posterior a la descarga',
+      cols:['C','N','AB','AL','AN'],
+      enc:{n:1, c:{C:'COSTO',N:'CECO',AB:'Descripción de OC',AL:'Fecha conf.',AN:'Fecha creación'}},
+      filas:[{n:1031, c:{C:'393.33',N:'013001TCGE',AB:'MULTA 2450660330 / TOYOTA / BXE069',AL:'30/09/2026',AN:'29/09/2026'}}],
+      marca:{AL1031:'ojo sel'} } },
+
+{ id:'nombres', sev:'baja', hoja:'Libro',
+  t:'983 nombres definidos rotos (#¡REF!)',
+  donde:['Fórmulas','Administrador de nombres','filtro «Nombres con errores»'],
+  imp:'983 de 1,121', impTxt:'Vienen de otros libros al copiar hojas. No cambian cifras, pero hacen el archivo más lento y generan avisos al abrir y copiar.',
+  que:'Cada vez que se copia una hoja de otro libro, Excel arrastra sus nombres. Los que apuntaban a hojas que no existen aquí quedan como #¡REF!.',
+  ver:'Fórmulas › Administrador de nombres › Filtro › Nombres con errores.',
+  arreglo:'Seleccionarlos todos en ese filtro y eliminarlos.',
+  torre:'No los usa.',
+  g:null }
+];
+
+var SEVT = { alta:'ALTA', media:'MEDIA', baja:'BAJA' };
+var CLAVE = 'incong2709.revisadas';
+var hechas = {};
+try { hechas = JSON.parse(localStorage.getItem(CLAVE) || '{}') || {}; } catch(e){ hechas = {}; }
+function guardar(){ try { localStorage.setItem(CLAVE, JSON.stringify(hechas)); } catch(e){} }
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+var NUM = /^[−\-]?[\d,]+(\.\d+)?$/;
+
+function fx(f, hojaNom){
+  return '<div class="fx"><span class="ref">' + esc(f.ref) + '</span><span class="fxi">fx</span><code>' + f.f + '</code></div>'
+    + (hojaNom ? '' : '');
+}
+function grilla(g){
+  var h = '';
+  var cab = '<tr><th class="rn"></th>' + g.cols.map(function(c){ return '<th>' + c + '</th>'; }).join('') + '</tr>';
+  var filas = [];
+  if(g.enc && !g.enc.oculto) filas.push({ n:g.enc.n, c:g.enc.c, enc:true });
+  filas = filas.concat(g.filas);
+  var cuerpo = filas.map(function(r){
+    if(r.gap) return '<tr><th class="rn">⋮</th>' + g.cols.map(function(){ return '<td class="gap">⋮</td>'; }).join('') + '</tr>';
+    return '<tr><th class="rn">' + esc(r.n) + '</th>' + g.cols.map(function(c){
+      var v = r.c[c] === undefined ? '' : r.c[c];
+      var k = c + r.n, m = (g.marca || {})[k] || '';
+      var cl = [r.enc ? 'enc' : '', (!r.enc && NUM.test(v)) ? 'nm' : '', m].join(' ').trim();
+      return '<td' + (cl ? ' class="' + cl + '"' : '') + '>' + esc(v) + '</td>';
+    }).join('') + '</tr>';
+  }).join('');
+  h += '<figure class="xl">' + (g.fx ? fx(g.fx) : '')
+    + '<div class="xlEnv"><table class="g"><thead>' + cab + '</thead><tbody>' + cuerpo + '</tbody></table></div>'
+    + '<figcaption><span class="tab">' + esc(g.tab) + '</span><span class="cap">' + esc(g.cap) + (g.nota ? ' · ' + esc(g.nota) : '') + '</span></figcaption></figure>';
+  return h;
+}
+function soloFx(g2, tab){
+  return '<figure class="xl">' + fx(g2.fx) + '<figcaption><span class="tab">' + esc(g2.fx.hoja || tab) + '</span><span class="cap">'
+    + (g2.fx.hoja ? 'La misma fórmula en SHGN PROP, con la columna correcta' : 'La fórmula de ' + esc(g2.fx.ref)) + '</span></figcaption></figure>';
+}
+function filtro(f){
+  return '<div class="filtro" role="img" aria-label="' + esc(f.t) + '"><div class="t">' + esc(f.t) + '</div>'
+    + f.items.map(function(it){
+      var mal = !it[1] && /Tarifa/.test(it[0]);
+      return '<label' + (mal ? ' class="mal"' : '') + '><span class="x' + (it[1] ? ' si' : '') + '">' + (it[1] ? '✓' : '') + '</span>' + esc(it[0]) + '</label>';
+    }).join('') + '</div>';
+}
+function donde(d){
+  return '<div class="donde">' + d.map(function(x, i){ return (i ? '<em>›</em>' : '') + '<span>' + esc(x) + '</span>'; }).join('') + '</div>';
+}
+
+var main = document.getElementById('fichas');
+main.innerHTML = H.map(function(x, i){
+  var n = i + 1;
+  var vis = '';
+  if(x.g) vis += grilla(x.g);
+  if(x.g2) vis += soloFx(x.g2, x.g ? x.g.tab : '');
+  if(x.filtro) vis += '<div class="dos">' + filtro(x.filtro) + (x.filtro2 ? filtro(x.filtro2) : '') + '</div>';
+  if(!vis) vis = '<figure class="xl"><div class="fx"><span class="ref">Nombre</span><span class="fxi">fx</span><code>=<mark>#¡REF!</mark>!$A$1:$C$20</code></div>'
+    + '<figcaption><span class="tab">Administrador de nombres</span><span class="cap">Así se ve cada uno de los 983</span></figcaption></figure>';
+  return '<section class="ficha" id="' + x.id + '" data-sev="' + x.sev + '" aria-labelledby="t-' + x.id + '">'
+    + '<div class="fichaCab"><span class="num">' + (n < 10 ? '0' : '') + n + '</span><span class="sev ' + x.sev + '">' + SEVT[x.sev] + '</span>'
+    + '<h2 id="t-' + x.id + '">' + esc(x.t) + '</h2>'
+    + '<label class="chk"><input type="checkbox" id="rev-' + x.id + '" data-id="' + x.id + '">REVISADO</label></div>'
+    + '<div class="txt">'
+    + '<div class="bloque"><h3>Dónde</h3>' + donde(x.donde) + (x.donde2 ? donde(x.donde2) : '') + '</div>'
+    + '<div class="bloque impacto"><h3>Cuánto</h3><p>' + esc(x.impTxt) + '</p></div>'
+    + '<div class="bloque"><h3>Qué pasa</h3><p>' + x.que + '</p></div>'
+    + '<div class="bloque"><h3>Cómo verlo rápido</h3><p>' + x.ver + '</p></div>'
+    + '<div class="bloque"><h3>Arreglo sugerido</h3><p>' + x.arreglo + '</p></div>'
+    + '<p class="torre"><b>En la torre:</b> ' + esc(x.torre) + '</p>'
+    + '</div><div class="vis">' + vis + '</div></section>';
+}).join('');
+
+document.getElementById('indice').innerHTML =
+  '<thead><tr><th>#</th><th>Gravedad</th><th>Qué</th><th>Hoja</th><th style="text-align:right">Cuánto</th></tr></thead><tbody>'
+  + H.map(function(x, i){
+    return '<tr data-id="' + x.id + '"><td class="n">' + (i < 9 ? '0' : '') + (i + 1) + '</td><td><span class="sev ' + x.sev + '">' + SEVT[x.sev] + '</span></td>'
+      + '<td><a href="#' + x.id + '">' + esc(x.t) + '</a></td><td class="dn">' + esc(x.hoja) + '</td><td class="imp">' + esc(x.imp) + '</td></tr>';
+  }).join('') + '</tbody>';
+
+var cnt = { alta:0, media:0, baja:0 };
+H.forEach(function(x){ cnt[x.sev]++; });
+document.getElementById('cuenta').innerHTML =
+    '<div class="a"><b>' + cnt.alta + '</b><span>alta</span></div>'
+  + '<div class="m"><b>' + cnt.media + '</b><span>media</span></div>'
+  + '<div class="bj"><b>' + cnt.baja + '</b><span>baja</span></div>'
+  + '<div><b id="nHechas">0</b><span>revisadas</span></div>';
+
+var filtroSev = 'todas';
+var ocultar = document.getElementById('ocultarHechas');
+function pintar(){
+  var n = 0;
+  H.forEach(function(x){
+    var hecho = !!hechas[x.id]; if(hecho) n++;
+    var sec = document.getElementById(x.id), fila = document.querySelector('#indice tr[data-id="' + x.id + '"]');
+    var ver = (filtroSev === 'todas' || x.sev === filtroSev) && !(ocultar.checked && hecho);
+    sec.hidden = !ver; fila.hidden = !ver;
+    sec.classList.toggle('hecho', hecho); fila.classList.toggle('hecho', hecho);
+    document.getElementById('rev-' + x.id).checked = hecho;
+  });
+  document.getElementById('nHechas').textContent = n;
+}
+main.addEventListener('change', function(ev){
+  var id = ev.target.getAttribute('data-id');
+  if(!id) return;
+  if(ev.target.checked) hechas[id] = 1; else delete hechas[id];
+  guardar(); pintar();
+});
+ocultar.addEventListener('change', pintar);
+Array.prototype.forEach.call(document.querySelectorAll('.filtros button'), function(b){
+  b.addEventListener('click', function(){
+    filtroSev = b.getAttribute('data-f');
+    Array.prototype.forEach.call(document.querySelectorAll('.filtros button'), function(o){ o.setAttribute('aria-pressed', o === b); });
+    pintar();
+  });
+});
+pintar();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<style>
+/* ---------- la burbuja de herramientas ----------
+   Una barra flotante que se arrastra por su cabecera, se minimiza a un
+   circulo y se oculta. Su primera herramienta es la calculadora rapida:
+   se elige una cifra de la pantalla, una operacion y otra cifra. La segunda
+   suma varias cifras como la barra de estado de Excel. */
+.bz{position:fixed; z-index:96; width:390px; max-width:calc(100vw - 20px); background:#fff; color:var(--tinta);
+    border:1px solid var(--tinta); box-shadow:0 20px 50px rgba(8,25,42,.32); font-family:"IBM Plex Sans",sans-serif}
+.bz[hidden]{display:none}
+.bzCab{display:flex; align-items:center; gap:8px; padding:7px 8px 7px 10px; background:var(--tinta); color:#fff;
+       cursor:grab; user-select:none; touch-action:none}
+.bzCab:active{cursor:grabbing}
+.bzCab .asa{font-size:14px; opacity:.7; letter-spacing:-2px}
+.bzCab b{flex:1; font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em; font-weight:600}
+.bzCab button{all:unset; cursor:pointer; width:24px; height:22px; text-align:center; line-height:21px; font-size:15px;
+              color:#fff; border:1px solid rgba(255,255,255,.35)}
+.bzCab button:hover{background:rgba(255,255,255,.14)}
+.bzCab button:focus-visible{outline:2px solid var(--hivis)}
+.bzTools{display:flex; border-bottom:1px solid var(--linea)}
+.bzTools button{all:unset; cursor:pointer; flex:1; text-align:center; padding:8px 4px; font-family:"IBM Plex Mono",monospace;
+                font-size:11px; letter-spacing:.06em; color:var(--tinta-2); border-right:1px solid var(--linea)}
+.bzTools button:last-child{border-right:0}
+.bzTools button:hover{background:var(--luz-2); color:var(--tinta)}
+.bzTools button[aria-pressed="true"]{background:#E6EAF1; color:var(--sm); box-shadow:inset 0 -3px 0 var(--sm); font-weight:600}
+.bzTools button:focus-visible{outline:2px solid var(--sm); outline-offset:-2px}
+.bzCuerpo{padding:12px 12px 14px}
+.bzAviso{font-size:12.5px; line-height:1.45; color:var(--tinta-2); background:#FFF6D6; border-left:3px solid #D9B300;
+         padding:7px 9px; margin-bottom:10px}
+.bzAviso.ok{background:#E7F5EC; border-left-color:#0B6B3A}
+.bzFila{display:grid; grid-template-columns:22px minmax(0,1fr) auto; gap:6px; align-items:center; margin-top:6px}
+.bzFila .let{font-family:"IBM Plex Mono",monospace; font-weight:700; color:var(--sm); font-size:13px}
+.bzFila input{box-sizing:border-box; width:100%; padding:6px 8px; border:1px solid var(--tinta-3); background:#fff;
+              color:var(--tinta); font-family:"IBM Plex Mono",monospace; font-size:14px; text-align:right}
+.bzFila input:focus{outline:2px solid var(--sm); outline-offset:1px}
+.bzFila.espera input{border-color:#D9B300; background:#FFFBE6}
+.bzOrigen{grid-column:2 / 4; font-size:11.5px; color:var(--tinta-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bzBtn{all:unset; cursor:pointer; box-sizing:border-box; padding:5px 8px; border:1px solid var(--linea);
+       font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.04em; color:var(--tinta-2); white-space:nowrap}
+.bzBtn:hover{border-color:var(--sm); color:var(--sm)}
+.bzBtn:focus-visible{outline:2px solid var(--sm); outline-offset:1px}
+.bzOps{display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin:10px 0 4px 28px}
+.bzOps button{all:unset; cursor:pointer; text-align:center; padding:6px 0; border:1px solid var(--linea);
+              font-family:"IBM Plex Mono",monospace; font-size:14px; color:var(--tinta)}
+.bzOps button:hover{border-color:var(--sm)}
+.bzOps button[aria-pressed="true"]{background:var(--sm); border-color:var(--sm); color:#fff}
+.bzOps button:focus-visible{outline:2px solid var(--sm); outline-offset:1px}
+.bzRes{margin-top:12px; padding:10px 10px 8px; background:var(--luz); border-top:2px solid var(--tinta)}
+.bzRes .v{font-family:"IBM Plex Mono",monospace; font-size:22px; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.bzRes .v.neg{color:#B3261E}
+.bzRes .f{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--tinta-2); margin-top:3px; overflow-wrap:anywhere}
+.bzAcc{display:flex; flex-wrap:wrap; gap:6px; margin-top:9px}
+.bzHist{margin-top:10px; font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--tinta-3); line-height:1.6}
+.bzHist div{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.bzLista{display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; max-height:120px; overflow:auto}
+.bzChip{display:inline-flex; align-items:center; gap:5px; padding:3px 7px; background:var(--luz-2);
+        font-family:"IBM Plex Mono",monospace; font-size:11.5px}
+.bzChip button{all:unset; cursor:pointer; color:var(--tinta-3)} .bzChip button:hover{color:#B3261E}
+.bzStats{display:grid; grid-template-columns:repeat(2,1fr); gap:6px 12px; margin-top:10px}
+.bzStats div{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--tinta-3)}
+.bzStats b{display:block; font-size:15px; color:var(--tinta); font-weight:500}
+/* minimizada: un circulo que se arrastra igual y se abre con un clic */
+.bz.min{width:52px; height:52px; border-radius:50%; overflow:hidden; background:var(--tinta); border-color:var(--tinta)}
+.bz.min .bzCab,.bz.min .bzTools,.bz.min .bzCuerpo{display:none}
+.bz .bzCara{display:none}
+.bz.min .bzCara{all:unset; display:flex; width:100%; height:100%; align-items:center; justify-content:center; cursor:grab;
+  color:#fff; font-family:"IBM Plex Mono",monospace; font-size:16px; font-weight:600; touch-action:none; user-select:none}
+.bz.min .bzCara:focus-visible{outline:2px solid var(--hivis); outline-offset:-4px}
+/* eligiendo una cifra en la pantalla */
+body.bzElige,body.bzElige *{cursor:copy !important}
+.bzMarca{outline:3px solid #D9B300 !important; outline-offset:1px; background:#FFF3B0 !important; transition:none}
+.bzVolver{all:unset; cursor:pointer; order:3; flex:0 0 auto; align-self:center; box-sizing:border-box; height:28px;
+  padding:0 8px; margin-right:4px; line-height:26px; font-family:"IBM Plex Mono",monospace; font-size:11px;
+  border:1px solid var(--hair-fuerte); color:var(--claro-2); background:rgba(4,17,29,.6)}
+.bzVolver[hidden]{display:none}
+.nav.claro .bzVolver{border-color:var(--linea); color:var(--tinta-2); background:#fff}
+@media (prefers-reduced-motion:reduce){ .bz{transition:none} }
+</style>
+
+<div class="bz" id="bz" role="dialog" aria-label="Herramientas" hidden>
+  <button type="button" class="bzCara" id="bzCara" aria-label="Abrir herramientas" title="Herramientas · arrastra para mover">x÷</button>
+  <div class="bzCab" id="bzCab" title="Arrastra para mover">
+    <span class="asa" aria-hidden="true">⠿⠿</span><b>HERRAMIENTAS</b>
+    <button type="button" id="bzMin" aria-label="Minimizar" title="Minimizar">–</button>
+    <button type="button" id="bzCerrar" aria-label="Ocultar las herramientas" title="Ocultar (Alt+H las vuelve a mostrar)">×</button>
+  </div>
+  <div class="bzTools" role="group" aria-label="Herramienta">
+    <button type="button" data-h="calc" aria-pressed="true" title="Opera dos cifras de la pantalla">x÷ CALCULAR</button>
+    <button type="button" data-h="suma" aria-pressed="false" title="Suma varias cifras, como la barra de estado de Excel">Σ SUMAR</button>
+    <button type="button" data-h="enc" title="Quitar o poner el encabezado">▴▾ VISTA</button>
+    <button type="button" data-h="arriba" title="Volver al comienzo de la hoja">↑ ARRIBA</button>
+  </div>
+  <div class="bzCuerpo" id="bzCuerpo" aria-live="polite"></div>
+</div>
