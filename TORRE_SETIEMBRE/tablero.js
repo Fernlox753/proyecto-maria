@@ -249,12 +249,12 @@ function tbPintar(){
   /* ---------- 5 · destino del costo de mantenimiento ---------- */
   var pf = {}, pp = {}, ots = [], totM = 0;
   nodos.forEach(function(e){
-    e.hijos.forEach(function(x){
-      var val = x.o.c[3], fase = x.sub.split(' · ')[0], ot = x.et;
+    hxOrdenes(e).forEach(function(x){
+      var val = x.o.c[3], fase = x.fase, ot = x.et;
       totM += val;
       var nf = TB_FASE[fase] || '(SIN FASE)', np = TB_PM[ot] || '(SIN CLASE)';
       pf[nf] = (pf[nf] || 0) + val; pp[np] = (pp[np] || 0) + val;
-      ots.push({ ot: ot, eq: e.id, txt: x.sub, v: val, pm: np });
+      ots.push({ ot: ot, eq: e.id, txt: (fase ? fase + ' · ' : '') + x.sub, v: val, pm: np });
     });
   });
   ots.sort(function(a, b){ return b.v - a.v; });
@@ -332,14 +332,15 @@ function tbPintar(){
   eqs.forEach(function(e){ var d = hxTv(e.o, ter) - hxTc(e.o, ter); if(d < 0 && ac2 > negTot * 0.8){ ac2 += d; negN++; } });
   var filasE = eqs.map(function(e){
     var q = e.o, qc = hxTc(q, ter), qv = hxTv(q, ter), d = qv - qc, hf = q.hrProf * corte / dias, ab = TB.ab[e.id];
-    var fila = '<tr class="eq" tabindex="0" data-eq="' + esc(e.id) + '"><td class="t">' + (e.hijos.length ? (ab ? '▾ ' : '▸ ') : '&nbsp;&nbsp;') + '<b>' + esc(e.id) + '</b>'
+    var ords = hxOrdenes(e);
+    var fila = '<tr class="eq" tabindex="0" data-eq="' + esc(e.id) + '"><td class="t">' + (ords.length ? (ab ? '▾ ' : '▸ ') : '&nbsp;&nbsp;') + '<b>' + esc(e.id) + '</b>'
       + (TB.mods.length === 1 ? '' : ' <span class="z">' + esc(e.mod) + '</span>') + '</td>'
       + '<td>' + fmt(qc) + '</td><td>' + fmt(qv) + '</td><td>' + tbDv(d) + '</td>'
       + '<td>' + tbN1(q.hr) + '</td><td>' + (hf ? tbPc(q.hr / hf) : '—') + '</td>'
       + '<td>' + tbPc(q.dm) + '</td><td>' + tbPc(q.use) + '</td>'
       + '<td>' + tbN1(q.hr ? qc / q.hr : null) + '</td><td>' + tbN1(q.hr ? qv / q.hr : null) + '</td></tr>';
-    if(ab) fila += e.hijos.map(function(x){
-      return '<tr class="ot"><td class="t">' + esc(x.et) + ' · ' + esc(x.sub) + '</td><td>' + fmt(x.o.c[3])
+    if(ab) fila += ords.map(function(x){
+      return '<tr class="ot"><td class="t">' + esc(x.et) + ' · ' + esc((x.fase ? x.fase + ' · ' : '') + x.sub) + '</td><td>' + fmt(x.o.c[3])
         + '</td><td colspan="8" class="t">RyM ' + fmt(x.o.c[0]) + ' · MOV ' + fmt(x.o.c[1]) + '</td></tr>';
     }).join('');
     return fila;

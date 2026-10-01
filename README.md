@@ -11,7 +11,8 @@ con las mismas reglas de las tablas dinámicas del libro y lo presenta como una 
 ## Qué trae la página
 
 - **Propios** y **Alquilados**: las hojas SHGN PROP y SHGN ALQ como tablas desplegables
-  (familia › modelo › equipo › orden), con operación, costo real, venta interna, desviación,
+  (familia › modelo › equipo › fase › orden; modelo, equipo y fase se reordenan arrastrando
+  sus botones), con operación, costo real, venta interna, desviación,
   tarifas y acumulado 2026. Tarjetas de resumen con barritas de costo contra venta, botones
   CON/SIN depreciación o alquiler, columnas plegables, semáforo de disponibilidad (DM ≥ 85%),
   filtros por valor en cada columna, **DESPLEGAR / SELECCIONAR** para elegir familias, modelos,
@@ -21,6 +22,8 @@ con las mismas reglas de las tablas dinámicas del libro y lo presenta como una 
   horas, tarifa, causa, RyM y MOV, equipos, acumulado).
 - **Pantalla dividida** (botón ⊟ o tecla D): dos pestañas a la vez, una arriba y otra abajo.
 - **Pantalla completa** con la tecla F y una burbuja de herramientas con calculadora y suma.
+- **Teléfono y tableta**: cabecera corta que se aparta al bajar la página, vista horizontal en la
+  que la tabla ocupa toda la pantalla y el botón «⤢ SOLO LA TABLA».
 
 Los comentarios por celda se guardan en el navegador de quien los escribe cuando la página se abre
 desde GitHub Pages. En la versión publicada como Artifact de Claude se comparten entre quienes la abren.
@@ -48,7 +51,7 @@ cambios de esta versión; al final imprime una lista `OK` / `FALTA` / `SOBRA` qu
 
 | Carpeta | Qué hay |
 | --- | --- |
-| `TORRE_SETIEMBRE\` | generador de datos, ensamblador y las piezas propias de esta torre (hojas, tablero, burbuja, división) |
+| `TORRE_SETIEMBRE\` | generador de datos, ensamblador y las piezas propias de esta torre (hojas, tablero, burbuja, división, teléfono y tableta) |
 | `PROCESO\` | las piezas de la Torre de Control original que se reutilizan (estilos, utilidades, 3D, navegación) |
 | `REVISION\` | la revisión de incongruencias del consolidado 27.09 |
 | `CONSOLIDADO\` | aquí va el Excel para regenerar; no se sube |

@@ -215,7 +215,12 @@ function bzUbicar(){
   var w = bz.offsetWidth, h = bz.offsetHeight;
   /* el ancho util sin la barra de desplazamiento, para que no quede un borde fuera */
   var W = document.documentElement.clientWidth, H = document.documentElement.clientHeight;
-  if(BZ.x === null || BZ.y === null){ BZ.x = W - w - 24; BZ.y = 170; }
+  /* en el telefono y la tableta empieza abajo a la derecha: arriba tapaba la
+     cabecera y las tarjetas */
+  if(BZ.x === null || BZ.y === null){
+    var abajo = W <= 1180 || (window.matchMedia && window.matchMedia('(pointer:coarse)').matches);
+    BZ.x = W - w - (W <= 620 ? 12 : 24); BZ.y = abajo ? H - Math.min(h, 60) - 70 : 170;
+  }
   BZ.x = Math.max(6, Math.min(W - w - 6, BZ.x));
   BZ.y = Math.max(6, Math.min(H - Math.min(h, 60) - 6, BZ.y));
   bz.style.left = BZ.x + 'px'; bz.style.top = BZ.y + 'px';

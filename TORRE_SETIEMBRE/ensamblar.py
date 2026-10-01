@@ -12,6 +12,8 @@ en un solo sitio.
   hojas.html, hojas.js      las hojas Propios y Alquilados, que sustituyen a Flota
   tablero.html, tablero.js  la hoja Tablero: el analisis de una flota o un modelo
   burbuja.html, burbuja.js  la burbuja de herramientas (calculadora rapida, suma)
+  division.html, .js        la pantalla dividida en dos pestanas
+  movil.html, movil.js      telefono y tableta: cabecera corta, vista girada, «solo la tabla»
   datos.json                la tabla de hechos de setiembre (gen_datos.py)
   setiembre.json            tarifa real contra venta, DM y usaje (gen_datos.py)
 
@@ -98,6 +100,8 @@ burbuja_html = lee(AQUI, "burbuja.html")
 burbuja_js = lee(AQUI, "burbuja.js")
 division_html = lee(AQUI, "division.html")
 division_js = lee(AQUI, "division.js")
+movil_html = lee(AQUI, "movil.html")
+movil_js = lee(AQUI, "movil.js")
 
 # ══════════════════════════════════════════════════════════════════════
 #  cabecera
@@ -142,7 +146,8 @@ cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
 # las dos hojas del consolidado en tabla. El periodo y los filtros de flota
 # siguen estando en Tendencia y en Filtros.
 cuerpo = entre(cuerpo, "<!-- ═══════════════════ FLOTA ═══════════════════ -->", "</section>",
-               (hojas_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
+               (hojas_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
+                + "\n" + movil_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
 
 # ---- Tendencia
 cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo.', "</p></details>",
@@ -398,7 +403,7 @@ nuevo = (cabecera + css + "\n" + cuerpo + "\n<script>\n(function(){\n"
          + js_datos + "\n" + js_tend + "\n" + js_filt + "\n" + js_sep + "\n" + cont + tres_d
          + "\n" + extra + "\n" + hojas_js + "\n" + tablero_js + "\n" + burbuja_js + "\n" + js_nav
          # la division envuelve irA(): tiene que ir despues de nuevo_js_nav.js
-         + "\n" + division_js + "\n})();\n</script>\n")
+         + "\n" + division_js + "\n" + movil_js + "\n})();\n</script>\n")
 
 nuevo = agrandar(nuevo)
 io.open(SALIDA, "w", encoding="utf-8", newline="\n").write(nuevo)
@@ -410,7 +415,7 @@ for marca in ["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES
               'id="fi-cuadre"', 'id="fi-zserv"', "var proyFiltro = PROYS[0];", 'id="v-propios"', 'id="v-alquilados"',
               "function hxTabla", 'id="hx-editor"', 'id="v-tablero"',
               "function tbPintar", "function hxOrigen", 'id="bz"', "function bzNumero",
-              'id="divisor"', "function divAplicar"]:
+              'id="divisor"', "function divAplicar", "function hxMaxi", "body.navMin"]:
     print(("  OK      " if marca in nuevo else "  FALTA   ") + marca)
 # nada de esto debe quedar a la vista: es vocabulario de la Torre del libro mayor
 for sobra in ["libro mayor le carga", "DIECISIETE", "<b>1,291 del libro</b>", "Ojo con agosto",

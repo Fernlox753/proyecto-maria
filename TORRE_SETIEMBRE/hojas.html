@@ -128,13 +128,14 @@ table.xl .neg{color:#B3261E} table.xl .pos{color:#0B6B3A}
 table.xl tbody tr{cursor:pointer}
 table.xl tbody tr:hover td{background:#EAF1FB}
 table.xl tbody tr:focus-visible{outline:2px solid var(--sm); outline-offset:-2px}
-/* los cuatro niveles: cuanto mas arriba, mas peso */
+/* los cinco niveles (familia, modelo, equipo, fase, orden): cuanto mas arriba, mas peso */
 table.xl tr.n0 td{background:var(--luz-3); font-weight:700; border-bottom-color:var(--tinta-3)}
 table.xl tr.n1 td{background:var(--luz); font-weight:600}
 table.xl tr.n2 td{background:#fff}
-table.xl tr.n3 td{background:#FBFCFD; color:var(--tinta-2); font-size:11px}
+table.xl tr.n3 td{background:#F7F9FC; color:var(--tinta); font-size:11px; font-weight:500}
+table.xl tr.n4 td{background:#FBFCFD; color:var(--tinta-2); font-size:11px}
 table.xl tr.n1 .fija{padding-left:20px} table.xl tr.n2 .fija{padding-left:34px}
-table.xl tr.n3 .fija{padding-left:50px}
+table.xl tr.n3 .fija{padding-left:50px} table.xl tr.n4 .fija{padding-left:66px}
 table.xl .car{display:inline-block; width:13px; color:var(--sm); font-size:10px}
 table.xl .sub{font-family:"IBM Plex Sans",sans-serif; font-weight:400; font-size:10.5px;
               color:var(--tinta-2); margin-left:6px}
@@ -294,6 +295,14 @@ table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl t
 .xlModoT button + button{border-left:0}
 .xlModoT button[aria-pressed="true"]{background:var(--sm); border-color:var(--sm); color:#fff}
 .xlModoT button:focus-visible{outline:2px solid var(--sm); outline-offset:1px}
+/* MODELO, EQUIPO y FASE se arrastran para cambiar de lugar: un agarre
+   punteado arriba, y al arrastrar el boton se levanta y una raya marca donde cae */
+.xlBarra .fbt.xlArr{cursor:grab; touch-action:none; background-image:radial-gradient(currentColor 1px, transparent 1.2px);
+  background-size:4px 3px; background-repeat:repeat-x; background-position:center 2px}
+.xlBarra .fbt.xlArr.arrMovil{opacity:.55; outline:2px dashed var(--sm); outline-offset:1px}
+.xlBarra .fbt.xlArr.arrAntes{box-shadow:-5px 0 0 var(--sm)}
+.xlBarra .fbt.xlArr.arrDespues{box-shadow:5px 0 0 var(--sm)}
+body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !important}
 .xlElegir .lista{max-height:min(320px,calc(100vh - 260px)); min-height:90px; overflow:auto; border:1px solid var(--linea); margin-top:2px}
 .xlElegir .it{display:flex; align-items:center; gap:8px; padding:5px 8px; cursor:pointer; color:var(--tinta)}
 .xlElegir .it:hover{background:#EEF2F8}
@@ -343,7 +352,7 @@ table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl t
 .xlEditor .bot{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
 @media (max-width:620px){
   table.xl tr.n1 .fija{padding-left:14px} table.xl tr.n2 .fija{padding-left:22px}
-  table.xl tr.n3 .fija{padding-left:30px}
+  table.xl tr.n3 .fija{padding-left:30px} table.xl tr.n4 .fija{padding-left:38px}
 }
 </style>
 
@@ -372,7 +381,10 @@ table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl t
       <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-P"></div></div>
       <label class="fl xlBusca">BUSCAR
         <input class="entradaEq" id="hx-buscar-P" autocomplete="off" placeholder="equipo, modelo o familia: FC-87, 785C" title="Busca por equipo, modelo o familia"></label>
+      <div class="xlMaxG"><span class="gcT">PANTALLA</span><div class="gcB"><button class="fbt xlMaxBtn" type="button" data-s="P" aria-pressed="false" title="Ver solo la tabla, a toda la pantalla">⤢ SOLO LA TABLA</button></div></div>
     </div>
+    <p class="xlGira">↻ Gira el teléfono: en horizontal la tabla muestra más columnas.</p>
+    <div class="xlMaxBar"><b>FLOTA PROPIA</b><span>al día __CORTE__<span class="gi"> · gira el teléfono para ver más columnas</span></span><button class="xlMaxSalir" type="button" data-s="P">✕ VOLVER</button></div>
     <div class="xlEnv"><table class="xl" id="hx-tabla-P"></table></div>
     <details class="xlPlg xlOrigenD" id="hx-origenD-P" data-plg="origen">
       <summary><span class="fx" aria-hidden="true">fx</span><span class="res" id="hx-origenRes-P">DE DÓNDE SALE CADA CIFRA · haz clic en una celda</span></summary>
@@ -412,7 +424,10 @@ table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl t
       <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-A"></div></div>
       <label class="fl xlBusca">BUSCAR
         <input class="entradaEq" id="hx-buscar-A" autocomplete="off" placeholder="equipo, modelo, familia o proveedor" title="Busca por equipo, modelo, familia o proveedor: V-2401-AL, TLH 135"></label>
+      <div class="xlMaxG"><span class="gcT">PANTALLA</span><div class="gcB"><button class="fbt xlMaxBtn" type="button" data-s="A" aria-pressed="false" title="Ver solo la tabla, a toda la pantalla">⤢ SOLO LA TABLA</button></div></div>
     </div>
+    <p class="xlGira">↻ Gira el teléfono: en horizontal la tabla muestra más columnas.</p>
+    <div class="xlMaxBar"><b>FLOTA ALQUILADA</b><span>al día __CORTE__<span class="gi"> · gira el teléfono para ver más columnas</span></span><button class="xlMaxSalir" type="button" data-s="A">✕ VOLVER</button></div>
     <div class="xlEnv"><table class="xl" id="hx-tabla-A"></table></div>
     <details class="xlPlg xlOrigenD" id="hx-origenD-A" data-plg="origen">
       <summary><span class="fx" aria-hidden="true">fx</span><span class="res" id="hx-origenRes-A">DE DÓNDE SALE CADA CIFRA · haz clic en una celda</span></summary>

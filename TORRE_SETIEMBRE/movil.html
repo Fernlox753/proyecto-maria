@@ -1,0 +1,94 @@
+<style>
+/* ---------- telefono y tableta ----------
+   La torre se penso para la pantalla de la sala; aqui se acomoda a lo que
+   cabe en la mano. Va despues de todo lo demas para mandar sobre ello. */
+
+/* Safari del iPhone agranda la letra por su cuenta al girar el telefono */
+html{-webkit-text-size-adjust:100%; text-size-adjust:100%}
+
+/* Con el dedo: iOS acerca la pagina si el campo tiene letra de menos de 16 px,
+   el ▾ de filtro de las cabeceras no tiene hover que lo descubra, y mantener
+   apretado un boton de nivel (para arrastrarlo) no debe abrir el menu del sistema */
+@media (pointer:coarse){
+  input,select,textarea{font-size:16px !important}
+  table.xl thead tr.c th .xlF{opacity:.7; padding:2px 5px}
+  .xlBarra .fbt.xlArr{-webkit-touch-callout:none; -webkit-user-select:none; user-select:none}
+  .tbNube:hover{transform:none}
+}
+
+/* telefono vertical: la cabecera ocupaba un cuarto de la pantalla. Se queda
+   el simbolo, el sello de piloto, el alcance, el periodo y la pantalla completa */
+@media (max-width:620px){
+  .nav{column-gap:8px}
+  .marcaSM .word,.autoria,.vivo{display:none}
+  .marcaSM .iso{height:22px}
+  /* ocupa la fila junto al simbolo; las pestanas bajan a la suya */
+  .navcap{width:auto; flex:1 1 calc(100% - 44px); min-width:0; gap:4px 6px}
+  .demo{padding:2px 6px; letter-spacing:.08em}
+  .periodo{padding:2px 7px; letter-spacing:.06em}
+  .pantalla{padding:3px 7px}
+  /* el rotulo de cada hoja se parte en vez de salirse por la derecha */
+  .ord{flex-wrap:wrap; gap:4px 12px}
+  .ord .lin{display:none}
+  .ord .num{white-space:normal}
+  /* la burbuja cerrada, mas chica */
+  .bz.min{width:44px; height:44px}
+  /* la primera columna de las tablas se comia media pantalla: mas angosta y
+     sin el «N equipos», para que entren mas cifras (el boton TABLERO se queda) */
+  table.xl .fija{max-width:46vw}
+  table.xl .sub{display:none}
+}
+/* al bajar la pagina en el telefono queda solo la fila de pestanas (movil.js) */
+body.navMin .nav .marcaSM,body.navMin .nav .navcap{display:none}
+body.navMin .nav,body.navMin .nav.fondo,body.navMin .nav.claro{padding-top:2px; row-gap:0}
+
+/* telefono girado: la pantalla es baja y manda la tabla. El encabezado se
+   aparta solo (como con ▴) y quedan las pestanas; al volver a vertical vuelve */
+@media (max-height:500px) and (orientation:landscape){
+  .nav .marcaSM,.nav .navcap,.nav .encBtn{display:none}
+  .nav,.nav.fondo,.nav.claro{padding-top:0; row-gap:0}
+  .pes{min-height:34px !important}
+  .vista{padding-block:8px 40px}
+  .vista .tituloV{display:none}
+}
+
+/* Propios y Alquilados: fuera del escritorio los filtros se reparten en
+   varias filas en vez de deslizarse (en la tableta no se ve la barra de
+   desplazamiento y quedaban escondidos) */
+@media (max-width:1180px),(pointer:coarse){
+  .xlBarra{flex-wrap:wrap; overflow-x:visible}
+  .xlBarra > *{flex-shrink:1; min-width:0; max-width:100%}
+  .xlBarra .gcB{flex-wrap:wrap}
+}
+/* los selectores de Tendencia y Filtros no pasan del ancho del telefono */
+@media (max-width:620px){
+  label.fl{max-width:100%; min-width:0}
+  label.fl select{max-width:100%; min-width:0}
+}
+/* el aviso de girar: solo en el telefono vertical, encima de la tabla */
+.xlGira{display:none}
+@media (max-width:620px) and (orientation:portrait){
+  .xlGira{display:block; margin:10px 0 0; font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+    letter-spacing:.04em; color:var(--tinta-3)}
+}
+
+/* «Solo la tabla»: la tabla a toda la pantalla con una barra para volver.
+   El boton aparece fuera del escritorio, donde no hay F ni Ctrl+F1 a mano. */
+.xlMaxG{display:none}
+@media (max-width:1180px),(pointer:coarse){ .xlMaxG{display:block} }
+.xlMaxBar{display:none}
+.hojaXl.xlMaxi{z-index:60; animation:none}
+.hojaXl.xlMaxi .xlMaxBar{display:flex; position:fixed; left:0; right:0; top:0; height:36px; z-index:61; box-sizing:border-box;
+  align-items:center; gap:10px; padding:0 max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
+  background:var(--tinta); color:#fff; font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.08em}
+.xlMaxBar b{white-space:nowrap}
+.xlMaxBar span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.65;
+  font-size:11.5px; letter-spacing:.04em}
+@media (orientation:landscape){ .xlMaxBar span .gi{display:none} }
+.xlMaxSalir{all:unset; cursor:pointer; flex:0 0 auto; padding:5px 12px; border:1px solid rgba(255,255,255,.45); white-space:nowrap}
+.xlMaxSalir:hover{border-color:var(--hivis); color:var(--hivis)}
+.xlMaxSalir:focus-visible{outline:2px solid var(--hivis); outline-offset:1px}
+.hojaXl.xlMaxi .xlEnv{position:fixed; top:36px; bottom:0; left:env(safe-area-inset-left); right:env(safe-area-inset-right);
+  z-index:61; margin:0; min-height:0; max-height:none !important; border:0; overscroll-behavior:contain}
+body.xlMaxiOn{overflow:hidden}
+</style>
