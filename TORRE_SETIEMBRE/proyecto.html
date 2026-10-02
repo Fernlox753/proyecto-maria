@@ -1,0 +1,37 @@
+<style>
+/* ══ el filtro de proyecto (proyecto.js) ══
+   Un grupo de botones pegados, con siglas, que entra en la fila de filtros
+   de cada pestana sin partirla. El nombre entero va en el globo de ayuda. */
+.sedeF{flex:0 0 auto}
+.sedeB{display:flex; flex-wrap:nowrap; gap:0}
+.sedeB .fbt{padding:7px 8px; letter-spacing:.05em; white-space:nowrap; margin-left:-1px; position:relative}
+.sedeB .fbt:first-child{margin-left:0}
+.sedeB .fbt[aria-pressed="true"]{z-index:1}
+/* en las filas de desplegables, el alto de un desplegable */
+.fl.sedeF .sedeB .fbt{padding-top:8px; padding-bottom:8px}
+.selEq .eqFil .fl.sedeF .sedeB .fbt{padding:6px 7px}
+/* Inicio: una fila de fichas propia, encima de la de alcance; el proyecto
+   elegido en ambar, para que no se confunda con el alcance (azul) ni con
+   el tipo de flota (cian) */
+.filtroProy.sedeIni{margin-bottom:10px}
+.filtroProy.sedeIni .pchip[aria-pressed="true"]{background:linear-gradient(180deg,#A8701E,#7A4E10);
+   border-color:#D29A3E; box-shadow:0 6px 18px rgba(122,78,16,.45)}
+.filtroProy.sedeIni .pchip[aria-pressed="true"] small{color:#FBE3BC}
+/* En vivo: sobre el fondo oscuro */
+.sedeVivo{margin-top:18px}
+.sedeVivo .sedeF{display:flex; align-items:center; gap:12px}
+.sedeVivo .gcT{margin:0; color:var(--claro-2)}
+.sedeVivo .sedeB .fbt{color:var(--claro-2); border-color:var(--hair-fuerte); background:rgba(4,17,29,.55)}
+.sedeVivo .sedeB .fbt:hover{color:var(--claro); border-color:var(--sm-cl)}
+.sedeVivo .sedeB .fbt[aria-pressed="true"]{background:#A8701E; border-color:#D29A3E; color:#fff}
+/* con el proyecto delante, las filas de filtros se aprietan para seguir en una linea */
+.xlBarra .sedeB .fbt{padding-left:7px; padding-right:7px}
+#v-tablero .panelF{flex-wrap:nowrap; gap:12px 16px}
+#v-tablero .tbModBtn{min-width:150px}
+#v-costos .panel{gap:8px 8px}
+#v-costos .panel .fl select{max-width:120px}
+#v-costos .panel label.fl[style]{flex:1 1 120px !important; min-width:120px}
+#v-costos .sedeB .fbt{padding:6px 6px}
+.selEq .eqFil .fl.sedeF{flex:0 0 auto}
+.selEq .eqFil .sedeB .fbt{padding:6px 6px}
+</style>

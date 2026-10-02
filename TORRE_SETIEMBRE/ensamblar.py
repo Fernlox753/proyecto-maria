@@ -11,6 +11,7 @@ en un solo sitio.
   extra.js                  funciones que se vuelven a declarar para esta copia
   hojas.html, hojas.js      las hojas Propios y Alquilados, que sustituyen a Flota
   tablero.html, tablero.js  la hoja Tablero: el analisis de una flota o un modelo
+  desviaciones.png          el cuadro que abre DESVIACIONES en la burbuja
   burbuja.html, burbuja.js  la burbuja de herramientas (calculadora rapida, suma)
   division.html, .js        la pantalla dividida en dos pestanas
   equipo.html, equipo.js    hoja Equipo: todos los equipos en el selector y un buscador
@@ -21,8 +22,9 @@ en un solo sitio.
   movil.html, movil.js      telefono y tableta: cabecera corta, vista girada, «solo la tabla»
   tajo.html, tajo.js        el fondo de Inicio y En vivo: el tajo con la flota real (reemplaza
                             iniciarTajo/ajustarTajo/renderTajo de tres_d.js)
-  datos.json                la tabla de hechos de setiembre (gen_datos.py)
-  setiembre.json            tarifa real contra venta, DM y usaje (gen_datos.py)
+  proyecto.html, .js        el filtro de proyecto (SHGN, ATOC, TRMA, TEMB) en cada pestana
+  datos.json                la tabla de hechos de setiembre, de todos los proyectos (gen_datos.py)
+  setiembre.json            la fila de cada equipo como en las hojas PROP y ALQ (gen_datos.py)
 
 Cada cambio tiene que encontrar su texto. Si la Torre original cambio y uno
 ya no aparece, el ensamblado se detiene y dice cual: hay que revisarlo aqui.
@@ -87,6 +89,20 @@ RM_TXT = ("sin la fase de reparación mayor" if "RM" in _rf.get("PROPIO", {}).ge
 HORAS_DE = VAL.get("fuenteHoras") or "SAP"
 POR_DIAS_DEP = " y ".join(VAL.get("depPorDias") or []) or "ninguno"
 POR_DIAS_ALQ = ", ".join(VAL.get("alqPorDias") or []) or "ninguno"
+# los proyectos y lo que cada uno manda al resultado operativo, dicho en palabras
+SEDES = json.loads(datos).get("sedes") or []
+SEDE_NOM = json.loads(datos).get("sedeNom") or {}
+_NUM = ["ningún", "un", "dos", "tres", "cuatro", "cinco", "seis"]
+N_SEDES = _NUM[len(SEDES)] if len(SEDES) < len(_NUM) else str(len(SEDES))
+NOMBRES = _lista([SEDE_NOM.get(s, s).capitalize() for s in SEDES])
+def _regla(r):
+    x = []
+    for c, v in r.items():
+        if c == "TIPO": continue
+        x.append("%s %s" % (c, _lista(v)))
+    return "; ".join(x) if x else "todo"
+REGLAS_SEDE = " · ".join("%s: propia %s, alquilada %s" % (s, _regla(v["reglas"].get("PROPIO", {})), _regla(v["reglas"].get("ALQUILADO", {})))
+                         for s, v in (VAL.get("sedes") or {}).items())
 
 cabecera = lee(ORIG, "piezas", "cabecera.html")
 css = lee(ORIG, "piezas", "css.html")
@@ -105,6 +121,12 @@ hojas_js = lee(AQUI, "hojas.js")
 tablero_html = lee(AQUI, "tablero.html")
 tablero_js = lee(AQUI, "tablero.js")
 burbuja_html = lee(AQUI, "burbuja.html")
+# el cuadro de DESVIACIONES de la burbuja: desviaciones.png, dentro de la pagina
+_desv = os.path.join(AQUI, "desviaciones.png")
+if "__DESVIACIONES__" not in burbuja_html or not os.path.exists(_desv):
+    sys.exit("burbuja.html: falta __DESVIACIONES__ o no existe desviaciones.png")
+burbuja_html = burbuja_html.replace("__DESVIACIONES__", "data:image/png;base64,"
+                                    + base64.b64encode(open(_desv, "rb").read()).decode("ascii"))
 burbuja_js = lee(AQUI, "burbuja.js")
 division_html = lee(AQUI, "division.html")
 division_js = lee(AQUI, "division.js")
@@ -124,6 +146,8 @@ movil_html = lee(AQUI, "movil.html")
 movil_js = lee(AQUI, "movil.js")
 tajo_html = lee(AQUI, "tajo.html")
 tajo_js = lee(AQUI, "tajo.js")
+proyecto_html = lee(AQUI, "proyecto.html")
+proyecto_js = lee(AQUI, "proyecto.js")
 # las texturas del tajo (tajo_tex/): el mapa de luz horneado en Blender y el
 # detalle de roca y grava de Poly Haven, metidas en la pagina como data URI.
 # Si falta alguna, el tajo se ve con la luz por vertice de siempre.
@@ -148,7 +172,7 @@ cabecera = cambia(cabecera, "<title>Torre de Control de Flota</title>",
 # ══════════════════════════════════════════════════════════════════════
 C = "cuerpo"
 cuerpo = cambia(cuerpo, "Torre de Control<i>San Martín en general</i>",
-                "Torre de Control<i>Shougang · setiembre 2026</i>", C)
+                "Torre de Control<i>%d proyectos · setiembre 2026</i>" % len(SEDES), C)
 
 # ---- las pestanas: con la letra de sala son doce y no caben; menos aire entre ellas
 cuerpo = cambia(cuerpo, "font-size:10.5px; letter-spacing:.16em; padding:10px 16px 11px;",
@@ -156,9 +180,10 @@ cuerpo = cambia(cuerpo, "font-size:10.5px; letter-spacing:.16em; padding:10px 16
 
 # ---- Inicio
 cuerpo = cambia(cuerpo, "Toda la flota de <em>San Martín</em>, medida hora por hora.",
-                "La flota de <em>Shougang</em> en setiembre, día por día.", C)
+                "La flota de <em>los %s proyectos</em> en setiembre, día por día." % N_SEDES, C)
 cuerpo = entre(cuerpo, '<p class="filtroProyPie" id="filtroProyPie">', "</p>",
-    '<p class="filtroProyPie" id="filtroProyPie">ALCANCE = FILTROS DE LAS DINÁMICAS SHGN PROP Y SHGN ALQ (CONSIDERAR) · TIPO DE COSTO = '
+    '<p class="filtroProyPie" id="filtroProyPie">PROYECTO = EL CONSOLIDADO DE CADA UNO (' + ' · '.join(SEDES) + ') · '
+    'ALCANCE = FILTROS DE LAS DINÁMICAS PROP Y ALQ DE CADA PROYECTO (CONSIDERAR) · TIPO DE COSTO = '
     'RECURSO (MAT · SERV · MO) MÁS DEPRECIACIÓN · PROPIO/ALQUILADO = CÓDIGO TERMINADO EN «AL» · '
     'UNA SOLA SELECCIÓN PARA TODAS LAS PESTAÑAS</p>', C)
 cuerpo = cambia(cuerpo, "horas máquina del periodo, contadas una vez por equipo y mes",
@@ -168,10 +193,10 @@ cuerpo = cambia(cuerpo, "se elige en Flota, Tendencia o Filtros, o haciendo clic
 cuerpo = cambia(cuerpo, "COSTO MENSUAL · CLIC EN UN MES PARA VERLO", "COSTO DIARIO · CLIC EN UN DÍA PARA VERLO", C)
 cuerpo = entre(cuerpo, '<p class="nota" style="margin-top:16px; max-width:78ch"><b>Ojo con agosto 2026.</b>', "</p>",
     '<p class="nota" style="margin-top:16px; max-width:78ch"><b>Esto no es el libro mayor.</b> '
-    'Es el resultado operativo de Shougang: mantenimiento —materiales, servicios y mano de obra, orden por '
+    'Es el resultado operativo de %s: mantenimiento —materiales, servicios y mano de obra, orden por '
     'orden— más la depreciación de la flota propia. No trae alquiler real ni combustible, así que el costo '
     'por hora no es comparable con el de la Torre general. La base tiene movimientos hasta el %s; '
-    'el reporte se corta al día %d y esta torre también.</p>' % (BASE_HASTA, CORTE), C)
+    'el reporte se corta al día %d y esta torre también.</p>' % (NOMBRES, BASE_HASTA, CORTE), C)
 
 # ---- Flota
 cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
@@ -181,7 +206,7 @@ cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
 # siguen estando en Tendencia y en Filtros.
 cuerpo = entre(cuerpo, "<!-- ═══════════════════ FLOTA ═══════════════════ -->", "</section>",
                (hojas_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
-                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
+                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
 
 # ---- Tendencia
 cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo.', "</p></details>",
@@ -240,8 +265,8 @@ cuerpo = entre(cuerpo, '<p class="nota" style="margin-top:16px">Shougang concent
 # ---- Ficha: toda la columna de texto
 cuerpo = entre(cuerpo, '<p class="lede"><b>Una sola fuente para el dinero.</b>',
                'Ninguna cifra de esta pantalla reemplaza al cierre contable.</p>',
-    '<p class="lede"><b>Una sola fuente.</b> Todo sale del consolidado <b id="fi-libro">0 SHGN_RO EQUIPOS</b>, el '
-    'resultado operativo de equipos de Shougang del mes en curso. El costo viene de la hoja '
+    '<p class="lede"><b>Una fuente por proyecto.</b> Todo sale de los consolidados <b id="fi-libro">—</b>, el '
+    'resultado operativo de equipos de cada proyecto del mes en curso. El costo viene de las hojas '
     '<b id="fi-hoja">—</b>: <b id="fi-lin">0</b> transacciones de SAP entre <b id="fi-rango">—</b>, que '
     'suman <b id="fi-total">—</b>. De eso, <b id="fi-ro">—</b> es resultado operativo; el resto es lo que '
     'las hojas dejan fuera (CAPEX, pasar a venta, parte de la tarifa). Leído el <b id="fi-gen">—</b>.</p>'
@@ -251,15 +276,15 @@ cuerpo = entre(cuerpo, '<p class="lede"><b>Una sola fuente para el dinero.</b>',
     'en dólares y, si no, ÷ 3.4. El tipo de cambio y la tarifa de hora-hombre son constantes escritas en '
     'el libro, no salen de SAP.</p>'
 
-    '<p class="lede" style="margin-top:18px"><b>Recalculado, no copiado.</b> Las cifras no se toman de las '
-    'hojas SHGN PROP y SHGN ALQ: se vuelven a sumar desde la base con sus mismas reglas, que se leen de '
-    'los filtros de sus propias tablas dinámicas. Las dos cuadran <b id="fi-cuadre">—</b> en RyM, mano de '
-    'obra, depreciación o alquiler, horas y número de equipos: RyM + MOV de <b id="fi-propHoja">—</b> en '
-    'la flota propia y de <b id="fi-alqHoja">—</b> en la alquilada. El <b>acumulado</b> sigue una sola '
-    'regla —libro mayor más el mes— y por eso algunas de sus columnas no coinciden con el Excel.</p>'
+    '<p class="lede" style="margin-top:18px"><b>Recalculado y cruzado.</b> RyM y mano de obra se vuelven a '
+    'sumar desde la base de cada libro con las reglas que se leen de los filtros de sus propias tablas '
+    'dinámicas, y cuadran <b id="fi-cuadre">—</b> con las hojas PROP y ALQ, equipo por equipo: RyM + MOV de '
+    '<b id="fi-propHoja">—</b> en la flota propia y de <b id="fi-alqHoja">—</b> en la alquilada. Lo que en el '
+    'Excel es fórmula —depreciación o alquiler, venta, horas, DM, uso y el acumulado— se toma de la fila de '
+    'cada equipo, tal cual.</p>'
 
-    '<p class="lede" style="margin-top:18px"><b>Qué entra al resultado operativo.</b> De la flota propia, '
-    'lo que la columna CONSIDERAR marca %s, %s; queda fuera %s. De la alquilada, %s. Y sólo hasta el día '
+    '<p class="lede" style="margin-top:18px"><b>Qué entra al resultado operativo.</b> Lo que pasa los '
+    'filtros de la dinámica de cada hoja: %s. Y sólo hasta el día '
     '%d: la base trae además <b id="fi-fuera">—</b> de los días siguientes, que quedan fuera.</p>'
 
     '<p class="lede" style="margin-top:18px"><b>Horas, depreciación y alquiler.</b> Las horas máquina son '
@@ -284,7 +309,7 @@ cuerpo = entre(cuerpo, '<p class="lede"><b>Una sola fuente para el dinero.</b>',
     '<p class="lede" style="margin-top:18px"><b>Qué es simulación.</b> El flujo de movimientos de '
     'la pestaña <b>En vivo</b> y el desplazamiento de los camiones por el tajo son una recreación '
     'para la demostración. Ninguna cifra de esta pantalla reemplaza al cierre contable.</p>'
-    % (REG_PROP, RM_TXT, FUERA_PROP, ALQ_TXT, CORTE, HORAS_DE, POR_DIAS_DEP, POR_DIAS_ALQ), C)
+    % (REGLAS_SEDE, CORTE, HORAS_DE, POR_DIAS_DEP, POR_DIAS_ALQ), C)
 
 # ---- Tarifa (la antigua pestaña Setiembre)
 cuerpo = cambia(cuerpo, 'id="v-setiembre" data-pes="Setiembre"', 'id="v-setiembre" data-pes="Tarifa"', C)
@@ -338,9 +363,8 @@ cuerpo = cambia(cuerpo, ">POR NATURALEZA DEL GASTO</h4>", ">POR CLASE DE ORDEN</
 cuerpo = entre(cuerpo, '<p class="nota" style="margin-top:clamp(30px,4vh,44px); max-width:82ch">', "</p>",
     '<p class="nota" style="margin-top:clamp(30px,4vh,44px); max-width:82ch">'
     '<b>Para qué sirve.</b> Con el alcance en RESULTADO OPERATIVO la torre usa el mismo recorte que las '
-    'hojas SHGN PROP y SHGN ALQ: flota propia %s (%s), flota alquilada %s, '
-    'todo hasta el día %d. Los ajustes de arriba llevan a los otros recortes sin marcar casillas a '
-    'mano.</p>' % (REG_PROP, RM_TXT, ALQ_TXT, CORTE), C)
+    'hojas PROP y ALQ de cada proyecto (%s), todo hasta el día %d. Los ajustes de arriba llevan a los '
+    'otros recortes sin marcar casillas a mano.</p>' % (REGLAS_SEDE, CORTE), C)
 
 # Al quitar una hoja y meter dos, el numero de cada seccion ya no coincide con
 # el de su pestana: se vuelven a numerar en el orden en que quedaron.
@@ -521,7 +545,7 @@ nuevo = (cabecera + css + "\n" + cuerpo + "\n<script>\n(function(){\n"
          + util + "\nvar DATA = " + datos + ";\n"
          + "var SETIEMBRE = " + sep + ";\n"
          + js_datos + "\n" + js_tend + "\n" + js_filt + "\n" + js_sep + "\n" + cont + tres_d
-         + "\n" + extra + "\n" + hojas_js + "\n" + tablero_js + "\n" + burbuja_js
+         + "\n" + extra + "\n" + proyecto_js + "\n" + hojas_js + "\n" + tablero_js + "\n" + burbuja_js
          # los modelos 3D antes de la navegacion: al final de ella se elige el primer equipo
          + "\n" + modelos3d_js + "\n" + detalle3d_js + "\n" + modelos_det_js + "\n" + tajo_js + "\n" + equipo_js + "\n" + js_nav
          # la division envuelve irA(): tiene que ir despues de nuevo_js_nav.js
@@ -537,11 +561,12 @@ for marca in ["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES
               'id="fi-cuadre"', 'id="fi-zserv"', "var proyFiltro = PROYS[0];", 'id="v-propios"', 'id="v-alquilados"',
               "function hxTabla", 'id="hx-editor"', 'id="v-tablero"',
               "function tbPintar", "function hxOrigen", 'id="bz"', "function bzNumero",
-              'id="divisor"', "function divAplicar", "function hxMaxi", "body.navMin"]:
+              'id="divisor"', "function divAplicar", "function hxMaxi", "body.navMin",
+              "function sedeCambio", 'class="sedeHueco"', "function hxSedesDe"]:
     print(("  OK      " if marca in nuevo else "  FALTA   ") + marca)
 # nada de esto debe quedar a la vista: es vocabulario de la Torre del libro mayor
 for sobra in ["libro mayor le carga", "DIECISIETE", "<b>1,291 del libro</b>", "Ojo con agosto",
-              "TODOS LOS PROYECTOS'", "n: 'POR AÑO'", "ÚLTIMOS 12 MESES", "COLUMNA AB",
+              "'TODOS' ? 'TODOS LOS PROYECTOS'", "n: 'POR AÑO'", "ÚLTIMOS 12 MESES", "COLUMNA AB",
               'id="v-flota"', "<b>Flota</b>", "__CORTE__", "__PERIODOS__", "sin refrescar", "parte diario",
-              "AL DÍA 6", "hasta el día 6", "hasta el 9 de setiembre"]:
+              "AL DÍA 6", "hasta el día 6", "hasta el 9 de setiembre", "SHGN PROP Y SHGN ALQ", "COMO SHGN PROP"]:
     print(("  SOBRA   " if sobra in nuevo else "  limpio  ") + sobra)

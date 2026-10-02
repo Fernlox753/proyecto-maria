@@ -1,8 +1,11 @@
 # Proyecto Maria
 
-Torre de Control de equipos de **Shougang (SHGN), setiembre 2026**, armada a partir del consolidado
-`0 SHGN_RO EQUIPOS` que prepara María en Excel. Recalcula el reporte desde la hoja `BASE DATOS`
-con las mismas reglas de las tablas dinámicas del libro y lo presenta como una página navegable.
+Torre de Control de equipos de **cuatro proyectos —Shougang (SHGN), Atocongo (ATOC), Tarma (TRMA) y
+Tembladera (TEMB)—, setiembre 2026**, armada a partir de los consolidados `… XXXX_RO EQUIPOS` que
+prepara María en Excel, uno por proyecto. Las cifras de las tablas son las mismas del Excel: RyM y
+mano de obra se recalculan desde la hoja `BASE DATOS` de cada libro con las reglas de sus tablas
+dinámicas y se cruzan equipo por equipo con las hojas PROP y ALQ; lo que en el Excel es fórmula
+(depreciación o alquiler, venta, horas, DM, uso, acumulado) se toma de la fila de cada equipo.
 
 - **La torre:** `index.html` (en GitHub Pages, la página principal del sitio).
 - **La revisión del consolidado 27.09:** `revision.html`, con las incongruencias encontradas en el Excel,
@@ -10,7 +13,9 @@ con las mismas reglas de las tablas dinámicas del libro y lo presenta como una 
 
 ## Qué trae la página
 
-- **Propios** y **Alquilados**: las hojas SHGN PROP y SHGN ALQ como tablas desplegables
+- **Filtro de proyecto** en la fila de filtros de cada pestaña (TODOS · SHGN · ATOC · TRMA · TEMB):
+  uno, varios o todos juntos, con una sola selección para toda la torre.
+- **Propios** y **Alquilados**: las hojas PROP y ALQ de cada proyecto como tablas desplegables
   (familia › modelo › equipo › fase › orden; modelo, equipo y fase se reordenan arrastrando
   sus botones), con operación, costo real, venta interna, desviación,
   tarifas y acumulado 2026. Tarjetas de resumen con barritas de costo contra venta, botones
@@ -21,7 +26,8 @@ con las mismas reglas de las tablas dinámicas del libro y lo presenta como una 
 - **Tablero**: el análisis de una o varias familias, modelos o equipos en siete pasos (resultado,
   horas, tarifa, causa, RyM y MOV, equipos, acumulado).
 - **Pantalla dividida** (botón ⊟ o tecla D): dos pestañas a la vez, una arriba y otra abajo.
-- **Pantalla completa** con la tecla F y una burbuja de herramientas con calculadora y suma.
+- **Pantalla completa** con la tecla F y una burbuja de herramientas con calculadora, suma y
+  **Desviaciones** (el cuadro del desfase de agosto y setiembre, `TORRE_SETIEMBRE\desviaciones.png`).
 - **Equipo**: cada máquina de la flota (unos 80 modelos: camiones CAT, Komatsu, TONLY, LGMG,
   Scania, Mercedes, Kenworth…, excavadoras, palas, cargadores, tractores, motoniveladoras,
   perforadoras y torres de iluminación) en un modelo 3D armado con las medidas del fabricante, con
@@ -46,7 +52,7 @@ desde GitHub Pages. En la versión publicada como Artifact de Claude se comparte
 Necesita Python 3 y `openpyxl` (`pip install openpyxl`).
 
 ```bat
-:: 1. copiar el Excel del mes a CONSOLIDADO\  (no se sube al repositorio)
+:: 1. copiar los Excel del mes a CONSOLIDADO\  (uno por proyecto; no se suben al repositorio)
 :: 2. recalcular los datos desde el Excel
 python TORRE_SETIEMBRE\gen_datos.py
 :: 3. armar la página
@@ -55,9 +61,9 @@ python TORRE_SETIEMBRE\ensamblar.py
 python armar_sitio.py
 ```
 
-`gen_datos.py` toma el `CONSOLIDADO\0 SHGN_RO EQUIPOS*.xlsx` más reciente, lee las reglas de los
-filtros de las dinámicas de SHGN PROP y SHGN ALQ, y se detiene si RyM o MOV dejan de cuadrar al
-centavo con esas hojas. `ensamblar.py` toma las piezas de la Torre en `PROCESO\` y les aplica los
+`gen_datos.py` toma de `CONSOLIDADO\` el libro más reciente de cada proyecto, lee las reglas de
+los filtros de las dinámicas de sus hojas `<SEDE> PROP` y `<SEDE> ALQ`, y se detiene si RyM o MOV
+dejan de cuadrar al centavo con esas hojas, equipo por equipo. `ensamblar.py` toma las piezas de la Torre en `PROCESO\` y les aplica los
 cambios de esta versión; al final imprime una lista `OK` / `FALTA` / `SOBRA` que es su verificación.
 
 ## Carpetas
@@ -67,6 +73,6 @@ cambios de esta versión; al final imprime una lista `OK` / `FALTA` / `SOBRA` qu
 | `TORRE_SETIEMBRE\` | generador de datos, ensamblador y las piezas propias de esta torre (hojas, tablero, burbuja, división, teléfono y tableta) |
 | `PROCESO\` | las piezas de la Torre de Control original que se reutilizan (estilos, utilidades, 3D, navegación) |
 | `REVISION\` | la revisión de incongruencias del consolidado 27.09 |
-| `CONSOLIDADO\` | aquí va el Excel para regenerar; no se sube |
+| `CONSOLIDADO\` | aquí van los Excel de cada proyecto para regenerar; no se suben |
 
 Las cifras son de gestión (resultado operativo de mantenimiento), no reemplazan al cierre contable.

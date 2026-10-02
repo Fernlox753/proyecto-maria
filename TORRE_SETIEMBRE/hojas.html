@@ -360,22 +360,25 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
 <section class="vista luz hojaXl" id="v-propios" data-pes="Propios">
   <div class="wrap">
     <div class="tituloV">
-      <div class="ord"><span class="num">01</span><span class="lin"></span><span class="num">FLOTA PROPIA · COMO SHGN PROP</span></div>
+      <div class="ord"><span class="num">01</span><span class="lin"></span><span class="num" id="hx-como-P">FLOTA PROPIA · COMO LAS HOJAS PROP</span></div>
       <h2 class="d d-l">Flota propia, al día __CORTE__.</h2>
       <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
-      <p class="lede">Es la hoja <b>SHGN PROP</b> del consolidado. Se despliega como su tabla dinámica:
+      <p class="lede">Son las hojas <b>PROP</b> de los consolidados de cada proyecto (SHGN, ATOC, TRMA y TEMB),
+      juntas: el botón PROYECTO deja uno, varios o todos. Se despliega como su tabla dinámica:
       familia, modelo, equipo y orden de trabajo; clic en la primera columna o las flechas del teclado.
       Clic en una cifra para ver de dónde sale y comentarla; el botón TABLERO de cada familia y modelo
       abre su análisis. El costo
       es RyM (materiales y servicios) + MOV (mano de obra) + depreciación; la venta es la tarifa de
       venta por las horas reales. Los grupos de columnas se pliegan con el botón de su cabecera y
-      cada columna ordena al hacer clic en su nombre. El <b>acumulado</b> es el libro mayor de
-      __PERIODOS__ más setiembre al día __CORTE__, con la misma regla para todos los equipos: en el
-      Excel unas filas suman el mes y otras no, y por eso esas columnas no coinciden con la hoja.
-      Esta tabla es el reporte completo al día __CORTE__ y no sigue a los filtros de otras pestañas.</p></details>
+      cada columna ordena al hacer clic en su nombre. RyM y MOV se recalculan desde la base de cada
+      libro y cuadran con la hoja equipo por equipo; la depreciación, la venta, las horas, la DM, el uso
+      y el <b>acumulado</b> se toman de la fila de cada equipo tal como los calcula el Excel.
+      Esta tabla es el reporte completo al día __CORTE__: sigue al proyecto, pero no a los demás filtros
+      de otras pestañas.</p></details>
     </div>
     <div class="granTotal" id="hx-cifras-P"></div>
     <div class="xlBarra">
+      <div class="sedeHueco" data-clase="gc"></div>
       <div><span class="gcT xlModoT" id="hx-modo-P" role="group" aria-label="Qué hacen los botones de nivel"></span><div class="gcB" id="hx-nivel-P"></div></div>
       <div><span class="gcT">DEPRECIACIÓN EN EL COSTO</span><div class="gcB" id="hx-ter-P"></div></div>
       <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-P"></div></div>
@@ -402,23 +405,24 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
 <section class="vista luz hojaXl" id="v-alquilados" data-pes="Alquilados">
   <div class="wrap">
     <div class="tituloV">
-      <div class="ord"><span class="num">02</span><span class="lin"></span><span class="num">FLOTA ALQUILADA · COMO SHGN ALQ</span></div>
+      <div class="ord"><span class="num">02</span><span class="lin"></span><span class="num" id="hx-como-A">FLOTA ALQUILADA · COMO LAS HOJAS ALQ</span></div>
       <h2 class="d d-l">Flota alquilada, al día __CORTE__.</h2>
       <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
-      <p class="lede">Es la hoja <b>SHGN ALQ</b> del consolidado. Se despliega como su tabla dinámica:
+      <p class="lede">Son las hojas <b>ALQ</b> de los consolidados de cada proyecto (SHGN, ATOC, TRMA y TEMB),
+      juntas: el botón PROYECTO deja uno, varios o todos. Se despliega como su tabla dinámica:
       familia, modelo, equipo y orden de trabajo; clic en la primera columna o las flechas del teclado.
       Clic en una cifra para ver de dónde sale y comentarla; el botón TABLERO de cada familia y modelo
       abre su análisis. Igual que
       en el Excel, <b>los totales son RyM + MOV y no suman el alquiler</b>: la columna Alq va aparte y
       <b>no es un costo real</b>, porque el Excel la calcula con la tarifa de venta de alquiler × horas.
-      El <b>acumulado</b> es el libro mayor de __PERIODOS__ más setiembre al día __CORTE__. RyM, MOV,
-      costo y horas acumulados coinciden con la hoja; la venta acumulada y el alquiler acumulado no,
-      porque en el Excel la venta cuenta el mes dos veces y el alquiler busca el equipo de nueve filas
-      más abajo. Esta tabla es el reporte completo al día __CORTE__ y no sigue a los filtros de otras
-      pestañas.</p></details>
+      RyM y MOV se recalculan desde la base de cada libro y cuadran con la hoja equipo por equipo; el
+      alquiler, la venta, las horas, la DM, el uso y el <b>acumulado</b> se toman de la fila de cada
+      equipo tal como los calcula el Excel. Esta tabla es el reporte completo al día __CORTE__: sigue
+      al proyecto, pero no a los demás filtros de otras pestañas.</p></details>
     </div>
     <div class="granTotal" id="hx-cifras-A"></div>
     <div class="xlBarra">
+      <div class="sedeHueco" data-clase="gc"></div>
       <div><span class="gcT xlModoT" id="hx-modo-A" role="group" aria-label="Qué hacen los botones de nivel"></span><div class="gcB" id="hx-nivel-A"></div></div>
       <div><span class="gcT">ALQUILER EN EL COSTO</span><div class="gcB" id="hx-ter-A"></div></div>
       <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-A"></div></div>

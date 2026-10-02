@@ -247,6 +247,14 @@ function bzArrastre(asa, alSoltarSinMover){
   });
 }
 
+/* el cuadro de desviaciones (la imagen va dentro de la pagina, ensamblar.py) */
+function bzDesv(abrir){
+  var dv = $('bzDesv');
+  if(!dv) return;
+  dv.hidden = !abrir;
+  document.documentElement.style.overflow = abrir ? 'hidden' : '';
+  if(abrir){ var c = $('bzDesvCerrar'); if(c) c.focus(); }
+}
 (function bzIniciar(){
   var bz = $('bz');
   if(!bz) return;
@@ -274,6 +282,7 @@ function bzArrastre(asa, alSoltarSinMover){
     var h = b.getAttribute('data-h');
     if(h === 'enc'){ var e = $('encBtn'); if(e) e.click(); return; }
     if(h === 'arriba'){ window.scrollTo({ top: 0, behavior: REDUCIR ? 'auto' : 'smooth' }); return; }
+    if(h === 'desv'){ BZ.espera = null; bzPintar(); bzDesv(true); return; }
     BZ.h = h;
     BZ.espera = h === 'suma' ? 'multi' : null;
     if(h === 'calc') bzSiguiente();
@@ -304,6 +313,21 @@ function bzArrastre(asa, alSoltarSinMover){
     BZ[k] = num ? { v: num.v, et: 'escrito a mano' } : null;
     bzSiguiente(); bzPintar();
   });
+
+  /* DESVIACIONES: se cierra con ×, con Esc o con un clic fuera del cuadro */
+  var dv = $('bzDesv');
+  if(dv){
+    esc_('bzDesvCerrar', 'click', function(){ bzDesv(false); });
+    esc_('bzDesvReal', 'click', function(){
+      var real = !dv.classList.contains('real');
+      dv.classList.toggle('real', real);
+      this.setAttribute('aria-pressed', real);
+      this.textContent = real ? '⤡ AJUSTAR' : '⤢ TAMAÑO REAL';
+      this.title = real ? 'Ajustar al ancho de la pantalla' : 'Ver a tamaño real';
+    });
+    dv.addEventListener('click', function(ev){ if(ev.target === dv) bzDesv(false); });
+    document.addEventListener('keydown', function(ev){ if(ev.key === 'Escape' && !dv.hidden) bzDesv(false); });
+  }
 
   if(BZ.h === 'calc') bzSiguiente(); else BZ.espera = null;
   /* al abrir la pagina no se queda esperando un clic: se pide al usar la herramienta */

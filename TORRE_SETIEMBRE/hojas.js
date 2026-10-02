@@ -1,9 +1,10 @@
 /* ══════════════════════════════════════════════════════════════════
    HOJAS PROPIOS Y ALQUILADOS — el consolidado, en tabla
 
-   Sustituyen a la hoja Flota. Son SHGN PROP y SHGN ALQ tal como se leen
-   en el Excel, en una sola tabla que se despliega como su dinamica:
-   familia > modelo > equipo > orden de trabajo.
+   Sustituyen a la hoja Flota. Son las hojas PROP y ALQ de cada proyecto
+   (SHGN, ATOC, TRMA, TEMB) tal como se leen en el Excel, en una sola tabla
+   que se despliega como su dinamica: familia > modelo > equipo > orden de
+   trabajo. Solo entran los equipos de los proyectos elegidos (proyecto.js).
 
    Todo sale de SETIEMBRE.eq (la fila completa de cada equipo) y de
    SETIEMBRE.ots (sus ordenes). Familias y modelos se suman aqui, asi que
@@ -233,7 +234,8 @@ function hxSuma(filas){
 }
 function hxArbol(s){
   var st = HX[s], q = SEP.eq, fams = {}, orden = [], id;
-  for(id in q) if(q[id].tipo === st.tipo){
+  /* solo los equipos de los proyectos elegidos (proyecto.js) */
+  for(id in q) if(q[id].tipo === st.tipo && sedeOk(q[id].sede)){
     var x = q[id];
     var e = { k: 'e|' + id, lv: 2, et: id, fam: x.fam, mod: x.mod, sub: x.prov && s === 'A' ? x.prov.slice(0, 24) : '', id: id,
               busca: (id + ' ' + x.mod + ' ' + x.fam + ' ' + (x.prov || '')).toUpperCase(),
@@ -326,16 +328,37 @@ function hxOrTot(st, que){
   var esProp = st.s === 'P', t3 = esProp ? 'Dep' : 'Alq';
   return que + ' = RyM + MOV' + (st.ter ? ' + ' + t3 : '') + ' de esta misma fila. '
     + (st.ter ? (esProp ? '' : 'El alquiler está sumado (botón CON ALQ); el Excel no lo suma.')
-              : (esProp ? 'La depreciación está fuera (botón SIN DEP); el Excel sí la suma.' : 'El alquiler no se suma, igual que en SHGN ALQ.'));
+              : (esProp ? 'La depreciación está fuera (botón SIN DEP); el Excel sí la suma.' : 'El alquiler no se suma, igual que en las hojas ALQ.'));
+}
+/* los proyectos de los equipos que cuelgan de una fila */
+function hxSedesDe(n){
+  var ss = [];
+  var junta = function(x){
+    var q = x.id && SEP.eq[x.id];
+    if(q && ss.indexOf(q.sede) < 0) ss.push(q.sede);
+    (x.hijos || []).forEach(junta);
+  };
+  junta(n);
+  if(!ss.length) ss = sedesL().filter(sedeOk);
+  return ss.sort(function(a, b){ return sedesL().indexOf(a) - sedesL().indexOf(b); });
 }
 function hxOrigen(st, n, col){
   var esProp = st.s === 'P', p = col.split('-'), g = p[0], i = parseInt(p[1], 10);
-  var corte = hxCorte(), t3 = esProp ? 'Dep' : 'Alq';
-  var hoja = 'Hoja «' + ((META.val || {}).hoja || 'BASE DATOS') + '», columna COSTO RYM';
-  var rg = ((META.val || {}).reglas || {})[st.tipo] || {}, dias = SEP.diasMes || 30;
-  var filtro = ' Filtros de la dinámica de ' + (esProp ? 'SHGN PROP' : 'SHGN ALQ') + ': equipo ' + st.tipo
-             + ', fecha hasta el día ' + corte
-             + (rg.CONSIDERAR ? ', CONSIDERAR = ' + rg.CONSIDERAR.join(' · ') : '') + '.';
+  var corte = hxCorte(), t3 = esProp ? 'Dep' : 'Alq', dias = SEP.diasMes || 30;
+  /* la hoja de reporte de la fila: la de su proyecto, o la de cada uno */
+  var ss = hxSedesDe(n), suf = esProp ? ' PROP' : ' ALQ';
+  var hoja = ss.length === 1 ? 'la hoja ' + ss[0] + suf : 'las hojas ' + ss.map(function(s){ return s + suf; }).join(', ');
+  var vs = (META.val || {}).sedes || {};
+  var regla = ss.map(function(s){
+    var r = ((vs[s] || {}).reglas || {})[st.tipo] || {}, x = [];
+    for(var c in r) if(c !== 'TIPO') x.push(c + ' = ' + r[c].map(function(v){ return v === '(vacío)' ? 'sin marcar' : v; }).join(' · '));
+    return (ss.length > 1 ? s + ': ' : '') + (x.length ? x.join(', ') : 'ningún otro filtro');
+  }).join(' | ');
+  var base = 'Recalculado desde la hoja BASE DATOS ' + (ss.length === 1 ? 'del libro de ' + ss[0] : 'del libro de cada proyecto')
+           + ', columna COSTO RYM, con los filtros de la dinámica de ' + hoja + ' (equipo ' + st.tipo + '; ' + regla
+           + '), hasta el día ' + corte + '. Cuadra con la hoja equipo por equipo.';
+  /* lo que en el Excel es formula se toma de la fila del equipo, tal cual */
+  var de = function(bloque, rot){ return 'Columna «' + rot + '» del bloque «' + bloque + '» de ' + hoja + ', tal cual.'; };
   var nivel = /^o\|/.test(n.k || '') ? ' Alcance: sólo las líneas de esta orden de trabajo.'
             : n.ot ? ' Alcance: sólo el costo de las ' + hxNOrdenes(n) + ' órdenes que cuelgan de esta fila'
                      + (n.esFase ? ' (fase ' + n.et + ')' : '') + '; horas, venta y depreciación no se reparten por fase.'
@@ -343,42 +366,36 @@ function hxOrigen(st, n, col){
             : n.esMod && n.lv > 1 ? ' Alcance: suma de los ' + n.o.n + ' equipos de este modelo en esta rama.'
             : n.lv === 2 ? ' Alcance: sólo este equipo.'
             : ' Alcance: suma de los ' + n.o.n + ' equipos de ' + (n.lv === 0 ? 'esta familia.' : 'este modelo.');
-  var per = (SEP.acumPeriodos || []).length;
+  var grupo = n.lv < 2 && !n.id ? ' En un grupo es la suma de sus equipos.' : '';
   var nomC = ['RyM', 'MOV', t3, 'Total'];
-  var tv = function(j){ return 'BASE VARIOS, bloque TARIFAS VENTA, columna ' + ['RyM', 'MOV', 'DEP/ALQ'][j] + ' del equipo'; };
+  var porDias = (esProp ? SEP.depPorDias : SEP.alqPorDias) || [];
   var o = '';
   if(g === 'costo') o = [
-      hoja + ', filas con RECURSO = MAT o SERV.' + filtro + ' Materiales: cantidad × precio unitario ÷ 3.4 (descarga Z MAT). Servicios: importe en dólares, o en soles ÷ 3.4 (descarga Z SERV).',
-      hoja + ', filas con RECURSO = MO.' + filtro + ' Cada línea es horas aplicadas × US$ 35 (descarga Z HH).',
-      esProp ? 'Tarifa de depreciación × horas reales. La tarifa sale de BASE VARIOS, bloque PROFORMA: depreciación del mes ÷ horas proformadas. '
-               + ((SEP.depPorDias || []).length ? SEP.depPorDias.join(' y ') + ' van por días (importe del mes ÷ ' + dias + ' × ' + corte + ').' : '')
-             : 'NO ES UN COSTO REAL. Como la columna Alq de SHGN ALQ: tarifa de VENTA de alquiler (BASE VARIOS, bloque TARIFAS VENTA, columna DEP/ALQ) × horas reales. '
-               + ((SEP.alqPorDias || []).length ? SEP.alqPorDias.join(', ') + ' tienen tarifa mensual y van por días (÷ ' + dias + ' × ' + corte + '). ' : '')
-               + (st.ter ? 'Está sumado al total (botón CON ALQ).' : 'NO entra al total.'),
+      base + ' Filas con RECURSO = MAT o SERV: materiales (descarga Z MAT) y servicios (Z SERV). Es la columna RYM del costo real.',
+      base + ' Filas con RECURSO = MO: horas hombre aplicadas (descarga Z HH). Es la columna MOV del costo real.',
+      esProp ? de('Costo Real al ' + corte, 'Dep') + ' En el Excel es la tarifa de depreciación de la proforma × horas reales'
+               + (porDias.length ? '; ' + porDias.join(', ') + ' van por días (importe del mes ÷ ' + dias + ' × ' + corte + ')' : '') + '.' + grupo
+             : 'NO ES UN COSTO REAL. ' + de('Costo Real al ' + corte, 'Alq') + ' En el Excel es la tarifa de VENTA de alquiler × horas reales'
+               + (porDias.length ? '; ' + porDias.join(', ') + ' tienen tarifa mensual y van por días' : '') + '. '
+               + (st.ter ? 'Está sumado al total (botón CON ALQ).' : 'NO entra al total.') + grupo,
       hxOrTot(st, 'Costo')][i];
   else if(g === 'oper') o = [
-      'BASE VARIOS, bloque DM-USAJE, columna DM.' + (n.lv < 2 ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
-      'BASE VARIOS, bloque DM-USAJE, columna USAJE.' + (n.lv < 2 ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
-      'BASE VARIOS, bloque HOROMETRO REAL: suma de HM del horómetro de SAP' + ((META.val || {}).fuenteHoras ? ' (' + META.val.fuenteHoras + ')' : '') + ' hasta el día ' + corte + '. Es la columna V de la hoja.',
-      'BASE VARIOS, bloque PROFORMA, columna HM: horas proformadas para TODO el mes, no sólo hasta el día ' + corte + '.'][i];
-  else if(g === 'venta') o = i < 3 ? (!esProp && i === 2 ? 'La misma cifra que la columna Alq del costo: las dos salen de la tarifa de venta, así que aquí no hay margen que medir.'
-                                                         : tv(i) + ' × horas reales.') + (!st.ter && i === 2 ? ' No entra al total.' : '')
+      de('%DM', '%DM') + (n.lv < 2 ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
+      de('%Utiliz.', '%Utiliz.') + (n.lv < 2 ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
+      de('Hras Real al ' + corte, 'Hras Real') + ' Son las horas del horómetro de SAP hasta el día ' + corte + '.' + grupo,
+      de('Hras Prof (mes)', 'Hras Prof') + ' Son las horas proformadas para TODO el mes, no sólo hasta el día ' + corte + '.' + grupo][i];
+  else if(g === 'venta') o = i < 3 ? de('Venta Interna al ' + corte, nomC[i]) + ' En el Excel es la tarifa de venta × horas reales.'
+                                     + (!esProp && i === 2 ? ' Es la misma cifra que la columna Alq del costo: las dos salen de la tarifa de venta.' : '')
+                                     + (!st.ter && i === 2 ? ' No entra al total.' : '') + grupo
                                   : hxOrTot(st, 'Venta');
-  else if(g === 'desv') o = 'Venta interna − costo real, columna ' + ['RyM', 'MOV', t3, 'Total'][i] + '. Negativo (rojo): se gastó más de lo que la venta da.';
+  else if(g === 'desv') o = 'Venta interna − costo real, columna ' + nomC[i] + '. Negativo (rojo): se gastó más de lo que la venta da.';
   else if(g === 'treal') o = 'Costo real ' + nomC[i] + ' ÷ horas reales.';
-  else if(g === 'tventa') o = 'Venta interna ' + nomC[i] + ' ÷ horas reales. En un equipo es su tarifa de venta de BASE VARIOS; en un grupo, el promedio ponderado por horas.';
-  else if(g === 'tacum') o = ['Costo acumulado RyM', 'Costo acumulado MOV', 'Costo acumulado ' + t3 + ' más Seg', 'Costo acumulado total'][i] + ' ÷ horas acumuladas.';
-  else if(g === 'cacum') o = [
-      'BASE VARIOS, bloque ACUMULADO 2026 (libro mayor, ' + per + ' meses), columna RYM, más el RyM del mes.',
-      'BASE VARIOS, bloque ACUMULADO 2026, columna FIJO, más el MOV del mes.',
-      esProp ? 'BASE VARIOS, bloque ACUMULADO 2026, columna DEP, más la depreciación del mes.'
-             : 'BASE VARIOS, bloque ACUMULADO 2026, columna ALQ del propio equipo, más el alquiler del mes (tarifa de venta, no costo real).' + (st.ter ? '' : ' No entra al costo acumulado.'),
-      'BASE VARIOS, bloque ACUMULADO 2026, columna SEG/OTR.',
-      hxOrTot(st, 'Costo acumulado'),
-      'BASE VARIOS, bloque ACUMULADO 2026, columna HM, más las horas reales del mes.'][i]
-      + ((SEP.acumPeriodos || []).length ? ' El libro trae hasta el periodo ' + SEP.acumPeriodos[SEP.acumPeriodos.length - 1] + '.' : ' El libro no trae ningún periodo.');
-  else if(g === 'vacum') o = i < 3 ? tv(i) + ' × horas acumuladas.' : hxOrTot(st, 'Venta acumulada');
-  else if(g === 'dacum') o = 'Venta acumulada − costo acumulado, columna ' + ['RyM', 'MOV', t3, 'Total'][i] + '.';
+  else if(g === 'tventa') o = 'Venta interna ' + nomC[i] + ' ÷ horas reales. En un grupo es el promedio ponderado por horas.';
+  else if(g === 'tacum') o = ['Costo acumulado RyM', 'Costo acumulado MOV', 'Costo acumulado ' + t3, 'Costo acumulado total'][i] + ' ÷ horas acumuladas.';
+  else if(g === 'cacum') o = i === 4 ? hxOrTot(st, 'Costo acumulado')
+      : de('Acumulado 2026', ['RYM', 'MOV', t3, 'Seg', '', 'Horas'][i]) + ' Es el libro mayor del año más el mes, como lo arma el Excel.' + grupo;
+  else if(g === 'vacum') o = i < 3 ? de('Acumulado 2026 (venta)', nomC[i]) + grupo : hxOrTot(st, 'Venta acumulada');
+  else if(g === 'dacum') o = 'Venta acumulada − costo acumulado, columna ' + nomC[i] + '.';
   return o + nivel;
 }
 function hxBarraOrigen(s){

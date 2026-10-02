@@ -1,53 +1,54 @@
 # -*- coding: utf-8 -*-
-"""Datos de la Torre de Setiembre, desde el consolidado 0 SHGN_RO EQUIPOS.
+"""Datos de la Torre de Setiembre, desde los consolidados de cada proyecto.
 
-Lee el .xlsx directamente (no hace falta tenerlo abierto en Excel) y escribe:
+Un libro por proyecto en CONSOLIDADO\\ (el mas reciente de cada uno):
+
+  0 SHGN_RO EQUIPOS*.xlsx    SHGN  Shougang
+  00 ATOC_RO EQUIPOS*.xlsx   ATOC  Atocongo
+  00 TRMA_RO EQUIPOS*.xlsx   TRMA  Tarma
+  00 TEMB_RO EQUIPOS*.xlsx   TEMB  Tembladera
+
+o los que se pasen como argumento. Lee los .xlsx directamente (no hace falta
+tenerlos abiertos en Excel) y escribe:
 
   datos.json       la misma forma que tarifas.json de la Torre original, para
                    que el mismo frontend lo recorra: una tabla de hechos plana
-                   con el dia en el sitio del mes.
-  setiembre.json   tarifa real contra tarifa de venta, DM y usaje, por modelo
-                   y por equipo.
-  validacion.json  los cuadres contra las hojas SHGN PROP y SHGN ALQ.
+                   con el dia en el sitio del mes. Cada equipo lleva su
+                   proyecto (sede), que es el filtro de proyecto de la pagina.
+  setiembre.json   la fila de cada equipo como la ensenan las hojas
+                   <SEDE> PROP y <SEDE> ALQ, y las ordenes de cada uno.
+  validacion.json  los cuadres de cada proyecto contra sus dos hojas.
 
-EL LIBRO: el mas reciente de CONSOLIDADO\\0 SHGN_RO EQUIPOS*.xlsx, o el que se
-pase como argumento.
+DOS FUENTES, Y SE CRUZAN:
 
-SE RECALCULA DESDE «BASE DATOS», no se copian las cifras de SHGN PROP / ALQ.
-Las dos hojas de reporte son dinamicas sobre esa base; el script lee de ELLAS
-MISMAS las reglas (los filtros de cada dinamica) y las aplica a la base, asi
-que si Maria cambia un filtro la torre lo sigue sin tocar el codigo:
+  la base      la hoja «BASE DATOS dd.mm» se recalcula con las reglas que el
+               script lee de las propias dinamicas de las hojas de reporte (los
+               filtros de cada una): una fila entra al resultado operativo si
+               pasa todos los filtros de la dinamica de su TIPO (PROPIO ->
+               <SEDE> PROP, ALQUILADO -> <SEDE> ALQ). Lo que no pasa no se
+               tira: viaja en su propio alcance (CAPEX, PASAR A VENTA...). De
+               aqui sale todo el detalle: dia, fase, recurso, orden.
+               RYM = MAT + SERV.  MOV = MO.
+  las hojas    lo que en el Excel es formula (depreciacion o alquiler, venta
+               interna, horas, horas de proforma, DM, usaje y todo el
+               acumulado 2026) se toma TAL CUAL de la fila de cada equipo en
+               la dinamica de <SEDE> PROP / ALQ. Cada proyecto tiene sus
+               propias formulas (Tarma no cuenta servicios en propios,
+               Atocongo filtra el centro...), y lo que la pagina ensena tiene
+               que ser lo mismo que el Excel.
 
-  corte        el ultimo dia visible del filtro «Fecha de Tran».
-  alcance      una fila entra al resultado operativo si pasa todos los filtros
-               de la dinamica de su TIPO (PROPIO -> SHGN PROP, ALQUILADO ->
-               SHGN ALQ). Lo que no pasa no se tira: viaja en su propio
-               alcance (CAPEX, PASAR A VENTA, PARTE DE LA TARIFA...) y se
-               puede elegir en la pagina.
-  RYM          MAT + SERV.   MOV = MO.
-  horas        HM real del bloque HOROMETRO REAL de BASE VARIOS; el reparto
-               por dia sale del cache de esa dinamica.
-  depreciacion tarifa de depreciacion de la proforma x horas reales; los
-               equipos que la formula de la columna Dep nombra van
-               prorrateados por dias (importe del mes / dias del mes x corte).
-  alquiler     como el Excel: tarifa DEP/ALQ del bloque TARIFAS VENTA x horas
-               reales, con los equipos que nombra la formula de la columna Alq
-               prorrateados por dias. Es la tarifa de VENTA, no un costo real:
-               la pagina lo muestra marcado asi y no lo suma al costo.
-  venta        tarifa de venta del equipo x horas reales.
-  acumulado    lo que el bloque ACUMULADO 2026 de BASE VARIOS trae del libro
-               mayor (los periodos que tenga) MAS el mes en curso, igual para
-               todos los equipos. Aqui el Excel no es parejo y por eso no se
-               copia: en SHGN PROP unas filas suman el mes y otras no, la
-               venta acumulada cuenta el mes dos veces, y en SHGN ALQ el
-               alquiler busca el equipo de nueve filas mas abajo. La
-               diferencia queda en validacion.json.
+El cruce: RyM y MOV recalculados desde la base tienen que dar, equipo por
+equipo, lo mismo que la hoja. Si no cuadran al centavo, el script se detiene.
+
+Las horas por dia salen del cache de la dinamica del parte de horas (export
+de SAP); se escalan para que cada equipo sume lo que dice su hoja. La
+depreciacion de cada dia es la de la hoja repartida por esas horas.
 
 Las columnas se buscan POR NOMBRE DE ENCABEZADO. Si falta una, el script se
 detiene: mejor eso que un numero corrido sin aviso.
 
     cd ...\\MARIA\\TORRE_SETIEMBRE
-    python gen_datos.py  [ruta\\al\\libro.xlsx]
+    python gen_datos.py  [libro.xlsx ...]
 """
 import calendar, collections, datetime, glob, io, json, os, posixpath, re, shutil, sys, tempfile, zipfile
 import urllib.parse
@@ -61,14 +62,21 @@ except ImportError:
 AQUI = os.path.dirname(os.path.abspath(__file__))
 CONSOLIDADO = os.path.join(os.path.dirname(AQUI), "CONSOLIDADO")
 
-# si la formula de la columna Dep / Alq no se puede leer, se usan estos
-DEP_POR_DIAS_DEF = ("EP-40", "EP-41")
-ALQ_POR_DIAS_DEF = ()
+# los proyectos, en el orden en que salen en la pagina
+SEDES = [("SHGN", "SHOUGANG"), ("ATOC", "ATOCONGO"), ("TRMA", "TARMA"), ("TEMB", "TEMBLADERA")]
+NOM_SEDE = dict(SEDES)
+PAT_LIBRO = re.compile(r"^\d*\s*([A-Za-z]{3,5})_RO EQUIPOS.*\.xlsx$")
+# las conformidades de Z SERV de cada proyecto se reconocen por el final del CECO
+CECO_SEDE = {"SHGN": "SHEP"}
 
 RO = "RESULTADO OPERATIVO"
 RM_PROPIA = "REPARACIÓN MAYOR PROPIA"
 FUERA = "FUERA DEL REPORTE"
-ORDEN_ALC = [RO, "CAPEX", "PROCESO CAPEX", "PASAR A VENTA", "PARTE DE LA TARIFA", RM_PROPIA]
+OTRO_CENTRO = "OTRO CENTRO"
+ORDEN_ALC = [RO, "CAPEX", "PROCESO CAPEX", "PASAR A VENTA", "PARTE DE LA TARIFA", "DESM. UNOP",
+             RM_PROPIA, OTRO_CENTRO, FUERA]
+# la misma marca de CONSIDERAR escrita distinto en cada libro
+ALC_IGUAL = {"EN PROCESO DE CAPEX": "PROCESO CAPEX", "PROCESO DE CAPEX": "PROCESO CAPEX", "VENTA": "PASAR A VENTA"}
 ROS = ["MATERIALES", "SERVICIOS", "MANO DE OBRA", "DEPRECIACIÓN"]
 DE_RECURSO = {"MAT": "MATERIALES", "SERV": "SERVICIOS", "MO": "MANO DE OBRA"}
 FASES = {"LU": "LUBRICACIÓN", "MM": "MANTENIMIENTO MECÁNICO", "LL": "LLANTAS",
@@ -79,7 +87,8 @@ SIN_CLASE = "(SIN CLASE DE ORDEN)"
 TITULOS_VARIOS = ("HOROMETRO REAL", "TARIFAS VENTA", "PROFORMA", "DM-USAJE", "OT PARA EL CAPEX", "ACUMULADO 2026")
 VACIO = "(vacío)"
 # campos del parte de horas, segun la version del libro: (equipo, fecha, horas)
-CAMPOS_HORAS = (("Número de equipo", "Fecha de notificación", "HM"), ("Codigo", "FECHA", "HORAS OPERATIVAS"))
+CAMPOS_HORAS = (("Equipo", "Fe.prest.actividad", "Cantidad"), ("Número de equipo", "Fecha de notificación", "HM"),
+                ("Codigo", "FECHA", "HORAS OPERATIVAS"))
 
 NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 NR = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
@@ -93,8 +102,16 @@ def num(x):
     return float(x) if isinstance(x, (int, float)) and not isinstance(x, bool) else 0.0
 
 
+def num_o_nada(x):
+    return float(x) if isinstance(x, (int, float)) and not isinstance(x, bool) else None
+
+
 def txt(x):
     return "" if x is None else str(x).strip()
+
+
+def norm(x):
+    return re.sub(r"\s+", " ", txt(x)).upper()
 
 
 def clave(x):
@@ -116,13 +133,30 @@ def familia_flota(desc):
     return "AUXILIARES"
 
 
-def elegir_libro():
+def sede_de(ruta):
+    m = PAT_LIBRO.match(os.path.basename(ruta))
+    if not m: falla("no se de que proyecto es «%s» (se espera «… XXXX_RO EQUIPOS….xlsx»)" % os.path.basename(ruta))
+    return m.group(1).upper()
+
+
+def elegir_libros():
+    """[(sede, ruta)]: los pasados como argumento, o el mas reciente de cada proyecto."""
     if len(sys.argv) > 1:
-        return os.path.abspath(sys.argv[1])
-    xs = [p for p in glob.glob(os.path.join(CONSOLIDADO, "0 SHGN_RO EQUIPOS*.xlsx"))
-          if not os.path.basename(p).startswith("~$")]
-    if not xs: falla("no hay ningun «0 SHGN_RO EQUIPOS*.xlsx» en " + CONSOLIDADO)
-    return max(xs, key=os.path.getmtime)
+        libros = [(sede_de(p), os.path.abspath(p)) for p in sys.argv[1:]]
+    else:
+        por = {}
+        for p in glob.glob(os.path.join(CONSOLIDADO, "*.xlsx")):
+            b = os.path.basename(p)
+            if b.startswith("~$") or not PAT_LIBRO.match(b): continue
+            s = sede_de(p)
+            if s not in por or os.path.getmtime(p) > os.path.getmtime(por[s]): por[s] = p
+        libros = list(por.items())
+    if not libros: falla("no hay ningun «… XXXX_RO EQUIPOS….xlsx» en " + CONSOLIDADO)
+    orden = [s for s, _ in SEDES]
+    libros.sort(key=lambda x: (orden.index(x[0]) if x[0] in orden else len(orden), x[0]))
+    vistos = [s for s, _ in libros]
+    if len(set(vistos)) != len(vistos): falla("hay dos libros del mismo proyecto: %s" % libros)
+    return libros
 
 
 # ── lectura de celdas ─────────────────────────────────────────────────
@@ -150,7 +184,7 @@ def bloque(filas, titulo, pedidas, fila_tit=0, fila_enc=7):
     Una columna pedida puede ser una lista de nombres posibles: vale el primero
     que este, y el dict la guarda con el primer nombre de la lista."""
     # solo los titulos conocidos parten la hoja: en la fila 1 hay tambien
-    # celdas sueltas (EP-40 en T1) que no son el comienzo de ningun bloque
+    # celdas sueltas (EP-40 en T1, MO en D1) que no son el comienzo de ningun bloque
     tit = [(i, txt(c)) for i, c in enumerate(filas[fila_tit]) if txt(c) in TITULOS_VARIOS]
     ini = [i for i, t in tit if t == titulo]
     if not ini:
@@ -275,15 +309,18 @@ def equipos_en_formula(z, hoja, letra):
     return tuple(cods)
 
 
-def horas_por_dia(z):
-    """Horas por equipo y dia. BASE VARIOS solo ensena el total por equipo,
-    pero la dinamica guarda en su cache el parte completo."""
+def partes_de_horas(z):
+    """Las horas por equipo y dia de cada cache que tenga el parte de horas:
+    [(horas, fuente)]. BASE VARIOS solo ensena el total por equipo, pero la
+    dinamica guarda en su cache el parte completo. Puede haber mas de uno."""
+    out_all = []
     for d in sorted(n for n in z.namelist() if n.startswith("xl/pivotCache/pivotCacheDefinition")):
         c = cache(z, d)
         for trio in CAMPOS_HORAS:
             if all(x in c["campos"] for x in trio): break
         else:
             continue
+        if not c["registros"]: continue
         ic, ifc, ih = (c["campos"].index(x) for x in trio)
         out = collections.defaultdict(collections.Counter)
         for _, r in ET.iterparse(z.open(c["registros"][0])):
@@ -299,54 +336,127 @@ def horas_por_dia(z):
             try: h = float(h)
             except ValueError: continue
             out[cod.strip()][f[:10]] += h
-        return out, c["externo"] or c["hoja"] or "cache de la dinamica"
-    falla("no encuentro en el libro el cache del parte de horas (campos %s)." % " o ".join("/".join(t) for t in CAMPOS_HORAS))
+        out_all.append((out, c["externo"] or c["hoja"] or "cache de la dinamica"))
+    return out_all
 
 
-# ── principal ─────────────────────────────────────────────────────────
-def main():
-    LIBRO = elegir_libro()
-    if not os.path.exists(LIBRO):
-        falla("no existe " + LIBRO)
+# ── la hoja de reporte: columnas por encabezado y la fila de cada equipo ──
+def columnas_reporte(filas, hoja):
+    """Las columnas de <SEDE> PROP / ALQ por su encabezado de dos filas: el
+    grupo (fila 4: «Costo Real al 30», «Acumulado 2026»...) y el rotulo
+    (fila 5: RYM, MOV, Dep...). El primer «Acumulado 2026» es el costo y el
+    segundo la venta."""
+    g4, g5 = filas[3], filas[4]
+    grupo, nac, cols = "", 0, {}
+    for j in range(max(len(g4), len(g5))):
+        a = norm(g4[j]) if j < len(g4) else ""
+        b = norm(g5[j]) if j < len(g5) else ""
+        if a:
+            grupo = a
+            if grupo.startswith("ACUMULADO 2026"):
+                nac += 1
+                grupo = "ACUM%d" % nac
+        cols.setdefault((grupo, b), j)
+    def col(grupos, rotulos, oblig=True):
+        for (g, b), j in sorted(cols.items(), key=lambda x: x[1]):
+            if any(g.startswith(x) for x in grupos) and b in rotulos: return j
+        if oblig: falla("en «%s» no encuentro la columna %s / %s" % (hoja, grupos, rotulos))
+        return None
+    TER = ("DEP", "ALQ")
+    m = {
+        "c": [col(["COSTO REAL"], ("RYM",)), col(["COSTO REAL"], ("MOV",)), col(["COSTO REAL"], TER),
+              col(["COSTO REAL"], ("TOTAL",))],
+        "seg": col(["COSTO REAL"], ("SEG",)),
+        "prof": col(["COSTO PROF", "COSTO PLAN"], ("",), False),
+        "dm": col(["%DM"], ("",)), "use": col(["UTILIZ", "%UTILIZ", "%USE", "USAJE"], ("",)),
+        "hr": col(["HRAS REAL", "HORAS REAL", "HM REAL"], ("",)),
+        "hrProf": col(["HRAS PROF", "HORAS PLAN", "HM PLAN", "HORAS PROF"], ("",)),
+        "v": [col(["VENTA INTERNA"], ("RYM",)), col(["VENTA INTERNA"], ("MOV",)), col(["VENTA INTERNA"], TER),
+              col(["VENTA INTERNA"], ("TOTAL",))],
+        "t": [col(["TARIFA "], ("RYM",), False), col(["TARIFA "], ("MOV",), False), col(["TARIFA "], TER, False),
+              col(["TARIFA "], ("VENTA",), False)],
+        "Ac": [col(["ACUM1"], ("RYM",)), col(["ACUM1"], ("MOV",)), col(["ACUM1"], TER), col(["ACUM1"], ("SEG",)),
+               col(["ACUM1"], ("COSTO",))],
+        "Ah": col(["ACUM1"], ("HORAS",)),
+        "Av": [col(["ACUM2"], ("RYM",)), col(["ACUM2"], ("MOV",)), col(["ACUM2"], TER), col(["ACUM2"], ("VENTA",))],
+    }
+    return m
+
+
+def fila_reporte(r, m):
+    g = lambda j: num(r[j]) if j is not None and j < len(r) else 0.0
+    go = lambda j: num_o_nada(r[j]) if j is not None and j < len(r) else None
+    return {"c": [g(j) for j in m["c"]], "seg": g(m["seg"]), "prof": g(m["prof"]),
+            "dm": go(m["dm"]), "use": go(m["use"]), "hr": g(m["hr"]), "hrProf": g(m["hrProf"]),
+            "v": [g(j) for j in m["v"]], "t": [g(j) for j in m["t"]],
+            "Ac": [g(j) for j in m["Ac"]], "Ah": g(m["Ah"]), "Av": [g(j) for j in m["Av"]]}
+
+
+def leer_reporte(filas, hoja):
+    """La fila Total y la fila de cada equipo de la dinamica de una hoja de
+    reporte. Arriba van los modelos (formulas sobre la dinamica), despues la
+    fila Total y debajo la dinamica con un equipo por fila (columna D)."""
+    m = columnas_reporte(filas, hoja)
+    tot = [i for i, r in enumerate(filas) if len(r) > 3 and txt(r[1]) == "Total"]
+    if not tot: falla("no encuentro la fila Total en «%s»" % hoja)
+    enc = [i for i, r in enumerate(filas) if len(r) > 3 and txt(r[1]) == "DESCRIPCION EQP" and i > tot[0]]
+    if not enc: falla("no encuentro el encabezado de la dinamica (DESCRIPCION EQP) en «%s»" % hoja)
+    eqs, orden, vacias = {}, [], 0
+    for r in filas[enc[0] + 1:]:
+        cod = txt(r[3]) if len(r) > 3 else ""
+        if txt(r[1]).startswith("Total general") or cod.startswith("Total general"): break
+        if not cod or not isinstance(r[3], str):
+            vacias += 1
+            if orden and vacias > 8: break
+            continue
+        vacias = 0
+        if cod in eqs: falla("el equipo %s esta dos veces en la dinamica de «%s»" % (cod, hoja))
+        x = fila_reporte(r, m)
+        x["fam"], x["mod"] = txt(r[1]), txt(r[2])
+        eqs[cod] = x
+        orden.append(cod)
+    total = fila_reporte(filas[tot[0]], m)
+    total["nEq"] = num(filas[tot[0]][3])
+    return {"eq": eqs, "orden": orden, "total": total, "filaTotal": tot[0] + 1, "filaDin": enc[0] + 1}
+
+
+def corte_del_encabezado(filas):
+    """«Costo Real al 30»: el dia de corte que dice la hoja."""
+    for c in filas[3]:
+        m = re.match(r"COSTO REAL AL (\d{1,2})\b", norm(c))
+        if m: return int(m.group(1))
+    return None
+
+
+# ── un proyecto ───────────────────────────────────────────────────────
+def leer_proyecto(sede, LIBRO):
+    if not os.path.exists(LIBRO): falla("no existe " + LIBRO)
+    H_PROP, H_ALQ = sede + " PROP", sede + " ALQ"
     nombre_libro = os.path.splitext(os.path.basename(LIBRO))[0]
     # se trabaja sobre una copia: copiar funciona aunque el libro este abierto
     tmp = os.path.join(tempfile.mkdtemp(prefix="torre_set_"), "consolidado.xlsx")
     shutil.copy2(LIBRO, tmp)
-    print("leyendo", os.path.basename(LIBRO), "...")
+    print("\n== %s · leyendo %s ..." % (sede, os.path.basename(LIBRO)))
     z = zipfile.ZipFile(tmp)
 
     # ── las reglas, de las dinamicas de las hojas de reporte ───────────
     REGLAS, fuentes = {}, {}
-    for tipo, hoja in (("PROPIO", "SHGN PROP"), ("ALQUILADO", "SHGN ALQ")):
+    for tipo, hoja in (("PROPIO", H_PROP), ("ALQUILADO", H_ALQ)):
         REGLAS[tipo], fuentes[tipo] = reglas_dinamica(z, hoja)
-    fechas = {}
-    for tipo, r in REGLAS.items():
-        ft = r.get("Fecha de Tran")
-        if not ft: falla("la dinamica de %s no filtra «Fecha de Tran»: no se puede saber el corte" % tipo)
-        fechas[tipo] = sorted(v for v in ft["ver"] if v != VACIO)
-    if fechas["PROPIO"][-1] != fechas["ALQUILADO"][-1]:
-        falla("las dos dinamicas tienen distinto corte: %s y %s" % (fechas["PROPIO"][-1], fechas["ALQUILADO"][-1]))
-    ult = datetime.datetime.strptime(fechas["PROPIO"][-1][:10], "%Y-%m-%d")
-    ANIO, MES, CORTE = ult.year, ult.month, ult.day
-    DIAS_MES = calendar.monthrange(ANIO, MES)[1]
-    dias = ["%04d-%02d-%02d" % (ANIO, MES, d) for d in range(1, CORTE + 1)]
-    for tipo in REGLAS:
-        faltan = [d for d in dias if d + "T00:00:00" not in REGLAS[tipo]["Fecha de Tran"]["ver"]]
-        if faltan: print("OJO: la dinamica de %s deja fuera dias antes del corte: %s" % (tipo, faltan))
-    DEP_POR_DIAS = equipos_en_formula(z, "SHGN PROP", "N") or DEP_POR_DIAS_DEF
-    ALQ_POR_DIAS = equipos_en_formula(z, "SHGN ALQ", "N") or ALQ_POR_DIAS_DEF
-    diario, fuente_horas = horas_por_dia(z)
+    DEP_POR_DIAS = equipos_en_formula(z, H_PROP, "N")
+    ALQ_POR_DIAS = equipos_en_formula(z, H_ALQ, "N")
+    partes = partes_de_horas(z)
     z.close()
 
     wb = openpyxl.load_workbook(tmp, read_only=True, data_only=True)
     hoja_base = [n for n in wb.sheetnames if n.upper().startswith("BASE DATOS")]
     if len(hoja_base) != 1:
-        falla("esperaba una sola hoja «BASE DATOS dd.mm»; hay %s" % hoja_base)
+        falla("%s: esperaba una sola hoja «BASE DATOS dd.mm»; hay %s" % (sede, hoja_base))
     for tipo, h in fuentes.items():
         if h and h != hoja_base[0]:
             print("OJO: la dinamica de %s apunta a «%s», no a «%s»" % (tipo, h, hoja_base[0]))
-    for n in ("BASE OTS", "BASE VARIOS", "BASE MASTER", "SHGN PROP", "SHGN ALQ"):
-        if n not in wb.sheetnames: falla("falta la hoja «%s»" % n)
+    for n in ("BASE OTS", "BASE VARIOS", H_PROP, H_ALQ):
+        if n not in wb.sheetnames: falla("%s: falta la hoja «%s»" % (sede, n))
 
     C_COD = "Código Recurso/Usuario Conformidad/Categoria"
     C_OS = "Id Personal/OS/Articulo"
@@ -358,40 +468,55 @@ def main():
     ots_sap = {f["Orden"]: f for f in tabla(filas_de(wb["BASE OTS"]), 0,
                ["Orden", "Conjunto", "Denom.conjunto", "Clase de orden", "Texto breve"], "BASE OTS") if f["Orden"]}
     fv = filas_de(wb["BASE VARIOS"])
-    hb = bloque(fv, "HOROMETRO REAL", [["Número de equipo", "Codigo"], ["Suma de HM", "Suma de HORAS OPERATIVAS"]])
+    hb = bloque(fv, "HOROMETRO REAL", [["Número de equipo", "Equipo", "Codigo"],
+                                       ["Suma de HM", "Suma de Cantidad", "Suma de HORAS OPERATIVAS"]])
     horom = {e: num(f["Suma de HM"]) for e, f in primero(hb, "Número de equipo").items() if e != "Total general"}
-    tarifa = {e: (num(f["RyM"]), num(f["MOV"]), num(f["DEP/ALQ"]))
-              for e, f in primero(bloque(fv, "TARIFAS VENTA", ["EQP", "RyM", "MOV", "DEP/ALQ"]), "EQP").items()}
-    prof = primero(bloque(fv, "PROFORMA", ["Equipo", "HM", "Tarifa Dep", "Tarif Alq"]), "Equipo")
-    dmuse = primero(bloque(fv, "DM-USAJE", ["EQP", "DM", "USAJE"]), "EQP")
-    libro_ac = collections.defaultdict(collections.Counter)
     periodos = set()
-    for f in bloque(fv, "ACUMULADO 2026", ["Asignación", "Período", "HM", "RYM", "FIJO", "DEP", "ALQ", "SEG/OTR"]):
-        e = txt(f["Asignación"])
-        if not e or txt(f["Período"]) == "": continue
-        try: periodos.add(int(float(txt(f["Período"]))))
-        except ValueError: continue
-        for k in ("HM", "RYM", "FIJO", "DEP", "ALQ", "SEG/OTR"): libro_ac[e][k] += num(f[k])
-    fp, fa = filas_de(wb["SHGN PROP"]), filas_de(wb["SHGN ALQ"])
+    try:
+        for f in bloque(fv, "ACUMULADO 2026", ["Asignación", "Período"]):
+            if not txt(f["Asignación"]) or txt(f["Período"]) == "": continue
+            try: periodos.add(int(float(txt(f["Período"]))))
+            except ValueError: pass
+    except SystemExit:
+        print("OJO: %s no tiene el bloque ACUMULADO 2026 en BASE VARIOS" % sede)
+    fp, fa = filas_de(wb[H_PROP]), filas_de(wb[H_ALQ])
     # servicios conformados en Z SERV que no llegaron a la base (informativo)
     zserv = None
-    if "Z SERV" in wb.sheetnames:
+    if "Z SERV" in wb.sheetnames and sede in CECO_SEDE:
         zf = filas_de(wb["Z SERV"])
         enc = [txt(c) for c in zf[0]]
         need = ("CECO", "COSTO", "Codigo de la orden de Trabajo", "Id de la Orden de Servicio")
         if all(n in enc for n in need):
             ots_os = {(clave(f["OT"]), clave(f[C_OS])) for f in base if txt(f["RECURSO"]) == "SERV"}
             falt = [f for f in tabla(zf, 0, list(need), "Z SERV")
-                    if txt(f["CECO"]).endswith("SHEP") and num(f["COSTO"])
+                    if txt(f["CECO"]).endswith(CECO_SEDE[sede]) and num(f["COSTO"])
                     and (clave(f["Codigo de la orden de Trabajo"]), clave(f["Id de la Orden de Servicio"])) not in ots_os]
             zserv = {"n": len(falt), "v": round(sum(num(f["COSTO"]) for f in falt), 2)}
     wb.close()
     shutil.rmtree(os.path.dirname(tmp), ignore_errors=True)
 
-    idia = {d: i for i, d in enumerate(dias)}
-    ND = len(dias)
+    rep = {"PROPIO": leer_reporte(fp, H_PROP), "ALQUILADO": leer_reporte(fa, H_ALQ)}
+
+    # ── el corte: el filtro de fecha de la dinamica, o lo que dice la hoja ──
     fechas_base = [f["Fecha de Tran"] for f in base if isinstance(f["Fecha de Tran"], datetime.datetime)]
-    fecha_max = max(fechas_base).strftime("%Y-%m-%d") if fechas_base else None
+    if not fechas_base: falla("%s: la base no trae ninguna fecha" % sede)
+    fecha_max = max(fechas_base)
+    con_fecha = {t: sorted(v for v in r["Fecha de Tran"]["ver"] if v != VACIO)
+                 for t, r in REGLAS.items() if r.get("Fecha de Tran")}
+    if con_fecha:
+        ult = max(v[-1] for v in con_fecha.values())
+        ult = datetime.datetime.strptime(ult[:10], "%Y-%m-%d")
+        if len({v[-1] for v in con_fecha.values()}) > 1:
+            print("OJO: las dos dinamicas de %s tienen distinto corte: %s" % (sede, {t: v[-1] for t, v in con_fecha.items()}))
+        ANIO, MES, CORTE = ult.year, ult.month, ult.day
+        corte_de = "filtro «Fecha de Tran» de la dinámica"
+    else:
+        ANIO, MES = fecha_max.year, fecha_max.month
+        CORTE = corte_del_encabezado(fp) or fecha_max.day
+        corte_de = "encabezado «Costo Real al %d» de %s" % (CORTE, H_PROP)
+    DIAS_MES = calendar.monthrange(ANIO, MES)[1]
+    dias = ["%04d-%02d-%02d" % (ANIO, MES, d) for d in range(1, CORTE + 1)]
+    idia = {d: i for i, d in enumerate(dias)}
 
     def alcance(f):
         """RO si la fila pasa todos los filtros de la dinamica de su TIPO."""
@@ -399,33 +524,38 @@ def main():
         if r is None: return "(SIN TIPO)"
         falla_en = [c for c, x in r.items() if c not in ("Fecha de Tran", "TIPO") and clave(f[c]) not in x["ver"]]
         if not falla_en: return RO
-        if "CONSIDERAR" in falla_en: return txt(f["CONSIDERAR"]).upper() or "(SIN CONSIDERAR)"
+        if "CONSIDERAR" in falla_en:
+            a = txt(f["CONSIDERAR"]).upper() or "(SIN CONSIDERAR)"
+            return ALC_IGUAL.get(a, a)
         if "Fase" in falla_en and txt(f["Fase"]) == "RM": return RM_PROPIA
+        if "CENTRO" in falla_en: return OTRO_CENTRO
         return FUERA
     def en_fecha(f):
-        return clave(f["Fecha de Tran"]) in REGLAS.get(txt(f["TIPO"]), REGLAS["PROPIO"])["Fecha de Tran"]["ver"]
+        r = REGLAS.get(txt(f["TIPO"]), REGLAS["PROPIO"])
+        if r.get("Fecha de Tran"): return clave(f["Fecha de Tran"]) in r["Fecha de Tran"]["ver"]
+        x = f["Fecha de Tran"]
+        return x.year == ANIO and x.month == MES and x.day <= CORTE
 
     # ── equipos: todos los de la base, tengan gasto o no ───────────────
-    equipos, ieq = [], {}
+    equipos = collections.OrderedDict()
     for f in base:
         e = txt(f["Equipo"])
-        if e in ieq: continue
+        if e in equipos: continue
         desc = txt(f["DESCRIPCION EQP"])
-        ieq[e] = len(equipos)
-        equipos.append({"id": e, "fam": familia_flota(desc), "tipo": txt(f["TIPO"]), "mod": txt(f["MODELO"]),
-                        "marca": txt(f["MARCA"]), "prov": txt(f["PROVEEDOR"]), "clasif": desc,
-                        "proys": [], "sys": [], "ots": []})
+        equipos[e] = {"id": e, "sede": sede, "fam": familia_flota(desc), "tipo": txt(f["TIPO"]),
+                      "mod": txt(f["MODELO"]), "marca": txt(f["MARCA"]), "prov": txt(f["PROVEEDOR"]),
+                      "clasif": desc}
+    for tipo, R in rep.items():
+        for e in R["orden"]:
+            if e not in equipos:
+                print("OJO: %s esta en la hoja %s %s pero no en la base" % (e, sede, tipo))
+                x = R["eq"][e]
+                equipos[e] = {"id": e, "sede": sede, "fam": familia_flota(x["fam"]), "tipo": tipo, "mod": x["mod"],
+                              "marca": "", "prov": "", "clasif": x["fam"]}
 
-    # ── hechos ─────────────────────────────────────────────────────────
-    cecos = list(FASES.values()) + [SIN_FASE, NO_MANT]
-    cuentas, gastos = [], ["PM01", "PM02", "PM03", SIN_CLASE, NO_MANT]
-    alcs = [RO]
-    def idx(lista, v):
-        if v not in lista: lista.append(v)
-        return lista.index(v)
-
-    H = collections.defaultdict(float)          # (e,p,r,c,u,g,m) -> US$
-    ot_acc = {}                                  # ot -> acumulado
+    # ── hechos: (equipo, alcance, recurso, fase, categoria, clase, dia) ──
+    H = collections.defaultdict(float)
+    ot_acc = {}
     fuera_corte = collections.Counter()
     sin_fecha = 0.0
     nlin = 0
@@ -438,87 +568,178 @@ def main():
             fuera_corte[txt(f["RECURSO"])] += costo
             continue
         dia = fecha.strftime("%Y-%m-%d")
-        if dia not in idia: falla("la fecha %s entra al reporte pero esta fuera del mes" % dia)
+        if dia not in idia: falla("%s: la fecha %s entra al reporte pero esta fuera del corte" % (sede, dia))
         e, fase = txt(f["Equipo"]), txt(f["Fase"])
         alc = alcance(f)
         rec = txt(f["RECURSO"])
-        if rec not in DE_RECURSO: falla("recurso desconocido en la base: «%s»" % rec)
+        if rec not in DE_RECURSO: falla("%s: recurso desconocido en la base: «%s»" % (sede, rec))
         sap = ots_sap.get(f["OT"], {})
         cat = "SERVICIO DE TERCEROS" if rec == "SERV" else (txt(f[C_COD]) or "(SIN CATEGORÍA)")
         clase = txt(sap.get("Clase de orden")) or SIN_CLASE
-        m = idia[dia]
-        k = (ieq[e], idx(alcs, alc), ROS.index(DE_RECURSO[rec]), idx(cecos, FASES.get(fase, SIN_FASE)),
-             idx(cuentas, cat), idx(gastos, clase), m)
-        H[k] += costo
+        H[(e, alc, ROS.index(DE_RECURSO[rec]), FASES.get(fase, SIN_FASE), cat, clase, dia)] += costo
         nlin += 1
         if f["OT"]:
             o = ot_acc.setdefault(f["OT"], {"eq": e, "alc": alc, "txt": txt(f["Descripcion OT"]),
-                                            "m": [0.0] * ND, "sap": sap, "fase": fase, "rym": 0.0, "mov": 0.0})
-            o["m"][m] += costo
+                                            "m": collections.Counter(), "sap": sap, "fase": fase, "rym": 0.0, "mov": 0.0})
+            o["m"][dia] += costo
             o["mov" if rec == "MO" else "rym"] += costo
 
-    # ── horas por dia, y con ellas la depreciacion de los propios ──────
-    Hh = collections.defaultdict(float)          # (e, m) -> horas
-    hm_eq = {}
-    descuadre_h = []
-    for e, i in ieq.items():
-        tot = horom.get(e, 0.0)
-        hm_eq[e] = tot
-        dd = {d: h for d, h in diario.get(e, {}).items() if d in idia}
+    # ── el cruce: RyM y MOV de la base contra la fila de cada equipo ───
+    rym, mov = collections.Counter(), collections.Counter()
+    for (e, alc, r, *_), v in H.items():
+        if alc != RO: continue
+        if r in (0, 1): rym[e] += v
+        elif r == 2: mov[e] += v
+    descuadre = []
+    for tipo, R in rep.items():
+        for e in R["orden"]:
+            x = R["eq"][e]
+            for k, a, b in (("RyM", rym.get(e, 0.0), x["c"][0]), ("MOV", mov.get(e, 0.0), x["c"][1])):
+                if abs(a - b) >= 0.01: descuadre.append((tipo, e, k, round(b, 2), round(a, 2)))
+        if equipos and True:
+            for e in set(rym) | set(mov):
+                if equipos.get(e, {}).get("tipo") == tipo and e not in R["eq"] and (abs(rym[e]) >= 0.01 or abs(mov[e]) >= 0.01):
+                    descuadre.append((tipo, e, "no esta en la hoja", 0.0, round(rym[e] + mov[e], 2)))
+
+    # ── horas por dia: el parte de SAP, escalado a lo que dice la hoja ──
+    en_hoja = {}
+    for tipo, R in rep.items():
+        for e in R["orden"]: en_hoja[e] = R["eq"][e]
+    meta_h = {e: (en_hoja[e]["hr"] if e in en_hoja else horom.get(e, 0.0)) for e in equipos}
+    def dif_parte(p):
+        return sum(abs(sum(h for d, h in p.get(e, {}).items() if d in idia) - t) for e, t in meta_h.items())
+    parte, fuente_horas = (min(partes, key=lambda x: dif_parte(x[0])) if partes else ({}, "sin parte por día"))
+    Hh = collections.defaultdict(float)
+    sin_parte = []
+    for e, tot in meta_h.items():
+        if not tot: continue
+        dd = {d: h for d, h in parte.get(e, {}).items() if d in idia and h}
         s = sum(dd.values())
-        if abs(s - tot) > 0.05: descuadre_h.append((e, round(tot, 2), round(s, 2)))
-        if tot and not s:
-            dd = {d: tot / ND for d in dias}     # sin parte por dia: se reparte parejo
-        elif s and abs(s - tot) > 0.05:
-            dd = {d: h * tot / s for d, h in dd.items()}
-        for d, h in dd.items():
-            if h: Hh[(i, idia[d])] += h
-    horas_fuera = {e: h for e, h in horom.items() if h and e not in ieq}
+        if not s:
+            dd = {d: 1.0 for d in dias}          # sin parte por dia: se reparte parejo
+            s = float(len(dias))
+            sin_parte.append(e)
+        for d, h in dd.items(): Hh[(e, d)] += h * tot / s
 
-    iu_dep, ig_no, ic_no = idx(cuentas, "DEPRECIACIÓN"), gastos.index(NO_MANT), cecos.index(NO_MANT)
-    dep_eq, alq_eq = {}, {}
-    for e, i in ieq.items():
-        if equipos[i]["tipo"] == "PROPIO":
-            p = prof.get(e)
-            t = num(p["Tarifa Dep"]) if p else 0.0
-            if e in DEP_POR_DIAS:
-                dep_eq[e] = t / DIAS_MES * CORTE
-                for m in range(ND): H[(i, 0, 3, ic_no, iu_dep, ig_no, m)] += t / DIAS_MES
-            else:
-                dep_eq[e] = t * hm_eq[e]
-                for m in range(ND):
-                    h = Hh.get((i, m), 0.0)
-                    if h and t: H[(i, 0, 3, ic_no, iu_dep, ig_no, m)] += t * h
-        else:
-            # como el Excel: la tarifa DEP/ALQ de TARIFAS VENTA (es de venta)
-            t = tarifa.get(e, (0.0, 0.0, 0.0))[2]
-            alq_eq[e] = t / DIAS_MES * CORTE if e in ALQ_POR_DIAS else t * hm_eq[e]
+    # ── depreciacion por dia: la de la hoja, repartida por las horas ───
+    for e, x in rep["PROPIO"]["eq"].items():
+        dep = x["c"][2]
+        if not dep: continue
+        hd = {d: Hh.get((e, d), 0.0) for d in dias}
+        s = sum(hd.values())
+        if e in DEP_POR_DIAS or not s:
+            hd, s = {d: 1.0 for d in dias}, float(len(dias))
+        for d, h in hd.items():
+            if h: H[(e, RO, 3, NO_MANT, "DEPRECIACIÓN", NO_MANT, d)] += dep * h / s
 
-    # un alcance sin ningun importe no se ofrece como opcion en la pagina
-    # (el resultado operativo es el indice 0 y siempre queda); el resto en
-    # un orden fijo
-    con = {k[1] for k, v in H.items() if abs(v) >= 0.005} | {0}
+    # ── la fila de cada equipo, como la hoja ──────────────────────────
+    filas = {}
+    for tipo, R in rep.items():
+        for e in R["orden"]:
+            x = R["eq"][e]
+            q = equipos[e]
+            filas[e] = {"id": e, "sede": sede, "tipo": tipo, "fam": q["clasif"] or x["fam"], "mod": q["mod"] or x["mod"],
+                        "prov": q["prov"], "c": x["c"], "v": x["v"], "seg": x["seg"], "hr": x["hr"],
+                        "hrProf": x["hrProf"], "dm": x["dm"], "use": x["use"], "t": x["t"],
+                        "A": {"c": x["Ac"], "h": x["Ah"], "v": x["Av"]},
+                        "conTarifa": any(x["t"]) or any(x["v"]),
+                        "porDias": e in (DEP_POR_DIAS if tipo == "PROPIO" else ALQ_POR_DIAS)}
+
+    # ── cuadres de la hoja consigo misma: el Total contra sus equipos ──
+    def suma_eq(R):
+        xs = [R["eq"][e] for e in R["orden"]]
+        s = lambda f: sum(f(x) for x in xs)
+        return {"rym": s(lambda x: x["c"][0]), "mov": s(lambda x: x["c"][1]), "terc": s(lambda x: x["c"][2]),
+                "seg": s(lambda x: x["seg"]), "hr": s(lambda x: x["hr"]), "nEq": len(xs),
+                "venta": s(lambda x: x["v"][3]), "hrProf": s(lambda x: x["hrProf"])}
+    def total_hoja(R):
+        t = R["total"]
+        return {"rym": t["c"][0], "mov": t["c"][1], "terc": t["c"][2], "seg": t["seg"], "hr": t["hr"],
+                "nEq": t["nEq"], "venta": t["v"][3], "hrProf": t["hrProf"]}
+    def recalc(tipo):
+        es = rep[tipo]["orden"]
+        return {"rym": sum(rym.get(e, 0.0) for e in es), "mov": sum(mov.get(e, 0.0) for e in es)}
+    r2 = lambda d: {k: round(v, 2) for k, v in d.items()}
+    val = {"sede": sede, "libro": os.path.basename(LIBRO), "hoja": hoja_base[0], "corte": CORTE,
+           "corteDe": corte_de, "diasMes": DIAS_MES, "mes": MES, "anio": ANIO,
+           "fechaMaxBase": fecha_max.strftime("%Y-%m-%d"),
+           "hojas": {"PROPIO": H_PROP, "ALQUILADO": H_ALQ},
+           "reglas": {t: {c: x["ver"] for c, x in r.items() if c != "Fecha de Tran"} for t, r in REGLAS.items()},
+           "reglasFuera": {t: {c: x["ocultos"] for c, x in r.items() if c != "Fecha de Tran"} for t, r in REGLAS.items()},
+           "fuenteHoras": fuente_horas, "alqPorDias": list(ALQ_POR_DIAS), "depPorDias": list(DEP_POR_DIAS),
+           "propio": {"hoja": r2(total_hoja(rep["PROPIO"])), "equipos": r2(suma_eq(rep["PROPIO"])), "calc": r2(recalc("PROPIO"))},
+           "alquilado": {"hoja": r2(total_hoja(rep["ALQUILADO"])), "equipos": r2(suma_eq(rep["ALQUILADO"])), "calc": r2(recalc("ALQUILADO"))},
+           "acumPeriodos": sorted(periodos), "fueraCorte": r2(fuera_corte), "sinFecha": round(sin_fecha, 2),
+           "sinTarifa": sum(1 for x in filas.values() if not x["conTarifa"]),
+           "sinHoras": sum(1 for x in filas.values() if not x["hr"]),
+           "sinDM": sum(1 for x in filas.values() if x["dm"] is None),
+           "sinParte": len(sin_parte), "serviciosFueraBase": zserv, "descuadre": descuadre[:40]}
+
+    return {"sede": sede, "libro": nombre_libro, "hojaBase": hoja_base[0], "dias": dias, "anio": ANIO, "mes": MES,
+            "corte": CORTE, "diasMes": DIAS_MES, "equipos": equipos, "H": H, "Hh": Hh, "ots": ot_acc,
+            "filas": filas, "rep": rep, "val": val, "nlin": nlin, "periodos": periodos, "descuadre": descuadre}
+
+
+# ── principal ─────────────────────────────────────────────────────────
+def main():
+    libros = elegir_libros()
+    P = [leer_proyecto(s, l) for s, l in libros]
+    sedes = [p["sede"] for p in P]
+
+    # ── un solo calendario: el mes de todos, hasta el corte mas tardio ──
+    meses = {(p["anio"], p["mes"]) for p in P}
+    if len(meses) > 1: falla("los libros son de meses distintos: %s" % {p["sede"]: (p["anio"], p["mes"]) for p in P})
+    ANIO, MES = meses.pop()
+    CORTE = max(p["corte"] for p in P)
+    DIAS_MES = P[0]["diasMes"]
+    dias = ["%04d-%02d-%02d" % (ANIO, MES, d) for d in range(1, CORTE + 1)]
+    idia = {d: i for i, d in enumerate(dias)}
+    ND = len(dias)
+
+    # ── vocabularios y equipos de todos los proyectos ─────────────────
+    equipos, ieq = [], {}
+    for p in P:
+        for e, q in p["equipos"].items():
+            if e in ieq: falla("el equipo %s esta en dos proyectos (%s y %s)" % (e, equipos[ieq[e]]["sede"], p["sede"]))
+            ieq[e] = len(equipos)
+            equipos.append(dict(q, proys=[], sys=[], ots=[]))
+    cecos = list(FASES.values()) + [SIN_FASE, NO_MANT]
+    cuentas, gastos = [], ["PM01", "PM02", "PM03", SIN_CLASE, NO_MANT]
+    def idx(lista, v):
+        if v not in lista: lista.append(v)
+        return lista.index(v)
+    # el resultado operativo primero; un alcance sin importe no se ofrece
+    con = collections.Counter()
+    for p in P:
+        for k, v in p["H"].items():
+            if abs(v) >= 0.005: con[k[1]] += 1
     rango = lambda a: ORDEN_ALC.index(a) if a in ORDEN_ALC else len(ORDEN_ALC)
-    usados = sorted(con, key=lambda i: (rango(alcs[i]), alcs[i]))
-    alcances = [alcs[i] for i in usados]
-    H = {(e, usados.index(p), r, c, u, g, m): v for (e, p, r, c, u, g, m), v in H.items() if p in usados}
+    alcances = sorted(set(con) | {RO}, key=lambda a: (rango(a), a))
 
-    # ── a arreglos paralelos ───────────────────────────────────────────
+    H = collections.defaultdict(float)
+    for p in P:
+        for (e, alc, r, ceco, cat, clase, d), v in p["H"].items():
+            H[(ieq[e], alcances.index(alc), r, idx(cecos, ceco), idx(cuentas, cat), idx(gastos, clase), idia[d])] += v
     F = {k: [] for k in "eprcugmv"}
-    for (e, p, r, c, u, g, m), v in sorted(H.items()):
+    for (e, pp, r, c, u, g, m), v in sorted(H.items()):
         if abs(v) < 0.005: continue
-        for k, x in zip("eprcugm", (e, p, r, c, u, g, m)): F[k].append(x)
+        for k, x in zip("eprcugm", (e, pp, r, c, u, g, m)): F[k].append(x)
         F["v"].append(round(v, 2))
+    Hh = collections.defaultdict(float)
+    for p in P:
+        for (e, d), h in p["Hh"].items(): Hh[(ieq[e], idia[d])] += h
     HM = {k: [] for k in "epmv"}
     for (e, m), v in sorted(Hh.items()):
+        if abs(v) < 0.005: continue
         HM["e"].append(e); HM["p"].append(0); HM["m"].append(m); HM["v"].append(round(v, 2))
 
-    por = {n: collections.Counter() for n in ("proy", "ro", "ceco", "cuenta", "gasto")}
+    por = {n: collections.Counter() for n in ("proy", "ro", "ceco", "cuenta", "gasto", "sede")}
     alc_eq = collections.defaultdict(set)
-    for e, p, r, c, u, g, v in zip(F["e"], F["p"], F["r"], F["c"], F["u"], F["g"], F["v"]):
-        por["proy"][alcances[p]] += v; por["ro"][ROS[r]] += v; por["ceco"][cecos[c]] += v
+    for e, pp, r, c, u, g, v in zip(F["e"], F["p"], F["r"], F["c"], F["u"], F["g"], F["v"]):
+        por["proy"][alcances[pp]] += v; por["ro"][ROS[r]] += v; por["ceco"][cecos[c]] += v
         por["cuenta"][cuentas[u]] += v; por["gasto"][gastos[g]] += v
-        alc_eq[e].add(alcances[p])
+        if pp == 0: por["sede"][equipos[e]["sede"]] += v
+        alc_eq[e].add(alcances[pp])
     for e in HM["e"]: alc_eq[e].add(RO)
     for i, q in enumerate(equipos):
         q["proys"] = [a for a in alcances if a in alc_eq[i]] or [RO]
@@ -526,62 +747,33 @@ def main():
     # ── ordenes y conjuntos ────────────────────────────────────────────
     sysdesc, ots = {}, []
     sis_eq = collections.defaultdict(lambda: collections.defaultdict(lambda: [0.0] * ND))
-    for ot, o in ot_acc.items():
-        v = sum(o["m"])
-        cj = txt(o["sap"].get("Conjunto"))
-        if cj: sysdesc[cj] = txt(o["sap"].get("Denom.conjunto")) or cj
-        mi = next((i for i, x in enumerate(o["m"]) if x), 0)
-        reg = {"ot": str(ot), "eq": o["eq"], "txt": o["txt"] or txt(o["sap"].get("Texto breve")) or "-",
-               "sis": cj, "pm": txt(o["sap"].get("Clase de orden")) or "-", "v": round(v),
-               "d": "%02d/%02d/%02d" % (mi + 1, MES, ANIO % 100), "mi": mi, "f": "C", "p": o["alc"]}
-        ots.append(reg)
-        equipos[ieq[o["eq"]]]["ots"].append(reg)
-        if cj and o["alc"] == RO:
-            for i, x in enumerate(o["m"]): sis_eq[o["eq"]][cj][i] += x
+    ots_eq = collections.defaultdict(list)
+    for p in P:
+        for ot, o in p["ots"].items():
+            m = [o["m"].get(d, 0.0) for d in dias]
+            v = sum(m)
+            cj = txt(o["sap"].get("Conjunto"))
+            if cj: sysdesc[cj] = txt(o["sap"].get("Denom.conjunto")) or cj
+            mi = next((i for i, x in enumerate(m) if x), 0)
+            reg = {"ot": str(ot), "eq": o["eq"], "s": p["sede"], "txt": o["txt"] or txt(o["sap"].get("Texto breve")) or "-",
+                   "sis": cj, "pm": txt(o["sap"].get("Clase de orden")) or "-", "v": round(v),
+                   "d": "%02d/%02d/%02d" % (mi + 1, MES, ANIO % 100), "mi": mi, "f": "C", "p": o["alc"]}
+            ots.append(reg)
+            equipos[ieq[o["eq"]]]["ots"].append(reg)
+            if cj and o["alc"] == RO:
+                for i, x in enumerate(m): sis_eq[o["eq"]][cj][i] += x
+            # las ordenes de cada equipo dentro del resultado operativo: [orden, fase, texto, RyM, MOV]
+            if o["alc"] == RO and (abs(o["rym"]) >= 0.005 or abs(o["mov"]) >= 0.005):
+                ots_eq[o["eq"]].append([str(ot), o["fase"], o["txt"] or "-", round(o["rym"], 2), round(o["mov"], 2)])
     ots.sort(key=lambda o: -o["v"])
+    for e in ots_eq: ots_eq[e].sort(key=lambda r: -(r[3] + r[4]))
     for e, d in sis_eq.items():
         equipos[ieq[e]]["sys"] = sorted(
             ({"c": c, "n": sysdesc.get(c, c), "v": round(sum(m), 2), "m": [round(x, 2) for x in m]}
              for c, m in d.items() if any(m)), key=lambda s: -s["v"])
 
-    # ── tarifa real contra tarifa de venta, por equipo y por modelo ────
-    rym = collections.Counter(); mov = collections.Counter()
-    for (e, p, r, c, u, g, m), v in H.items():      # sin redondear: el cuadre es al centavo
-        if p != 0: continue
-        if r in (0, 1): rym[e] += v
-        elif r == 2: mov[e] += v
-    def por_equipo(i):
-        q = equipos[i]; e = q["id"]; prop = q["tipo"] == "PROPIO"
-        hr = hm_eq[e]; tv = tarifa.get(e, (0.0, 0.0, 0.0)); du = dmuse.get(e)
-        terc = dep_eq.get(e, 0.0) if prop else alq_eq.get(e, 0.0)
-        a, b = rym[i], mov[i]
-        tot = a + b + (terc if prop else 0.0)     # en alquilados el total del Excel no suma el alquiler
-        va, vb = tv[0] * hr, tv[1] * hr
-        # la venta del alquiler es la misma cifra que su "costo": los dos salen
-        # de la tarifa de venta (y los de tarifa mensual van por dias, no x horas)
-        vc = tv[2] * hr if prop else terc
-        # Acumulado del anio: libro mayor mas el mes, una sola regla para
-        # todos. Venta acumulada = tarifa de venta x horas acumuladas.
-        L = libro_ac.get(e, {})
-        g = lambda k: L.get(k, 0.0)
-        ah = g("HM") + hr
-        ac = [g("RYM") + a, g("FIJO") + b, g("DEP") + terc if prop else g("ALQ") + terc, g("SEG/OTR")]
-        ac.append(ac[0] + ac[1] + (ac[2] if prop else 0.0))   # en alquilados el costo no suma el alquiler
-        av = [tv[0] * ah, tv[1] * ah, tv[2] * ah if (prop or e not in ALQ_POR_DIAS) else ac[2]]
-        av.append(av[0] + av[1] + (av[2] if prop else 0.0))
-        return {"id": e, "fam": q["clasif"], "mod": q["mod"], "tipo": q["tipo"],
-                "t": list(tv), "A": {"c": ac, "h": ah, "v": av},
-                "costo": {"a": a, "b": b, "c": terc, "seg": 0.0, "tot": tot},
-                "hr": hr, "hrProf": num(prof[e]["HM"]) if e in prof else 0.0,
-                "dm": du["DM"] if du and isinstance(du["DM"], (int, float)) else None,
-                "use": du["USAJE"] if du and isinstance(du["USAJE"], (int, float)) else None,
-                "venta": {"a": va, "b": vb, "c": vc, "tot": va + vb + (vc if prop else 0.0)},
-                "conTarifa": e in tarifa}
-    # al reporte entran los equipos con alguna fila del alcance, tenga gasto o no
-    en_ro = {txt(f["Equipo"]) for f in base
-             if (not isinstance(f["Fecha de Tran"], datetime.datetime) or en_fecha(f)) and alcance(f) == RO}
-    por_eq = [por_equipo(ieq[e]) for e in sorted(en_ro)]
-
+    # ── la fila de cada equipo (de su hoja) y los modelos ──────────────
+    por_eq = [x for p in P for x in p["filas"].values()]
     def tri(a, b, c, prop, hr):
         if not hr: return {"a": 0.0, "b": 0.0, "c": 0.0, "tot": 0.0}
         return {"a": a / hr, "b": b / hr, "c": c / hr, "tot": (a + b + (c if prop else 0.0)) / hr}
@@ -590,18 +782,18 @@ def main():
     modelos = []
     for (tipo, fam, mod), xs in grupos.items():
         prop = tipo == "PROPIO"
-        s = lambda k1, k2=None: sum((x[k1][k2] if k2 else x[k1]) for x in xs)
-        hr = s("hr")
+        s = lambda f: sum(f(x) for x in xs)
+        hr = s(lambda x: x["hr"])
         dms = [x["dm"] for x in xs if x["dm"] is not None]
         uss = [x["use"] for x in xs if x["use"] is not None]
-        m = {"fam": fam, "mod": mod, "tipo": tipo, "nEq": len(xs),
-             "costo": {k: s("costo", k) for k in ("a", "b", "c", "seg", "tot")},
+        ca, cb, cc = s(lambda x: x["c"][0]), s(lambda x: x["c"][1]), s(lambda x: x["c"][2])
+        va, vb, vc = s(lambda x: x["v"][0]), s(lambda x: x["v"][1]), s(lambda x: x["v"][2])
+        m = {"fam": fam, "mod": mod, "tipo": tipo, "nEq": len(xs), "sedes": sorted({x["sede"] for x in xs}),
+             "costo": {"a": ca, "b": cb, "c": cc, "seg": s(lambda x: x["seg"]), "tot": s(lambda x: x["c"][3])},
              "costoProf": 0.0, "dm": sum(dms) / len(dms) if dms else 0.0, "use": sum(uss) / len(uss) if uss else 0.0,
-             "hr": hr, "hrProf": s("hrProf"),
-             "venta": {k: s("venta", k) for k in ("a", "b", "c", "tot")},
-             "tReal": tri(s("costo", "a"), s("costo", "b"), s("costo", "c"), prop, hr),
-             "tProy": tri(s("venta", "a"), s("venta", "b"), s("venta", "c"), prop, hr),
-             "famT": familia_flota(fam)}
+             "hr": hr, "hrProf": s(lambda x: x["hrProf"]),
+             "venta": {"a": va, "b": vb, "c": vc, "tot": s(lambda x: x["v"][3])},
+             "tReal": tri(ca, cb, cc, prop, hr), "tProy": tri(va, vb, vc, prop, hr), "famT": familia_flota(fam)}
         m["dTar"] = (m["tReal"]["tot"] - m["tProy"]["tot"]) if m["tProy"]["tot"] else None
         modelos.append(m)
     tot = {"costo": sum(m["costo"]["tot"] for m in modelos), "hr": sum(m["hr"] for m in modelos),
@@ -612,34 +804,31 @@ def main():
     con_t = [m for m in modelos if m["tProy"]["tot"] > 0 and m["hr"] > 0]
     con_dm = [m for m in modelos if m["dm"] > 0]
     h_dm = sum(m["hr"] for m in con_dm)
+    r2v = lambda xs: [round(v, 2) for v in xs]
     eqs = {}
     for x in por_eq:
-        hr = x["hr"]; prop = x["tipo"] == "PROPIO"
-        eqs[x["id"]] = {"dm": x["dm"], "use": x["use"], "hr": round(hr, 2), "hrProf": round(x["hrProf"], 1),
-                        "tReal": round(x["costo"]["tot"] / hr, 2) if hr else None,
-                        "tProy": round(x["venta"]["tot"] / hr, 2) if hr and x["venta"]["tot"] else None,
+        hr = x["hr"]
+        eqs[x["id"]] = {"sede": x["sede"], "dm": x["dm"], "use": x["use"], "hr": round(hr, 2),
+                        "hrProf": round(x["hrProf"], 2),
+                        "tReal": round(x["c"][3] / hr, 2) if hr else None,
+                        "tProy": round(x["v"][3] / hr, 2) if hr and x["v"][3] else None,
                         "conTarifa": x["conTarifa"],
                         # la fila completa del equipo, para las hojas Propios y Alquilados:
                         # c = costo real, v = venta interna, cada uno [RyM, MOV, Dep o Alq, total]
-                        "fam": x["fam"], "mod": x["mod"], "tipo": x["tipo"], "prov": equipos[ieq[x["id"]]]["prov"],
-                        "c": [round(x["costo"][k], 2) for k in ("a", "b", "c", "tot")],
-                        "v": [round(x["venta"][k], 2) for k in ("a", "b", "c", "tot")],
+                        "fam": x["fam"], "mod": x["mod"], "tipo": x["tipo"], "prov": x["prov"],
+                        "c": r2v(x["c"]), "v": r2v(x["v"]),
                         # acumulado: c = [RyM, MOV, Dep o Alq, Seg, costo], h = horas, v = venta
-                        "A": {"c": [round(v, 2) for v in x["A"]["c"]], "h": round(x["A"]["h"], 2),
-                              "v": [round(v, 2) for v in x["A"]["v"]]}}
-        if x["id"] in ALQ_POR_DIAS or x["id"] in DEP_POR_DIAS: eqs[x["id"]]["porDias"] = True
-    # las ordenes de cada equipo dentro del resultado operativo: [orden, fase, texto, RyM, MOV]
-    ots_eq = collections.defaultdict(list)
-    for ot, o in ot_acc.items():
-        if o["alc"] == RO and (abs(o["rym"]) >= 0.005 or abs(o["mov"]) >= 0.005):
-            ots_eq[o["eq"]].append([str(ot), o["fase"], o["txt"] or "-", round(o["rym"], 2), round(o["mov"], 2)])
-    for e in ots_eq: ots_eq[e].sort(key=lambda r: -(r[3] + r[4]))
-    per = sorted(periodos)
+                        "A": {"c": r2v(x["A"]["c"]), "h": round(x["A"]["h"], 2), "v": r2v(x["A"]["v"])}}
+        if x["porDias"]: eqs[x["id"]]["porDias"] = True
+    periodos = sorted(set().union(*[p["periodos"] for p in P]))
     MESES = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SETIEMBRE",
              "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
     setiembre = {
         "mes": "%04d-%02d" % (ANIO, MES), "rotulo": "%s %d" % (MESES[MES - 1], ANIO), "corte": "al día %d" % CORTE,
-        "sede": "SHGN", "corteDia": CORTE, "diasMes": DIAS_MES, "fuente": nombre_libro + " · recalculado desde " + hoja_base[0],
+        "sede": " · ".join(sedes), "sedes": sedes, "sedeNom": {s: NOM_SEDE.get(s, s) for s in sedes},
+        "corteSede": {p["sede"]: p["corte"] for p in P},
+        "corteDia": CORTE, "diasMes": DIAS_MES,
+        "fuente": " + ".join(p["libro"] for p in P) + " · filas de las hojas PROP y ALQ",
         "nModelos": len(modelos), "nProp": sum(1 for m in modelos if m["tipo"] == "PROPIO"),
         "nAlq": sum(1 for m in modelos if m["tipo"] == "ALQUILADO"),
         "nConTarifa": len(con_t), "nCumplen": sum(1 for m in con_t if m["tReal"]["tot"] <= m["tProy"]["tot"]),
@@ -647,62 +836,46 @@ def main():
         "dm": sum(m["dm"] * m["hr"] for m in con_dm) / h_dm if h_dm else 0,
         "use": sum(m["use"] * m["hr"] for m in con_dm) / h_dm if h_dm else 0,
         "total": tot, "modelos": modelos, "eq": eqs, "ots": ots_eq,
-        "acumPeriodos": per, "acumIncluyeMes": MES in per,
-        "alqPorDias": list(ALQ_POR_DIAS), "depPorDias": list(DEP_POR_DIAS)}
+        "acumPeriodos": periodos, "acumIncluyeMes": MES in periodos,
+        "alqPorDias": [e for p in P for e in p["val"]["alqPorDias"]],
+        "depPorDias": [e for p in P for e in p["val"]["depPorDias"]]}
 
-    # ── cuadres contra las dos hojas de reporte ────────────────────────
-    def total_hoja(filas, etiqueta_col=1):
-        for r in filas:
-            if len(r) > 22 and txt(r[etiqueta_col]) == "Total":
-                # L RYM · M MOV · N Dep/Alq · O Seg · V horas
-                return {"rym": num(r[11]), "mov": num(r[12]), "terc": num(r[13]), "seg": num(r[14]),
-                        "hr": num(r[21]), "nEq": num(r[3])}
-        falla("no encuentro la fila Total en una hoja de reporte")
-    hp, ha = total_hoja(fp), total_hoja(fa)
-    def mio(tipo):
-        xs = [x for x in por_eq if x["tipo"] == tipo]
-        return {"rym": sum(x["costo"]["a"] for x in xs), "mov": sum(x["costo"]["b"] for x in xs),
-                "terc": sum(x["costo"]["c"] for x in xs), "hr": sum(x["hr"] for x in xs), "nEq": len(xs)}
-    mp, ma = mio("PROPIO"), mio("ALQUILADO")
-    def acum_hoja(filas, cols):
-        for r in filas:
-            if len(r) > 60 and txt(r[1]) == "Total":
-                return {k: num(r[i]) for k, i in cols.items()}
-    def acum_mio(tipo):
-        xs = [x for x in por_eq if x["tipo"] == tipo]
-        return {"rym": sum(x["A"]["c"][0] for x in xs), "mov": sum(x["A"]["c"][1] for x in xs),
-                "terc": sum(x["A"]["c"][2] for x in xs), "costo": sum(x["A"]["c"][4] for x in xs),
-                "hr": sum(x["A"]["h"] for x in xs), "venta": sum(x["A"]["v"][3] for x in xs)}
-    # columnas del total: PROP  AV AW AX AZ BA BF  ·  ALQ  AY AZ BA BC BD BI
-    ahp = acum_hoja(fp, {"rym": 47, "mov": 48, "terc": 49, "costo": 51, "hr": 52, "venta": 57})
-    aha = acum_hoja(fa, {"rym": 50, "mov": 51, "terc": 52, "costo": 54, "hr": 55, "venta": 60})
-    amp, ama = acum_mio("PROPIO"), acum_mio("ALQUILADO")
-    r2 = lambda d: {k: round(v, 2) for k, v in d.items()}
-    parte_tarifa = round(por["proy"].get("PARTE DE LA TARIFA", 0.0), 2)
-    val = {"libro": os.path.basename(LIBRO), "hoja": hoja_base[0], "corte": CORTE, "diasMes": DIAS_MES,
-           "mes": MES, "anio": ANIO, "fechaMaxBase": fecha_max,
+    # ── validacion: la de cada proyecto, y la suma para lo que lee la Ficha ──
+    vs = {p["sede"]: p["val"] for p in P}
+    def suma_val(tipo):
+        out = {"hoja": collections.Counter(), "calc": collections.Counter()}
+        for v in vs.values():
+            out["hoja"].update(v[tipo]["hoja"]); out["calc"].update(v[tipo]["calc"])
+        # lo que la Ficha compara: RyM y MOV de la base contra la hoja
+        return {"hoja": {k: round(x, 2) for k, x in out["hoja"].items()},
+                "calc": dict({k: round(x, 2) for k, x in out["hoja"].items()},
+                             **{k: round(x, 2) for k, x in out["calc"].items()})}
+    fuera = collections.Counter()
+    for v in vs.values(): fuera.update(v["fueraCorte"])
+    val = {"libro": " + ".join(v["libro"] for v in vs.values()),
+           "hoja": " · ".join("%s: %s" % (s, v["hoja"]) for s, v in vs.items()),
+           "corte": CORTE, "diasMes": DIAS_MES, "mes": MES, "anio": ANIO,
+           "fechaMaxBase": max(v["fechaMaxBase"] for v in vs.values()),
            "generado": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-           "reglas": {t: {c: x["ver"] for c, x in r.items() if c != "Fecha de Tran"} for t, r in REGLAS.items()},
-           "reglasFuera": {t: {c: x["ocultos"] for c, x in r.items() if c != "Fecha de Tran"} for t, r in REGLAS.items()},
-           "fuenteHoras": fuente_horas, "alqPorDias": list(ALQ_POR_DIAS), "depPorDias": list(DEP_POR_DIAS),
-           "propio": {"hoja": r2(hp), "calc": r2(mp)}, "alquilado": {"hoja": r2(ha), "calc": r2(ma)},
-           "acumPeriodos": per,
-           "acumPropio": {"hoja": r2(ahp), "calc": r2(amp)}, "acumAlquilado": {"hoja": r2(aha), "calc": r2(ama)},
-           "difMovAlq": round(ma["mov"] - ha["mov"], 2), "difEqAlq": int(ma["nEq"] - ha["nEq"]),
-           "difHrAlq": round(ma["hr"] - ha["hr"], 2),
-           "fueraCorte": r2(fuera_corte), "sinFecha": round(sin_fecha, 2),
-           "sinTarifa": sum(1 for x in por_eq if not x["conTarifa"]),
-           "sinHoras": sum(1 for x in por_eq if not x["hr"]),
-           "sinDM": sum(1 for x in por_eq if x["dm"] is None),
-           "parteTarifa": parte_tarifa, "serviciosFueraBase": zserv,
-           "horasFuera": {"n": len(horas_fuera), "h": round(sum(horas_fuera.values()), 2)},
-           "horasDescuadre": descuadre_h[:20]}
+           "sedes": vs, "sedeNom": {s: NOM_SEDE.get(s, s) for s in sedes},
+           # como antes, las reglas de un proyecto en la raiz (las de Shougang si esta)
+           "reglas": vs[sedes[0]]["reglas"], "reglasFuera": vs[sedes[0]]["reglasFuera"],
+           "fuenteHoras": " · ".join(sorted({v["fuenteHoras"] for v in vs.values()})),
+           "alqPorDias": setiembre["alqPorDias"], "depPorDias": setiembre["depPorDias"],
+           "propio": suma_val("propio"), "alquilado": suma_val("alquilado"),
+           "acumPeriodos": periodos, "fueraCorte": {k: round(x, 2) for k, x in fuera.items()},
+           "sinFecha": round(sum(v["sinFecha"] for v in vs.values()), 2),
+           "sinTarifa": sum(v["sinTarifa"] for v in vs.values()),
+           "sinHoras": sum(v["sinHoras"] for v in vs.values()),
+           "sinDM": sum(v["sinDM"] for v in vs.values()),
+           "parteTarifa": round(por["proy"].get("PARTE DE LA TARIFA", 0.0), 2),
+           "serviciosFueraBase": vs.get("SHGN", {}).get("serviciosFueraBase")}
 
     total = round(sum(F["v"]), 2)
     hm = round(sum(HM["v"]), 2)
-    meta = {"fuente": nombre_libro + " · hoja " + hoja_base[0] + " · recalculado",
+    meta = {"fuente": " + ".join(p["libro"] for p in P) + " · recalculado",
             "desde": dias[0], "hasta": dias[-1], "total": total, "hm": hm, "cph": round(total / hm, 1) if hm else 0,
-            "nEq": len(equipos), "nEqCosto": len({e for e in F["e"]}), "nLin": nlin, "nOT": len(ots),
+            "nEq": len(equipos), "nEqCosto": len(set(F["e"])), "nLin": sum(p["nlin"] for p in P), "nOT": len(ots),
             "nHechos": len(F["v"]), "nEqDet": sum(1 for q in equipos if q["sys"]), "nSis": len(sysdesc),
             "proyDetalle": RO, "sinCeco": SIN_FASE,
             "porProy": {a: {"v": round(por["proy"][a], 2)} for a in alcances},
@@ -710,42 +883,47 @@ def main():
             "porCeco": {k: round(v, 2) for k, v in por["ceco"].items()},
             "porCuenta": {k: round(v, 2) for k, v in por["cuenta"].items()},
             "porGasto": {k: round(v, 2) for k, v in por["gasto"].items()},
+            "porSede": {k: round(v, 2) for k, v in por["sede"].items()},
             "val": val}
     datos = {"meta": meta, "meses": dias, "proys": alcances, "ros": ROS, "cecos": cecos, "cuentas": cuentas,
-             "gastos": gastos, "equipos": equipos, "F": F, "H": HM, "ots": ots, "sysdesc": sysdesc}
+             "gastos": gastos, "equipos": equipos, "F": F, "H": HM, "ots": ots, "sysdesc": sysdesc,
+             "sedes": sedes, "sedeNom": {s: NOM_SEDE.get(s, s) for s in sedes}}
 
     def graba(nombre, obj):
         io.open(os.path.join(AQUI, nombre), "w", encoding="utf8").write(
             json.dumps(obj, ensure_ascii=False, separators=(",", ":")))
         print("  ->", nombre, os.path.getsize(os.path.join(AQUI, nombre)), "bytes")
-    graba("datos.json", datos); graba("setiembre.json", setiembre)
-    io.open(os.path.join(AQUI, "validacion.json"), "w", encoding="utf8").write(
-        json.dumps(val, ensure_ascii=False, indent=1))
 
     # ── lo que hay que mirar ───────────────────────────────────────────
-    print("\nreglas de las dinamicas:")
-    for t, r in val["reglas"].items(): print("  %-9s" % t, r)
-    print("corte: dia %d de %d · base hasta %s · horas de %s" % (CORTE, DIAS_MES, fecha_max, fuente_horas))
-    print("prorrateo por dias · dep %s · alq %s" % (DEP_POR_DIAS, ALQ_POR_DIAS))
-    print("\nlineas hasta el dia %d: %d | hechos: %d | equipos: %d | ordenes: %d" % (CORTE, nlin, len(F["v"]), len(equipos), len(ots)))
-    print("por alcance :", {a: round(por["proy"][a]) for a in alcances})
-    print("por recurso :", {k: round(v) for k, v in por["ro"].items()})
-    print("fuera del corte:", r2(fuera_corte), "| sin fecha:", round(sin_fecha, 2))
-    if zserv: print("Z SERV conformado y no en la base: %d filas, US$ %.2f" % (zserv["n"], zserv["v"]))
-    print("horometro de equipos fuera de la base: %d equipos, %.1f h" % (len(horas_fuera), sum(horas_fuera.values())))
-    print("\n%-10s %14s %14s %12s" % ("", "hoja", "recalculado", "diferencia"))
-    for nom, h, c in (("PROPIO", hp, mp), ("ALQUILADO", ha, ma)):
-        for k, et in (("rym", "RYM"), ("mov", "MOV"), ("terc", "Dep/Alq"), ("hr", "horas"), ("nEq", "equipos")):
-            print("%-10s %14.2f %14.2f %12.2f  %s" % (nom if k == "rym" else "", h[k], c[k], c[k] - h[k], et))
-    print("\nACUMULADO 2026 · periodos del libro en BASE VARIOS: %s, mas el mes al dia %d" % (per, CORTE))
-    for nom, h, cc in (("PROPIO", ahp, amp), ("ALQUILADO", aha, ama)):
-        for k, et in (("rym", "RYM"), ("mov", "MOV"), ("terc", "Dep/Alq"), ("costo", "costo"), ("hr", "horas"), ("venta", "venta")):
-            print("%-10s %14.2f %14.2f %12.2f  %s" % (nom if k == "rym" else "", h[k], cc[k], cc[k] - h[k], et))
-    ok = all(abs(c[k] - h[k]) < 0.01 for h, c in ((hp, mp), (ha, ma)) for k in ("rym", "mov"))
-    print("\nRYM y MOV de las dos hojas cuadran:", "OK" if ok else "FALLA")
-    if descuadre_h: print("horas: %d equipos donde el parte por dia no suma el total de BASE VARIOS: %s" % (len(descuadre_h), descuadre_h[:6]))
-    print("tarifa real/venta: %.2f / %.2f US$/h | modelos %d, con tarifa y horas %d" % (tot["tReal"], tot["tProy"], len(modelos), len(con_t)))
-    if not ok: sys.exit(1)
+    ok = True
+    for p in P:
+        v = p["val"]
+        print("\n== %s · %s · base %s · corte día %d (%s)" % (p["sede"], v["libro"], v["hoja"], v["corte"], v["corteDe"]))
+        print("   reglas:", {t: r for t, r in v["reglas"].items()})
+        print("   horas de: %s · sin parte por día: %d equipos · prorrateo por días: dep %s alq %s"
+              % (v["fuenteHoras"], v["sinParte"], v["depPorDias"], v["alqPorDias"]))
+        print("   %-10s %-8s %15s %15s %15s" % ("", "", "fila Total", "suma equipos", "base recalc."))
+        for tipo, k in (("PROPIO", "propio"), ("ALQUILADO", "alquilado")):
+            h, s, c = v[k]["hoja"], v[k]["equipos"], v[k]["calc"]
+            for kk, et in (("rym", "RYM"), ("mov", "MOV"), ("terc", "Dep/Alq"), ("seg", "Seg"), ("hr", "horas"),
+                           ("hrProf", "h prof"), ("venta", "venta"), ("nEq", "equipos")):
+                print("   %-10s %-8s %15.2f %15.2f %15s%s" % (tipo if kk == "rym" else "", et, h[kk], s[kk],
+                      "%.2f" % c[kk] if kk in c else "", "   <-- DIFIERE" if abs(h[kk] - s[kk]) >= 0.01 and kk != "nEq"
+                      else ""))
+        if p["descuadre"]:
+            ok = False
+            print("   DESCUADRE base contra hoja (equipo, hoja, base):")
+            for d in p["descuadre"][:25]: print("     ", d)
+        else:
+            print("   RyM y MOV de la base cuadran con la hoja, equipo por equipo: OK")
+    print("\nalcances:", {a: round(por["proy"][a]) for a in alcances})
+    print("resultado operativo por proyecto:", {k: round(x) for k, x in por["sede"].items()})
+    print("dias %s a %s · hechos %d · equipos %d · ordenes %d · horas %.1f" % (dias[0], dias[-1], len(F["v"]), len(equipos), len(ots), hm))
+    graba("datos.json", datos); graba("setiembre.json", setiembre)
+    io.open(os.path.join(AQUI, "validacion.json"), "w", encoding="utf8").write(json.dumps(val, ensure_ascii=False, indent=1))
+    if not ok:
+        print("\nHAY DESCUADRES: revisar antes de publicar")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

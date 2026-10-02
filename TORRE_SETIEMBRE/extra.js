@@ -31,7 +31,7 @@ function otsDelEquipo(e){
   }).sort(function(a, b){ return (b.v || 0) - (a.v || 0); });
 }
 function fuenteOts(lista){
-  return lista.length ? 'ÓRDENES REALES DE SAP · CONSOLIDADO 0 SHGN_RO EQUIPOS'
+  return lista.length ? 'ÓRDENES REALES DE SAP · CONSOLIDADOS ' + sedesL().filter(sedeOk).join(' · ')
                       : 'SIN ÓRDENES EN EL PERIODO';
 }
 
@@ -50,7 +50,7 @@ TOT_TIPO = (function(){
 /* ---------- ajustes rapidos de la hoja Filtros ---------- */
 AJUSTES = [
   { c: 'reporte', n: 'COMO EL REPORTE',
-    d: 'El recorte de SHGN PROP y SHGN ALQ: resultado operativo, hasta el día ' + SETIEMBRE.corteDia + '.' },
+    d: 'El recorte de las hojas PROP y ALQ de cada proyecto: resultado operativo, hasta el día ' + SETIEMBRE.corteDia + '.' },
   { c: 'todo', n: 'TODO LO CARGADO',
     d: 'Suma también lo que las hojas dejan fuera: CAPEX, lo que pasa a venta y lo que es parte de la tarifa.' },
   { c: 'rym', n: 'SÓLO RYM',

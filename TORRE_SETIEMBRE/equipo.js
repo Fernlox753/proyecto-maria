@@ -15,6 +15,7 @@ function universoPara(campo){
   var vals = [], f = { tipo: tipoFiltro, fam: famFiltro, mod: modFiltro, prov: provFiltro };
   var todo = { tipo: 'TODOS', fam: 'TODAS', mod: 'TODOS', prov: 'TODOS' };
   TODOS.forEach(function(e){
+    if(!sedeOk(e.sede)) return;
     if(proyFiltro !== 'TODOS' && e.proys && e.proys.indexOf(proyFiltro) < 0) return;
     for(var k in f) if(k !== campo && f[k] !== todo[k] && e[k] !== f[k]) return;
     if(marcaFiltro !== 'TODAS' && e.marca !== marcaFiltro) return;

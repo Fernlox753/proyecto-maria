@@ -209,22 +209,23 @@ table.tb tr.eq:hover td{background:#E4ECF7}
       está cortado al día __CORTE__ y sale del consolidado; no sigue a los filtros de otras pestañas.</p></details>
     </div>
     <div class="panelF" style="margin-top:6px">
+      <div class="sedeHueco" data-clase="fl"></div>
       <label class="fl">FLOTA<select id="tb-tipo"><option value="PROPIO">PROPIA</option><option value="ALQUILADO">ALQUILADA</option></select></label>
-      <div class="fl"><span>FAMILIA · UNA O VARIAS</span>
+      <div class="fl"><span title="Una o varias familias">FAMILIAS</span>
         <div class="desplegable">
           <button class="despBtn tbModBtn" type="button" id="tb-famBtn" aria-expanded="false" aria-haspopup="true">
             <span id="tb-famRot">TODAS</span> <i>▼</i></button>
           <div class="despCaja alta" id="tb-famCaja" hidden role="group" aria-label="Familias"></div>
         </div>
       </div>
-      <div class="fl"><span>MODELO · UNO O VARIOS</span>
+      <div class="fl"><span title="Uno o varios modelos">MODELOS</span>
         <div class="desplegable">
           <button class="despBtn tbModBtn" type="button" id="tb-modBtn" aria-expanded="false" aria-haspopup="true">
             <span id="tb-modRot">TODOS</span> <i>▼</i></button>
           <div class="despCaja alta" id="tb-modCaja" hidden role="group" aria-label="Modelos"></div>
         </div>
       </div>
-      <div class="fl tbEqF"><span class="tbEqCab">EQUIPO · UNO O VARIOS
+      <div class="fl tbEqF"><span class="tbEqCab" title="Uno o varios equipos">EQUIPOS
           <span class="tbModo" role="group" aria-label="Cómo elegir los equipos">
             <button type="button" data-m="lista" aria-pressed="true" title="Elegir de una lista con casillas">▾ LISTA</button><button type="button" data-m="escribir" aria-pressed="false" title="Escribir los códigos de los equipos">⌨ ESCRIBIR</button></span></span>
         <div class="desplegable" id="tb-eqLista">
