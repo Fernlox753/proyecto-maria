@@ -9,21 +9,26 @@
              operacion y otra cifra. La burbuja va pidiendo cada paso.
    SUMAR     cada cifra que se toca se suma: cuenta, suma, promedio,
              minimo y maximo, como la barra de estado de Excel.
+   DESVIACIONES  el cuadro del desfase (desviaciones.png), dentro de la
+             burbuja puesta en horizontal; se mueve y deja usar la pagina.
 
    Leer una cifra de la pantalla: se toma el texto de lo tocado y se
    convierte (US$, separadores de miles, k y MM, porcentajes, el signo
    menos tipografico). Mientras se elige, el clic no llega a la tabla.
    ══════════════════════════════════════════════════════════════════ */
 /* la primera vez aparece minimizada, para no tapar nada */
-var BZ = { h: 'calc', a: null, b: null, op: null, espera: null, lista: [], hist: [], min: true, oculta: false, x: null, y: null };
+/* dz: el ancho del cuadro de desviaciones, uno de BZ_ANCHOS (o 'real') */
+var BZ_ANCHOS = [620, 760, 900, 1060, 1220];
+var BZ = { h: 'calc', dz: 2, a: null, b: null, op: null, espera: null, lista: [], hist: [], min: true, oculta: false, x: null, y: null };
 
 function bzGuardar(){
-  try { localStorage.setItem('torreSet.bz', JSON.stringify({ min: BZ.min, oculta: BZ.oculta, x: BZ.x, y: BZ.y, h: BZ.h })); } catch(e){}
+  try { localStorage.setItem('torreSet.bz', JSON.stringify({ min: BZ.min, oculta: BZ.oculta, x: BZ.x, y: BZ.y, h: BZ.h, dz: BZ.dz })); } catch(e){}
 }
 function bzLeer(){
   try {
     var o = JSON.parse(localStorage.getItem('torreSet.bz') || 'null');
-    if(o){ BZ.min = !!o.min; BZ.oculta = !!o.oculta; BZ.x = o.x; BZ.y = o.y; if(o.h === 'suma') BZ.h = 'suma'; }
+    if(o){ BZ.min = !!o.min; BZ.oculta = !!o.oculta; BZ.x = o.x; BZ.y = o.y; if(o.h === 'suma' || o.h === 'desv') BZ.h = o.h;
+           if(o.dz === 'real' || BZ_ANCHOS[o.dz]) BZ.dz = o.dz; }
   } catch(e){}
 }
 
@@ -117,11 +122,17 @@ function bzPintar(){
   bz.hidden = BZ.oculta;
   bz.classList.toggle('min', BZ.min);
   var volver = $('bzVolver'); if(volver) volver.hidden = !BZ.oculta;
-  Array.prototype.forEach.call(bz.querySelectorAll('.bzTools [data-h="calc"], .bzTools [data-h="suma"]'), function(b){
+  Array.prototype.forEach.call(bz.querySelectorAll('.bzTools [data-h="calc"], .bzTools [data-h="suma"], .bzTools [data-h="desv"]'), function(b){
     b.setAttribute('aria-pressed', b.getAttribute('data-h') === BZ.h);
   });
   document.body.classList.toggle('bzElige', !!BZ.espera && !BZ.oculta && !BZ.min);
-  var c = $('bzCuerpo');
+  var c = $('bzCuerpo'), dv = $('bzDesvCuerpo'), desv = BZ.h === 'desv';
+  /* con DESVIACIONES la burbuja se pone horizontal y ensena el cuadro */
+  bz.classList.toggle('ancho', desv);
+  bz.style.setProperty('--bzAncho', (BZ.dz === 'real' ? 1329 + 22 : BZ_ANCHOS[BZ.dz] || 900) + 'px');
+  c.hidden = desv;
+  if(dv) dv.hidden = !desv;
+  if(desv) return;
   if(BZ.h === 'suma') return bzPintarSuma(c);
   var fila = function(k, v){
     var espera = BZ.espera === k;
@@ -222,7 +233,9 @@ function bzUbicar(){
     BZ.x = W - w - (W <= 620 ? 12 : 24); BZ.y = abajo ? H - Math.min(h, 60) - 70 : 170;
   }
   BZ.x = Math.max(6, Math.min(W - w - 6, BZ.x));
-  BZ.y = Math.max(6, Math.min(H - Math.min(h, 60) - 6, BZ.y));
+  /* puede quedar medio afuera por abajo, salvo con el cuadro de desviaciones,
+     que se acomoda entero en la pantalla */
+  BZ.y = Math.max(6, Math.min(H - (BZ.h === 'desv' && !BZ.min ? h : Math.min(h, 60)) - 6, BZ.y));
   bz.style.left = BZ.x + 'px'; bz.style.top = BZ.y + 'px';
 }
 function bzArrastre(asa, alSoltarSinMover){
@@ -247,14 +260,6 @@ function bzArrastre(asa, alSoltarSinMover){
   });
 }
 
-/* el cuadro de desviaciones (la imagen va dentro de la pagina, ensamblar.py) */
-function bzDesv(abrir){
-  var dv = $('bzDesv');
-  if(!dv) return;
-  dv.hidden = !abrir;
-  document.documentElement.style.overflow = abrir ? 'hidden' : '';
-  if(abrir){ var c = $('bzDesvCerrar'); if(c) c.focus(); }
-}
 (function bzIniciar(){
   var bz = $('bz');
   if(!bz) return;
@@ -282,7 +287,6 @@ function bzDesv(abrir){
     var h = b.getAttribute('data-h');
     if(h === 'enc'){ var e = $('encBtn'); if(e) e.click(); return; }
     if(h === 'arriba'){ window.scrollTo({ top: 0, behavior: REDUCIR ? 'auto' : 'smooth' }); return; }
-    if(h === 'desv'){ BZ.espera = null; bzPintar(); bzDesv(true); return; }
     BZ.h = h;
     BZ.espera = h === 'suma' ? 'multi' : null;
     if(h === 'calc') bzSiguiente();
@@ -314,20 +318,16 @@ function bzDesv(abrir){
     bzSiguiente(); bzPintar();
   });
 
-  /* DESVIACIONES: se cierra con ×, con Esc o con un clic fuera del cuadro */
-  var dv = $('bzDesv');
-  if(dv){
-    esc_('bzDesvCerrar', 'click', function(){ bzDesv(false); });
-    esc_('bzDesvReal', 'click', function(){
-      var real = !dv.classList.contains('real');
-      dv.classList.toggle('real', real);
-      this.setAttribute('aria-pressed', real);
-      this.textContent = real ? '⤡ AJUSTAR' : '⤢ TAMAÑO REAL';
-      this.title = real ? 'Ajustar al ancho de la pantalla' : 'Ver a tamaño real';
-    });
-    dv.addEventListener('click', function(ev){ if(ev.target === dv) bzDesv(false); });
-    document.addEventListener('keydown', function(ev){ if(ev.key === 'Escape' && !dv.hidden) bzDesv(false); });
-  }
+  /* el ancho del cuadro de desviaciones */
+  var dvc = $('bzDesvCuerpo');
+  if(dvc) dvc.addEventListener('click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('[data-dz]') : null;
+    if(!b) return;
+    var z = b.getAttribute('data-dz'), i = BZ.dz === 'real' ? BZ_ANCHOS.length : BZ.dz;
+    if(z === 'real') BZ.dz = 'real';
+    else BZ.dz = Math.max(0, Math.min(BZ_ANCHOS.length - 1, i + (z === '+' ? 1 : -1)));
+    bzGuardar(); bzPintar(); bzUbicar();
+  });
 
   if(BZ.h === 'calc') bzSiguiente(); else BZ.espera = null;
   /* al abrir la pagina no se queda esperando un clic: se pide al usar la herramienta */

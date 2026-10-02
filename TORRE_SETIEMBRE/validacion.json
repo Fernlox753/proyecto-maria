@@ -6,7 +6,7 @@
  "mes": 9,
  "anio": 2026,
  "fechaMaxBase": "2026-09-30",
- "generado": "2026-10-02 16:23",
+ "generado": "2026-10-02 17:13",
  "sedes": {
   "SHGN": {
    "sede": "SHGN",
@@ -492,7 +492,8 @@
       "(vacío)",
       "DESM. UNOP",
       "CAPEX",
-      "EN PROCESO DE CAPEX"
+      "EN PROCESO DE CAPEX",
+      "VENTAS"
      ]
     },
     "ALQUILADO": {
@@ -516,27 +517,27 @@
    ],
    "propio": {
     "hoja": {
-     "rym": 15658.53,
+     "rym": 11464.79,
      "mov": 10748.6,
      "terc": 35643.04,
      "seg": 2434.22,
      "hr": 2152.3,
-     "nEq": 16.0,
+     "nEq": 15.0,
      "venta": 56341.47,
      "hrProf": 2321.61
     },
     "equipos": {
-     "rym": 15658.53,
+     "rym": 11464.79,
      "mov": 10748.6,
      "terc": 35643.04,
      "seg": 2434.22,
      "hr": 2152.3,
-     "nEq": 16,
+     "nEq": 15,
      "venta": 56341.47,
      "hrProf": 2321.61
     },
     "calc": {
-     "rym": 15658.53,
+     "rym": 11464.79,
      "mov": 10748.6
     }
    },
@@ -578,9 +579,9 @@
    ],
    "fueraCorte": {},
    "sinFecha": 0.0,
-   "sinTarifa": 2,
-   "sinHoras": 3,
-   "sinDM": 2,
+   "sinTarifa": 1,
+   "sinHoras": 2,
+   "sinDM": 1,
    "sinParte": 0,
    "serviciosFueraBase": null,
    "descuadre": []
@@ -681,22 +682,22 @@
  ],
  "propio": {
   "hoja": {
-   "rym": 486961.58,
+   "rym": 482767.84,
    "mov": 421381.85,
    "terc": 924347.72,
    "seg": 24350.55,
    "hr": 21138.97,
-   "nEq": 137.0,
+   "nEq": 136.0,
    "venta": 1556975.06,
    "hrProf": 19636.27
   },
   "calc": {
-   "rym": 486961.58,
+   "rym": 482767.84,
    "mov": 421381.85,
    "terc": 924347.72,
    "seg": 24350.55,
    "hr": 21138.97,
-   "nEq": 137.0,
+   "nEq": 136.0,
    "venta": 1556975.06,
    "hrProf": 19636.27
   }
@@ -735,9 +736,9 @@
  ],
  "fueraCorte": {},
  "sinFecha": 0.0,
- "sinTarifa": 43,
- "sinHoras": 78,
- "sinDM": 159,
+ "sinTarifa": 42,
+ "sinHoras": 77,
+ "sinDM": 158,
  "parteTarifa": 78900.03,
  "serviciosFueraBase": {
   "n": 88,

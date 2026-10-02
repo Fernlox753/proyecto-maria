@@ -25,7 +25,7 @@
 /* «Solo la tabla»: la tabla de Propios o Alquilados a toda la pantalla,
    con una barra para volver. Para el telefono (mejor girado) y la tableta. */
 function hxMaxi(s, poner){
-  var v = $(s === 'A' ? 'v-alquilados' : 'v-propios');
+  var v = $(hxSeccion(s));
   if(!v) return;
   if(poner === undefined) poner = !v.classList.contains('xlMaxi');
   v.classList.toggle('xlMaxi', poner);
@@ -41,8 +41,8 @@ document.addEventListener('click', function(ev){
   /* el boton TABLERO de una fila lleva a otra pestana: la hoja deja de verse
      y no puede quedar puesta a toda pantalla */
   requestAnimationFrame(function(){
-    ['P', 'A'].forEach(function(s){
-      var v = $(s === 'A' ? 'v-alquilados' : 'v-propios');
+    HX_HOJAS.forEach(function(s){
+      var v = $(hxSeccion(s));
       if(v && v.classList.contains('xlMaxi') && !v.classList.contains('on')) hxMaxi(s, false);
     });
   });
@@ -52,5 +52,5 @@ document.addEventListener('keydown', function(ev){
   /* Esc cierra primero la ventanita que este abierta (filtro, eleccion, comentario) */
   if(ev.target.closest && ev.target.closest('.xlFiltroPop,.xlEditor')) return;
   if(document.querySelector('.xlFiltroPop:not([hidden]),.xlEditor:not([hidden])')) return;
-  hxMaxi('P', false); hxMaxi('A', false);
+  HX_HOJAS.forEach(function(s){ hxMaxi(s, false); });
 });

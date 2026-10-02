@@ -558,7 +558,7 @@ print("artifact.html:", len(nuevo), "bytes ->", SALIDA)
 for marca in ["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES", 'class="pes"',
               "function iniciarTajo", "function construirCamion", "function irA(", "var DATA = {",
               "var SETIEMBRE = {", 'id="tajo"', "TORRE DE SETIEMBRE — lo que esta copia hace distinto",
-              'id="fi-cuadre"', 'id="fi-zserv"', "var proyFiltro = PROYS[0];", 'id="v-propios"', 'id="v-alquilados"',
+              'id="fi-cuadre"', 'id="fi-zserv"', "var proyFiltro = PROYS[0];", 'id="v-propios"', 'id="v-alquilados"', 'id="v-toda"', "function hxColumnasT",
               "function hxTabla", 'id="hx-editor"', 'id="v-tablero"',
               "function tbPintar", "function hxOrigen", 'id="bz"', "function bzNumero",
               'id="divisor"', "function divAplicar", "function hxMaxi", "body.navMin",

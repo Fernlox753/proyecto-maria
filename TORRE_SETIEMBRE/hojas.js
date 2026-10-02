@@ -14,7 +14,25 @@
    [RyM, MOV, Dep o Alq, total]; A es el acumulado del anio. En alquilados
    los totales NO suman el tercer componente, igual que en el Excel.
    ══════════════════════════════════════════════════════════════════ */
-var HX = { P: { tipo: 'PROPIO' }, A: { tipo: 'ALQUILADO' } };
+var HX = { P: { tipo: 'PROPIO' }, A: { tipo: 'ALQUILADO' }, T: { tipo: '*' } };
+/* T: TODA LA FLOTA, las dos hojas en una. Cada fila lleva los cuatro
+   componentes por separado —c, v y A.v = [RyM, MOV, Dep, Alq]; A.c =
+   [RyM, MOV, Dep, Alq, Seg]— y cuantos equipos propios (np) y alquilados
+   (nq) suma: sin propios la columna Dep va con guion, sin alquilados la de
+   Alq. Dep y Alq entran al total con dos botones propios (terD, terA). */
+var HX_HOJAS = ['P', 'A', 'T'];
+function hxSeccion(s){ return s === 'A' ? 'v-alquilados' : s === 'T' ? 'v-toda' : 'v-propios'; }
+function hxTcT(st, o){ return o.c[0] + o.c[1] + (st.terD && o.np ? o.c[2] : 0) + (st.terA && o.nq ? o.c[3] : 0); }
+function hxTvT(st, o){ return o.v[0] + o.v[1] + (st.terD && o.np ? o.v[2] : 0) + (st.terA && o.nq ? o.v[3] : 0); }
+function hxTacT(st, o){ return o.A.c[0] + o.A.c[1] + (st.terD && o.np ? o.A.c[2] : 0) + (st.terA && o.nq ? o.A.c[3] : 0); }
+function hxTavT(st, o){ return o.A.v[0] + o.A.v[1] + (st.terD && o.np ? o.A.v[2] : 0) + (st.terA && o.nq ? o.A.v[3] : 0); }
+/* el tipo de flota de una fila de TODA LA FLOTA, si es uno solo (para el TABLERO) */
+function hxTipoNodo(st, n){
+  if(st.s !== 'T') return st.tipo;
+  if(n.id && SEP.eq[n.id]) return SEP.eq[n.id].tipo;
+  var o = n.o || {};
+  return o.np && !o.nq ? 'PROPIO' : o.nq && !o.np ? 'ALQUILADO' : null;
+}
 var HX_NIVELES = ['FAMILIA', 'MODELO', 'EQUIPO', 'FASE', 'ORDEN'];
 var HX_FASES = { LU: 'LUBRICACIÓN', MM: 'MANTENIMIENTO MECÁNICO', LL: 'LLANTAS', ED: 'ELEMENTOS DE DESGASTE',
                  RM: 'REPARACIÓN MAYOR', CA: 'CARRILERÍA' };
@@ -211,10 +229,53 @@ function hxColumnas(esProp, st){
       { t: 'Total', f: 'd', k: 1, v: function(o){ return tav(o) - tac(o); } } ] }
   ];
 }
+function hxColumnasT(st){
+  var por = function(x, h){ return h ? x / h : null; };
+  var per = (SEP.acumPeriodos || []).length;
+  var D = function(o, x){ return o.np ? x : null; }, Q = function(o, x){ return o.nq ? x : null; };
+  var tc = function(o){ return hxTcT(st, o); }, tv = function(o){ return hxTvT(st, o); };
+  var tac = function(o){ return hxTacT(st, o); }, tav = function(o){ return hxTavT(st, o); };
+  /* las cuatro columnas de un grupo: f(o, i) da el valor del componente i */
+  var cuatro = function(f, fm){
+    return [{ t: 'RyM', f: fm, v: function(o){ return f(o, 0); } },
+            { t: 'MOV', f: fm, v: function(o){ return f(o, 1); } },
+            { t: 'Dep', f: fm, v: function(o){ return D(o, f(o, 2)); } },
+            { t: 'Alq', f: fm, v: function(o){ return Q(o, f(o, 3)); } }];
+  };
+  return [
+    { id: 'oper', t: 'OPERACIÓN', cols: [
+      { t: '% DM', f: 'p', sem: 85, v: function(o){ return o.dm; } },
+      { t: '% Uso', f: 'p', v: function(o){ return o.use; } },
+      { t: 'Horas real', f: 'n1', k: 1, v: function(o){ return o.hr; } },
+      { t: 'HM prof', f: 'n', v: function(o){ return o.hrProf; } } ] },
+    { id: 'costo', t: 'COSTO REAL AL ' + hxCorte(), cols: cuatro(function(o, i){ return o.c[i]; }, 'n')
+        .concat([{ t: 'Total', f: 'n', k: 1, v: tc }]) },
+    { id: 'venta', t: 'VENTA INTERNA AL ' + hxCorte(), cols: cuatro(function(o, i){ return o.v[i]; }, 'n')
+        .concat([{ t: 'Total', f: 'n', k: 1, v: tv }]) },
+    { id: 'desv', t: 'DESVIACIÓN VENTA − COSTO', cols: cuatro(function(o, i){ return o.v[i] - o.c[i]; }, 'd')
+        .concat([{ t: 'Total', f: 'd', k: 1, v: function(o){ return tv(o) - tc(o); } }]) },
+    { id: 'treal', t: 'TARIFA REAL US$/H', cols: cuatro(function(o, i){ return por(o.c[i], o.hr); }, 'n1')
+        .concat([{ t: 'Real', f: 'n1', k: 1, v: function(o){ return por(tc(o), o.hr); } }]) },
+    { id: 'tventa', t: 'TARIFA DE VENTA US$/H', cols: cuatro(function(o, i){ return por(o.v[i], o.hr); }, 'n1')
+        .concat([{ t: 'Venta', f: 'n1', k: 1, v: function(o){ return por(tv(o), o.hr); } }]) },
+    { id: 'tacum', ac: 1, t: 'TARIFA ACUMULADA US$/H', cols: cuatro(function(o, i){ return por(o.A.c[i], o.A.h); }, 'n1')
+        .concat([{ t: 'Real acum', f: 'n1', k: 1, v: function(o){ return por(tac(o), o.A.h); } }]) },
+    { id: 'cacum', ac: 1, t: 'COSTO ACUMULADO 2026 · ' + per + ' MESES + SET', cols: cuatro(function(o, i){ return o.A.c[i]; }, 'n')
+        .concat([{ t: 'Seg', f: 'n', v: function(o){ return o.A.c[4]; } },
+                 { t: 'Costo acum', f: 'n', k: 1, v: tac },
+                 { t: 'Horas acum', f: 'n1', v: function(o){ return o.A.h; } }]) },
+    { id: 'vacum', ac: 1, t: 'VENTA ACUMULADA 2026', cols: cuatro(function(o, i){ return o.A.v[i]; }, 'n')
+        .concat([{ t: 'Venta acum', f: 'n', k: 1, v: tav }]) },
+    { id: 'dacum', ac: 1, t: 'DESVIACIÓN ACUMULADA', cols: cuatro(function(o, i){ return o.A.v[i] - o.A.c[i]; }, 'd')
+        .concat([{ t: 'Total', f: 'd', k: 1, v: function(o){ return tav(o) - tac(o); } }]) }
+  ];
+}
+/* la columna del total de cada hoja (para ordenar por ella) */
+function hxIdxTotal(s){ return s === 'T' ? 4 : 3; }
 function hxCorte(){ return ((SEP && SEP.corte) || '').replace(/\D/g, '') || '—'; }
 
 /* ---------- el arbol ---------- */
-function hxCero(){ return { c: [0, 0, 0, 0], v: [0, 0, 0, 0], hr: 0, hrProf: 0, dm: null, use: null, n: 0,
+function hxCero(){ return { c: [0, 0, 0, 0], v: [0, 0, 0, 0], hr: 0, hrProf: 0, dm: null, use: null, n: 0, np: 0, nq: 0,
                             A: { c: [0, 0, 0, 0, 0], h: 0, v: [0, 0, 0, 0] } }; }
 /* varias filas en una. DM y uso son el promedio simple de los equipos que
    lo tienen, que es lo que hace el PROMEDIO.SI del Excel. */
@@ -224,6 +285,7 @@ function hxSuma(filas){
     for(i = 0; i < 4; i++){ o.c[i] += f.c[i]; o.v[i] += f.v[i]; o.A.v[i] += f.A.v[i]; }
     for(i = 0; i < 5; i++) o.A.c[i] += f.A.c[i];
     o.A.h += f.A.h; o.hr += f.hr; o.hrProf += f.hrProf; o.n += f.n;
+    o.np += f.np || 0; o.nq += f.nq || 0;
     /* se arrastran suma y cuenta: el promedio de una familia es el de sus
        equipos, no el promedio de los promedios de sus modelos */
     sd += f.sd; nd += f.nd; su += f.su; nu += f.nu;
@@ -235,11 +297,17 @@ function hxSuma(filas){
 function hxArbol(s){
   var st = HX[s], q = SEP.eq, fams = {}, orden = [], id;
   /* solo los equipos de los proyectos elegidos (proyecto.js) */
-  for(id in q) if(q[id].tipo === st.tipo && sedeOk(q[id].sede)){
-    var x = q[id];
-    var e = { k: 'e|' + id, lv: 2, et: id, fam: x.fam, mod: x.mod, sub: x.prov && s === 'A' ? x.prov.slice(0, 24) : '', id: id,
-              busca: (id + ' ' + x.mod + ' ' + x.fam + ' ' + (x.prov || '')).toUpperCase(),
-              o: { c: x.c, v: x.v, hr: x.hr || 0, hrProf: x.hrProf || 0, dm: x.dm, use: x.use, n: 1, A: x.A,
+  for(id in q) if((st.tipo === '*' || q[id].tipo === st.tipo) && sedeOk(q[id].sede)){
+    var x = q[id], pr = x.tipo === 'PROPIO';
+    var sub = s === 'T' ? (pr ? 'propio' : 'alquilado' + (x.prov ? ' · ' + x.prov.slice(0, 18) : ''))
+                        : x.prov && s === 'A' ? x.prov.slice(0, 24) : '';
+    /* en T el tercer componente va a Dep o a Alq segun la flota del equipo */
+    var c4 = function(a){ return s === 'T' ? [a[0], a[1], pr ? a[2] : 0, pr ? 0 : a[2]] : a; };
+    var A = s === 'T' ? { c: c4(x.A.c).concat([x.A.c[3]]), h: x.A.h, v: c4(x.A.v) } : x.A;
+    var e = { k: 'e|' + id, lv: 2, et: id, fam: x.fam, mod: x.mod, sub: sub, id: id,
+              busca: (id + ' ' + x.mod + ' ' + x.fam + ' ' + (x.prov || '') + (s === 'T' ? ' ' + x.tipo : '')).toUpperCase(),
+              o: { c: c4(x.c), v: c4(x.v), hr: x.hr || 0, hrProf: x.hrProf || 0, dm: x.dm, use: x.use, n: 1, A: A,
+                   np: pr ? 1 : 0, nq: pr ? 0 : 1,
                    sd: x.dm === null || x.dm === undefined ? 0 : x.dm, nd: x.dm === null || x.dm === undefined ? 0 : 1,
                    su: x.use === null || x.use === undefined ? 0 : x.use,
                    nu: x.use === null || x.use === undefined ? 0 : 1 },
@@ -342,7 +410,39 @@ function hxSedesDe(n){
   if(!ss.length) ss = sedesL().filter(sedeOk);
   return ss.sort(function(a, b){ return sedesL().indexOf(a) - sedesL().indexOf(b); });
 }
+function hxNivelOrigen(st, n){
+  return n.esTot ? ' Alcance: suma de los ' + n.o.n + ' equipos de la tabla' + (hxHayRecorte(st) ? ' que quedan con la selección y los filtros.' : '.')
+            : /^o\|/.test(n.k || '') ? ' Alcance: sólo las líneas de esta orden de trabajo.'
+            : n.ot ? ' Alcance: sólo el costo de las ' + hxNOrdenes(n) + ' órdenes que cuelgan de esta fila'
+                     + (n.esFase ? ' (fase ' + n.et + ')' : '') + '; horas, venta y depreciación no se reparten por fase.'
+            : n.id ? ' Alcance: sólo este equipo.'
+            : n.esMod && n.lv > 1 ? ' Alcance: suma de los ' + n.o.n + ' equipos de este modelo en esta rama.'
+            : n.lv === 2 ? ' Alcance: sólo este equipo.'
+            : ' Alcance: suma de los ' + n.o.n + ' equipos de ' + (n.lv === 0 ? 'esta familia.' : 'este modelo.');
+}
+/* TODA LA FLOTA: Dep se explica como en la hoja PROP y Alq como en la ALQ; en
+   las demas columnas, una fila de una sola flota como la hoja de esa flota y
+   una mezclada con las dos explicaciones */
 function hxOrigen(st, n, col){
+  if(st.s !== 'T') return hxOrigenPA(st, n, col);
+  var p = col.split('-'), g = p[0], i = parseInt(p[1], 10);
+  if(g === 'oper') return hxOrigenPA(HX.P, n, col, true) + hxNivelOrigen(st, n);
+  var esDep = i === 2, esAlq = i === 3, nTot = g === 'cacum' ? 5 : 4;
+  var ps = function(x){ return { s: x, tipo: x === 'P' ? 'PROPIO' : 'ALQUILADO', ter: x === 'P' ? st.terD : st.terA, cols: HX[x].cols }; };
+  var mc = g + '-' + (i <= 1 ? i : i <= 3 ? 2 : i - 1);
+  if(i === nTot && { costo: 1, venta: 1, cacum: 1, vacum: 1 }[g]){
+    var que = { costo: 'Costo', venta: 'Venta', cacum: 'Costo acumulado', vacum: 'Venta acumulada' }[g];
+    return que + ' = RyM + MOV' + (st.terD ? ' + Dep de los propios' : '') + (st.terA ? ' + Alq de los alquilados' : '')
+      + ' de esta misma fila. ' + (st.terD ? '' : 'La depreciación está fuera (botón DEP); el Excel sí la suma. ')
+      + (st.terA ? 'El alquiler está sumado (botón ALQ): sale de la tarifa de venta, no es un costo real.' : 'El alquiler no se suma, igual que en las hojas ALQ.')
+      + hxNivelOrigen(st, n);
+  }
+  var tipo = esDep ? 'P' : esAlq ? 'A' : (n.o && n.o.np && !n.o.nq ? 'P' : n.o && n.o.nq && !n.o.np ? 'A' : null);
+  if(tipo) return hxOrigenPA(ps(tipo), n, mc, true) + hxNivelOrigen(st, n);
+  var x = hxOrigenPA(ps('P'), n, mc, true), y = hxOrigenPA(ps('A'), n, mc, true);
+  return (x === y ? x : 'PROPIOS: ' + x + ' ALQUILADOS: ' + y) + hxNivelOrigen(st, n);
+}
+function hxOrigenPA(st, n, col, sinNivel){
   var esProp = st.s === 'P', p = col.split('-'), g = p[0], i = parseInt(p[1], 10);
   var corte = hxCorte(), t3 = esProp ? 'Dep' : 'Alq', dias = SEP.diasMes || 30;
   /* la hoja de reporte de la fila: la de su proyecto, o la de cada uno */
@@ -359,13 +459,7 @@ function hxOrigen(st, n, col){
            + '), hasta el día ' + corte + '. Cuadra con la hoja equipo por equipo.';
   /* lo que en el Excel es formula se toma de la fila del equipo, tal cual */
   var de = function(bloque, rot){ return 'Columna «' + rot + '» del bloque «' + bloque + '» de ' + hoja + ', tal cual.'; };
-  var nivel = /^o\|/.test(n.k || '') ? ' Alcance: sólo las líneas de esta orden de trabajo.'
-            : n.ot ? ' Alcance: sólo el costo de las ' + hxNOrdenes(n) + ' órdenes que cuelgan de esta fila'
-                     + (n.esFase ? ' (fase ' + n.et + ')' : '') + '; horas, venta y depreciación no se reparten por fase.'
-            : n.id ? ' Alcance: sólo este equipo.'
-            : n.esMod && n.lv > 1 ? ' Alcance: suma de los ' + n.o.n + ' equipos de este modelo en esta rama.'
-            : n.lv === 2 ? ' Alcance: sólo este equipo.'
-            : ' Alcance: suma de los ' + n.o.n + ' equipos de ' + (n.lv === 0 ? 'esta familia.' : 'este modelo.');
+  var nivel = hxNivelOrigen(st, n);
   var grupo = n.lv < 2 && !n.id ? ' En un grupo es la suma de sus equipos.' : '';
   var nomC = ['RyM', 'MOV', t3, 'Total'];
   var porDias = (esProp ? SEP.depPorDias : SEP.alqPorDias) || [];
@@ -396,7 +490,7 @@ function hxOrigen(st, n, col){
       : de('Acumulado 2026', ['RYM', 'MOV', t3, 'Seg', '', 'Horas'][i]) + ' Es el libro mayor del año más el mes, como lo arma el Excel.' + grupo;
   else if(g === 'vacum') o = i < 3 ? de('Acumulado 2026 (venta)', nomC[i]) + grupo : hxOrTot(st, 'Venta acumulada');
   else if(g === 'dacum') o = 'Venta acumulada − costo acumulado, columna ' + nomC[i] + '.';
-  return o + nivel;
+  return sinNivel ? o : o + nivel;
 }
 function hxBarraOrigen(s){
   var st = HX[s], el = $('hx-origen-' + s);
@@ -637,16 +731,17 @@ function hxNotasLocal(){
   try { return JSON.parse(localStorage.getItem('torreSet.notas') || '{}') || {}; } catch(e){ return {}; }
 }
 function hxEstado(){
-  ['P', 'A'].forEach(function(s){
+  HX_HOJAS.forEach(function(s){
     var st = HX[s];
     if(!st.arbol) return;
+    var alq = (s === 'A' && st.ter) || (s === 'T' && st.terA);
     var n = 0, k;
     for(k in HX_NOTAS) if(k.indexOf(s + '.') === 0 && HX_NOTAS[k].texto) n++;
     /* lo esencial queda a la vista aunque el bloque este plegado */
     htm('hx-infoRes-' + s, ' · <b>' + n + (n === 1 ? ' comentario' : ' comentarios') + '</b> · '
       + fmt(st.vistas || 0) + ' filas a la vista'
-      + (s === 'A' && st.ter ? ' · <span class="av">⚠ el alquiler no es costo real</span>' : ''));
-    htm('hx-estado-' + s, (s === 'A' && st.ter ? '<span class="neg" style="color:#B3261E">' + esc(hxAvisoAlq(st.todos).toUpperCase()) + '</span><br>' : '')
+      + (alq ? ' · <span class="av">⚠ el alquiler no es costo real</span>' : ''));
+    htm('hx-estado-' + s, (alq ? '<span class="neg" style="color:#B3261E">' + esc(hxAvisoAlq(s === 'T' ? st.todos.filter(function(e){ return e.o.nq; }) : st.todos, s === 'T' ? 3 : 2).toUpperCase()) + '</span><br>' : '')
       + fmt(st.vistas || 0) + ' FILAS A LA VISTA · <b>' + n
       + (n === 1 ? ' COMENTARIO' : ' COMENTARIOS') + '</b> · '
       + (hxDb ? 'LOS COMENTARIOS SE GUARDAN EN LA PÁGINA Y LOS VE QUIEN LA ABRA'
@@ -664,7 +759,7 @@ function hxTituloCol(st, col){
 }
 function hxAbrirNota(s, n, col){
   var k = hxClaveNota(s, n, col), nota = HX_NOTAS[k] || {};
-  hxNotaAbierta = { k: k, fila: (s === 'P' ? 'PROPIOS' : 'ALQUILADOS') + ' · ' + hxNivelesDe(HX[s])[n.lv] + ' ' + n.et
+  hxNotaAbierta = { k: k, fila: (s === 'P' ? 'PROPIOS' : s === 'A' ? 'ALQUILADOS' : 'TODA LA FLOTA') + ' · ' + (n.esTot ? 'TOTAL DE LA TABLA' : hxNivelesDe(HX[s])[n.lv] + ' ' + n.et)
                               + ' · ' + hxTituloCol(HX[s], col) };
   txt('hx-ed-fila', hxNotaAbierta.fila);
   var ta = $('hx-ed-txt'); ta.value = nota.texto || '';
@@ -707,10 +802,13 @@ function hxGuardarNota(texto){
 /* ---------- pintado ---------- */
 function hxCifras(s){
   /* las tarjetas siguen a lo que se ve: con una seleccion o un filtro, suman solo eso */
-  var st = HX[s], tot = st.totalVista || st.total, esProp = s === 'P', ter = st.ter, h = tot.hr;
-  var tc = hxTc(tot, ter), tv = hxTv(tot, ter), d = tv - tc;
+  var st = HX[s], tot = st.totalVista || st.total, esProp = s === 'P', ter = st.ter, h = tot.hr, esT = s === 'T';
+  var tc = esT ? hxTcT(st, tot) : hxTc(tot, ter), tv = esT ? hxTvT(st, tot) : hxTv(tot, ter), d = tv - tc;
   var comps = [['RyM', 0], ['MOV', 1]];
-  if(ter) comps.push([esProp ? 'Dep' : 'Alq', 2]);
+  if(esT){ if(st.terD && tot.np) comps.push(['Dep', 2]); if(st.terA && tot.nq) comps.push(['Alq', 3]); }
+  else if(ter) comps.push([esProp ? 'Dep' : 'Alq', 2]);
+  var fuera = esT ? [st.terD ? '' : 'sin depreciación', st.terA ? 'con alquiler (no es costo real)' : 'sin alquiler'].filter(Boolean).join(' · ')
+                  : (ter ? '' : (esProp ? 'sin depreciación' : 'sin alquiler'));
   var tarjeta = function(l, v, cuerpo, cl){
     return '<div><div class="gl">' + l + '</div><div class="gt' + (cl ? ' ' + cl : '') + '">' + v + '</div>' + cuerpo + '</div>';
   };
@@ -752,7 +850,7 @@ function hxCifras(s){
   ]);
   htm('hx-cifras-' + s,
       tarjeta('COSTO REAL AL DÍA ' + hxCorte(), 'US$ ' + fmt(tc),
-              cv(tot.c, tot.v, 1) + (ter ? '' : gd(esProp ? 'sin depreciación' : 'sin alquiler')))
+              cv(tot.c, tot.v, 1) + (fuera ? gd(fuera) : ''))
     + tarjeta('VENTA INTERNA', 'US$ ' + fmt(tv), ventas + gd('tarifa de venta × horas reales'))
     + tarjeta('VENTA − COSTO', (d > 0 ? '+' : d < 0 ? '−' : '') + 'US$ ' + fmt(Math.abs(d)),
               desv + gd(d < 0 ? 'el costo supera a la venta' : 'la venta cubre el costo'), d < 0 ? 'alza' : 'bien')
@@ -780,7 +878,8 @@ function hxBarras(filas){
 var HX_MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre',
                 'octubre', 'noviembre', 'diciembre'];
 function hxTarjetaAcum(st, tot, ter, esProp, comps){
-  var A = tot.A, tac = hxTac(tot, ter), tav = hxTav(tot, ter), h = A.h, t3 = esProp ? 'Depreciación' : 'Alquiler';
+  var esT = st.s === 'T';
+  var A = tot.A, tac = esT ? hxTacT(st, tot) : hxTac(tot, ter), tav = esT ? hxTavT(st, tot) : hxTav(tot, ter), h = A.h, t3 = esProp ? 'Depreciación' : 'Alquiler';
   var per = SEP.acumPeriodos || [];
   var desde = per.length ? HX_MESES[per[0] - 1] + (per.length > 1 ? ' a ' + HX_MESES[per[per.length - 1] - 1] : '') : 'ningún mes';
   var dv = function(x){ return '<span class="' + (x < -0.5 ? 'neg' : x > 0.5 ? 'pos' : '') + '">' + (x > 0.5 ? '+' : '') + fmt(x) + '</span>'; };
@@ -802,15 +901,18 @@ function hxTarjetaAcum(st, tot, ter, esProp, comps){
     + '<div class="gDet"><table><thead><tr><th>ACUMULADO 2026</th><th>▼ COSTO</th><th>▲ VENTA</th><th>± V − C</th></tr></thead><tbody>'
     + fila('RyM', A.c[0], A.v[0])
     + fila('MOV', A.c[1], A.v[1])
-    + fila(t3 + (ter ? '' : ' · fuera del total'), A.c[2], A.v[2], ter ? '' : 'z')
-    + fila('Seg / otros', A.c[3], null)
+    + (esT ? fila('Depreciación' + (st.terD ? '' : ' · fuera del total'), A.c[2], A.v[2], st.terD ? '' : 'z')
+           + fila('Alquiler' + (st.terA ? '' : ' · fuera del total'), A.c[3], A.v[3], st.terA ? '' : 'z')
+           + fila('Seg / otros', A.c[4], null)
+         : fila(t3 + (ter ? '' : ' · fuera del total'), A.c[2], A.v[2], ter ? '' : 'z')
+           + fila('Seg / otros', A.c[3], null))
     + fila('Total', tac, tav, 'tot')
     + '<tr><td>Horas</td><td colspan="3">' + fmt(h) + ' h</td></tr>'
     + '<tr><td>Tarifa por hora</td><td colspan="3">real US$ ' + (h ? (tac / h).toFixed(1) : '—')
       + ' · venta US$ ' + (h ? (tav / h).toFixed(1) : '—') + '</td></tr>'
     + '</tbody></table>'
-    + '<p>Libro mayor de ' + desde + ' (bloque ACUMULADO 2026 de BASE VARIOS) más setiembre al día ' + hxCorte()
-    + ', con la misma regla para todos los equipos. ' + (ter ? '' : 'El ' + t3.toLowerCase() + ' no entra al total (botón ' + (esProp ? 'SIN DEP' : 'SIN ALQ') + '). ')
+    + '<p>Los bloques «Acumulado 2026» de las hojas PROP y ALQ, tal cual: el libro mayor de ' + desde + ' más setiembre al día ' + hxCorte()
+    + '. ' + (esT ? '' : (ter ? '' : 'El ' + t3.toLowerCase() + ' no entra al total (botón ' + (esProp ? 'SIN DEP' : 'SIN ALQ') + '). '))
     + 'Seg / otros no suma al costo, como en el Excel.</p></div></details>';
 }
 
@@ -864,16 +966,16 @@ function hxTabla(s){
       + (n.sub ? '<span class="sub">' + esc(n.sub) + '</span>' : '')
       /* familia, modelo y equipo llevan TABLERO; el equipo ademas VER (en
          cualquiera de los dos ordenes: el equipo es el nodo con id) */
-      + (n.lv === 0 || n.esMod || /^m\|/.test(n.k) || n.id ? '<button type="button" class="xlIr" data-tb="' + esc(n.k)
+      + ((n.lv === 0 || n.esMod || /^m\|/.test(n.k) || n.id) && hxTipoNodo(st, n) ? '<button type="button" class="xlIr" data-tb="' + esc(n.k)
           + '" title="Abrir el tablero de análisis de ' + (n.id ? 'este equipo' : n.lv ? 'este modelo' : 'esta familia') + '">TABLERO ▦</button>' : '')
       + (n.id && byId[n.id] ? '<button type="button" class="xlIr" data-ir="' + esc(n.id)
           + '" title="Abrir este equipo en la pestaña Equipo">VER ↗</button>' : '')
       + m + '</td>' + hxCeldas(st, n, o0) + '</tr>';
   }).join('') || '<tr><td class="fija">Ningún equipo ' + (filt ? 'cumple los filtros' : 'con esa búsqueda') + '.</td><td colspan="80"></td></tr>';
-  var tot = st.totalVista || st.total;
-  var pie = '<tr><td class="fija">Total · ' + fmt(tot.n) + (filt ? ' de ' + fmt(st.total.n) : '') + ' equipos'
-    + (filt ? '<span class="xo">original, sin filtros</span>' : '') + '</td>'
-    + hxCeldas(st, { o: tot }, filt ? st.total : null) + '</tr>';
+  var tot = st.totalVista || st.total, nt = hxNodoTotal(st);
+  var pie = '<tr data-k="' + esc(nt.k) + '"><td class="fija">Total · ' + fmt(tot.n) + (filt ? ' de ' + fmt(st.total.n) : '') + ' equipos'
+    + (filt ? '<span class="xo">original, sin filtros</span>' : '') + hxMarca(st, nt, 'et') + '</td>'
+    + hxCeldas(st, nt, filt ? st.total : null) + '</tr>';
   hxBarraFiltros(s);
   htm('hx-tabla-' + s, '<thead><tr class="g">' + cab1 + '</tr><tr class="c">' + cab2 + '</tr></thead>'
     + '<tbody>' + cuerpo + '</tbody><tfoot>' + pie + '</tfoot>');
@@ -884,9 +986,9 @@ function hxTabla(s){
 /* Con el alquiler sumado la cifra no es un costo real: el consolidado lo
    calcula con la tarifa de VENTA, asi que es la misma a los dos lados. Se
    dice cada vez. */
-function hxAvisoAlq(nodos){
+function hxAvisoAlq(nodos, i){
   var nc = 0;
-  nodos.forEach(function(e){ if(e.o.c[2] > 0) nc++; });
+  nodos.forEach(function(e){ if(e.o.c[i || 2] > 0) nc++; });
   return 'EL ALQUILER NO ES UN COSTO REAL: el consolidado lo calcula con la tarifa de VENTA de alquiler × horas (' + nc
     + ' de ' + nodos.length + ' equipos lo tienen), así que suma lo mismo al costo y a la venta. '
     + 'Úsalo para ver cuánto pesa el alquiler, no para concluir si se cumple.';
@@ -899,7 +1001,7 @@ function hxPonerTer(s, si){
   hxCifras(s); hxBotones(s); hxTabla(s);
   if(typeof tbTer === 'function') tbTer(s);
 }
-function hxPintarTodo(){ ['P', 'A'].forEach(function(s){ if(HX[s].arbol) hxTabla(s); }); }
+function hxPintarTodo(){ HX_HOJAS.forEach(function(s){ if(HX[s].arbol) hxTabla(s); }); }
 
 /* abre todo hasta un nivel, como los botones 1 2 3 4 del esquema de Excel */
 function hxNivel(s, nivel){
@@ -944,7 +1046,12 @@ function hxBotones(s){
   var soloMes = hayOculto && st.cols.every(function(g){ return !st.cerrado[g.id]; });
   var totales = !hayOculto && st.cols.every(function(g){ return st.cerrado[g.id]; });
   var nom = s === 'P' ? 'DEP' : 'ALQ';
-  htm('hx-ter-' + s,
+  if(s === 'T') htm('hx-ter-T',
+      '<button class="fbt" type="button" data-t="d" aria-pressed="' + !!st.terD + '" title="Depreciación de los propios: '
+        + (st.terD ? 'sumada al costo y a la venta (clic para quitarla)' : 'fuera del total (clic para sumarla)') + '">' + (st.terD ? 'CON' : 'SIN') + ' DEP</button>'
+    + '<button class="fbt" type="button" data-t="a" aria-pressed="' + !!st.terA + '" title="Alquiler de los alquilados (tarifa de venta, no costo real): '
+        + (st.terA ? 'sumado al total (clic para quitarlo)' : 'fuera del total, como en el Excel (clic para sumarlo)') + '">' + (st.terA ? 'CON' : 'SIN') + ' ALQ</button>');
+  else htm('hx-ter-' + s,
       '<button class="fbt" type="button" data-t="1" aria-pressed="' + !!st.ter + '">CON ' + nom + '</button>'
     + '<button class="fbt" type="button" data-t="0" aria-pressed="' + !st.ter + '">SIN ' + nom + '</button>');
   htm('hx-cols-' + s,
@@ -1169,7 +1276,7 @@ function hxAbrirEleccion(s, i, ancla){
    hoja, para que se vea entera con su fila Total sin bajar la pagina (como en
    Excel). En pantalla dividida manda el alto del panel (division.html). */
 function hxAjustarAlto(){
-  ['P', 'A'].forEach(function(s){
+  HX_HOJAS.forEach(function(s){
     var t = $('hx-tabla-' + s), env = t && t.parentElement;
     if(!env) return;
     if(document.body.classList.contains('dividida') || !env.offsetParent){ env.style.maxHeight = ''; return; }
@@ -1203,7 +1310,16 @@ function hxCerrarEleccion(){
 }
 document.addEventListener('click', function(){ if(hxElegirAbierto) hxCerrarEleccion(); });
 
+/* la fila Total como un nodo mas, para elegir sus cifras y comentarlas. Su
+   clave va con los proyectos elegidos: el comentario del total de ATOC no es
+   el del total de todos. Los filtros por valor no cambian la clave. */
+function hxNodoTotal(st){
+  var ss = todasLasSedes() ? 'TODOS' : sedeSel.join('+');
+  return { k: 'tot|' + ss, lv: -1, esTot: 1, et: 'Total' + (ss === 'TODOS' ? '' : ' ' + ss.replace(/\+/g, ' + ')),
+           o: st.totalVista || st.total, hijos: [] };
+}
 function hxBuscarNodo(st, k){
+  if(/^tot\|/.test(k || '')){ var nt = hxNodoTotal(st); return nt.k === k ? nt : null; }
   var hit = null;
   var baja = function(lista){
     lista.forEach(function(n){ if(n.k === k) hit = n; else if(!hit) baja(n.hijos); });
@@ -1219,7 +1335,9 @@ function hxIniciar(s){
   if(!tabla || !SEP || !SEP.eq) return;
   st.s = s; st.sel = null;
   st.ter = s === 'P';
-  st.cols = hxColumnas(s === 'P', st);
+  /* TODA LA FLOTA abre como el Excel: con depreciacion, sin alquiler */
+  st.terD = true; st.terA = false;
+  st.cols = s === 'T' ? hxColumnasT(st) : hxColumnas(s === 'P', st);
   st.cerrado = {}; st.oculto = {}; st.filtros = {}; st.busca = ''; st.ab = {};
   st.modo = 'desplegar'; st.eleg = { fam: [], mod: [], eq: [], fa: [], ot: [] };
   /* el orden de modelo, equipo y fase que se dejo la ultima vez en esta hoja */
@@ -1229,7 +1347,7 @@ function hxIniciar(s){
     if(on && on.length === 3 && on.slice().sort().join() === 'eq,fa,mod') st.ordenNiv = on;
     else if(localStorage.getItem('torreSet.faseAntes.' + s) === '1') st.ordenNiv = ['mod', 'fa', 'eq'];
   } catch(e){}
-  st.ord = { g: 'costo', i: 3, dir: -1 };
+  st.ord = { g: 'costo', i: hxIdxTotal(s), dir: -1 };
   hxArbol(s);
   hxNivel(s, 1);
   hxCifras(s); hxBotones(s); hxTabla(s);
@@ -1284,12 +1402,12 @@ function hxIniciar(s){
     var fb = q('[data-f]');
     if(fb){ ev.stopPropagation(); hxAbrirFiltro(s, fb.getAttribute('data-f'), fb); return; }
     var g = q('[data-g]'), cn = q('[data-cn]'), ir = q('[data-ir]'), th = q('th[data-s]'), tb = q('[data-tb]');
-    var tr = q('tbody tr[data-k]'), td = q('tbody td');
+    var tr = q('tbody tr[data-k], tfoot tr[data-k]'), td = q('tbody td, tfoot td');
     if(g){ var id = g.getAttribute('data-g'); st.cerrado[id] = !st.cerrado[id]; return repinta(); }
     var nodo = tr ? hxBuscarNodo(st, tr.getAttribute('data-k')) : null;
     /* la esquina de una celda comentada abre su comentario */
     if(cn && nodo){ hxAbrirNota(s, nodo, cn.getAttribute('data-cn')); return; }
-    if(tb && nodo){ abrirTablero(st.tipo, nodo.fam, nodo.mod, nodo.id || ''); return; }
+    if(tb && nodo && hxTipoNodo(st, nodo)){ abrirTablero(hxTipoNodo(st, nodo), nodo.fam, nodo.mod, nodo.id || ''); return; }
     /* una cifra se elige, y la barra de arriba dice de donde sale; la primera
        columna es la que despliega, como el signo + de una dinamica */
     if(td && nodo && td.cellIndex > 0){
@@ -1417,13 +1535,19 @@ function hxIniciar(s){
       if(c === 'mes' && g.ac) st.oculto[g.id] = true;
     });
     /* si se ordenaba por una columna que ya no esta, vuelve al costo total */
-    if(st.oculto[st.ord.g]) st.ord = { g: 'costo', i: 3, dir: -1 };
+    if(st.oculto[st.ord.g]) st.ord = { g: 'costo', i: hxIdxTotal(s), dir: -1 };
     repinta();
   });
   esc_('hx-ter-' + s, 'click', function(ev){
     var b = ev.target.closest ? ev.target.closest('[data-t]') : null;
     if(!b) return;
-    hxPonerTer(s, b.getAttribute('data-t') === '1');
+    var w = b.getAttribute('data-t');
+    if(s === 'T'){
+      if(w === 'd') st.terD = !st.terD; else st.terA = !st.terA;
+      hxBotones(s); hxTabla(s);
+      return;
+    }
+    hxPonerTer(s, w === '1');
   });
   esc_('hx-origen-' + s, 'click', function(ev){
     var b = ev.target.closest ? ev.target.closest('[data-com]') : null, n = st.sel ? hxBuscarNodo(st, st.sel.k) : null;
@@ -1438,7 +1562,7 @@ function hxIniciar(s){
 }
 
 HX_NOTAS = hxNotasLocal();
-['P', 'A'].forEach(hxIniciar);
+HX_HOJAS.forEach(hxIniciar);
 
 esc_('hx-ed-cerrar', 'click', hxCerrarNota);
 esc_('hx-ed-guardar', 'click', function(){ hxGuardarNota($('hx-ed-txt').value.trim().slice(0, 4000)); });

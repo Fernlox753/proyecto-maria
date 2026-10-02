@@ -23,11 +23,16 @@ dinámicas y se cruzan equipo por equipo con las hojas PROP y ALQ; lo que en el 
   filtros por valor en cada columna, **DESPLEGAR / SELECCIONAR** para elegir familias, modelos,
   equipos u órdenes (las tarjetas y los totales se recalculan), comentarios por celda y una barra
   que dice de dónde sale cada cifra.
+- **Toda la flota**: Propios y Alquilados juntos en una sola tabla, con las columnas de
+  depreciación y de alquiler siempre a la vista (guion donde no aplica) y botones CON/SIN DEP y
+  CON/SIN ALQ para sumarlas o no al total. Las cifras de la fila Total también se pueden comentar,
+  en las tres hojas.
 - **Tablero**: el análisis de una o varias familias, modelos o equipos en siete pasos (resultado,
   horas, tarifa, causa, RyM y MOV, equipos, acumulado).
 - **Pantalla dividida** (botón ⊟ o tecla D): dos pestañas a la vez, una arriba y otra abajo.
 - **Pantalla completa** con la tecla F y una burbuja de herramientas con calculadora, suma y
-  **Desviaciones** (el cuadro del desfase de agosto y setiembre, `TORRE_SETIEMBRE\desviaciones.png`).
+  **Desviaciones** (el cuadro del desfase de agosto y setiembre, `TORRE_SETIEMBRE\desviaciones.png`,
+  dentro de la misma burbuja, que se arrastra y deja seguir usando la tabla).
 - **Equipo**: cada máquina de la flota (unos 80 modelos: camiones CAT, Komatsu, TONLY, LGMG,
   Scania, Mercedes, Kenworth…, excavadoras, palas, cargadores, tractores, motoniveladoras,
   perforadoras y torres de iluminación) en un modelo 3D armado con las medidas del fabricante, con

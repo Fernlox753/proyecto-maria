@@ -78,24 +78,17 @@ body.bzElige,body.bzElige *{cursor:copy !important}
 .bz{width:460px}
 .bzTools{flex-wrap:wrap}
 .bzTools button{flex:1 1 auto; padding:8px 7px; white-space:nowrap; letter-spacing:.04em}
-/* DESVIACIONES: el cuadro del desfase, a pantalla casi completa. La imagen
-   se ve a su ancho (1329 px) o, si no cabe, al ancho de la pantalla; con ⤢
-   se ve a tamaño real y se desliza. */
-.bzDesv{position:fixed; inset:0; z-index:130; display:flex; align-items:center; justify-content:center;
-  padding:clamp(10px,3vw,40px); background:rgba(4,17,29,.72)}
-.bzDesv[hidden]{display:none}
-.bzDesvCaja{box-sizing:border-box; width:min(100%,1400px); max-height:100%; display:flex; flex-direction:column;
-  background:#fff; border:1px solid var(--tinta); box-shadow:0 30px 80px rgba(0,0,0,.45)}
-.bzDesvCab{display:flex; align-items:center; gap:10px; padding:9px 10px 9px 16px; background:var(--tinta); color:#fff}
-.bzDesvCab b{flex:1; font-family:"IBM Plex Mono",monospace; font-size:13px; letter-spacing:.18em; font-weight:600}
-.bzDesvCab button{all:unset; cursor:pointer; min-width:30px; height:28px; padding:0 8px; box-sizing:border-box; text-align:center;
-  line-height:26px; font-family:"IBM Plex Mono",monospace; font-size:13px; color:#fff; border:1px solid rgba(255,255,255,.4)}
-.bzDesvCab button:hover{background:rgba(255,255,255,.14)}
-.bzDesvCab button:focus-visible{outline:2px solid var(--hivis)}
-.bzDesvEnv{overflow:auto; padding:clamp(10px,2vw,26px); background:#fff; text-align:center}
-.bzDesvEnv img{display:block; margin:0 auto; width:100%; max-width:1329px; height:auto}
-.bzDesv.real .bzDesvEnv{text-align:left}
-.bzDesv.real .bzDesvEnv img{width:1329px; max-width:none}
+/* DESVIACIONES: el cuadro del desfase dentro de la misma burbuja, que se
+   pone horizontal. No tapa la pagina: se arrastra por la cabecera y la tabla
+   de abajo se sigue moviendo. − y + cambian el ancho; REAL lo deja a 1329 px. */
+.bz.ancho{width:var(--bzAncho,900px); max-width:calc(100vw - 12px)}
+.bzDesvCuerpo{padding:8px 10px 10px}
+.bzDesvCuerpo[hidden]{display:none}
+.bzDesvBar{display:flex; align-items:center; gap:5px; margin-bottom:8px; font-family:"IBM Plex Mono",monospace;
+  font-size:11px; letter-spacing:.08em; color:var(--tinta-3)}
+.bzDesvBar span{flex:1}
+.bzDesvEnv{overflow:auto; max-height:calc(100vh - 160px); background:#fff}
+.bzDesvEnv img{display:block; width:100%; height:auto}
 </style>
 
 <div class="bz" id="bz" role="dialog" aria-label="Herramientas" hidden>
@@ -110,17 +103,15 @@ body.bzElige,body.bzElige *{cursor:copy !important}
     <button type="button" data-h="suma" aria-pressed="false" title="Suma varias cifras, como la barra de estado de Excel">Σ SUMAR</button>
     <button type="button" data-h="enc" title="Quitar o poner el encabezado">▴▾ VISTA</button>
     <button type="button" data-h="arriba" title="Volver al comienzo de la hoja">↑ ARRIBA</button>
-    <button type="button" data-h="desv" title="Abrir el cuadro de desviaciones (desfase de agosto y setiembre)">▤ DESVIACIONES</button>
+    <button type="button" data-h="desv" title="El cuadro de desviaciones (desfase de agosto y setiembre) dentro de la burbuja">▤ DESVIACIONES</button>
   </div>
   <div class="bzCuerpo" id="bzCuerpo" aria-live="polite"></div>
-</div>
-
-<div class="bzDesv" id="bzDesv" role="dialog" aria-modal="true" aria-label="Desviaciones" hidden>
-  <div class="bzDesvCaja">
-    <div class="bzDesvCab"><b>DESVIACIONES</b>
-      <button type="button" id="bzDesvReal" aria-pressed="false" title="Ver a tamaño real">⤢ TAMAÑO REAL</button>
-      <button type="button" id="bzDesvCerrar" aria-label="Cerrar" title="Cerrar (Esc)">×</button>
-    </div>
+  <div class="bzDesvCuerpo" id="bzDesvCuerpo" hidden>
+    <div class="bzDesvBar"><span>DESVIACIONES · ARRASTRA LA CABECERA PARA MOVERLO</span>
+      <button type="button" class="bzBtn" data-dz="-" title="Más angosto">−</button>
+      <button type="button" class="bzBtn" data-dz="+" title="Más ancho">+</button>
+      <button type="button" class="bzBtn" data-dz="real" title="A su tamaño real (1329 px)">REAL</button></div>
     <div class="bzDesvEnv"><img src="__DESVIACIONES__" alt="Desviaciones: desfase total, de depreciación y de flujo de agosto y setiembre, y el detalle del desfase de flujo de setiembre por partida, en flota alquilada y propia" decoding="async"></div>
   </div>
 </div>
+

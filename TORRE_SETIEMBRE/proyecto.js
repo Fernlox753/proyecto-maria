@@ -153,7 +153,7 @@ function sedeCambio(){
 /* Propios y Alquilados se rearman con los equipos del proyecto; el Tablero
    las sigue. Lo desplegado y los filtros por valor se conservan. */
 function sedeHojas(){
-  ['P', 'A'].forEach(function(s){
+  HX_HOJAS.forEach(function(s){
     var st = HX[s];
     if(!st || !st.arbol) return;
     hxArbol(s);
@@ -202,6 +202,7 @@ function sedeTextos(){
   };
   txt('hx-como-P', 'FLOTA PROPIA · COMO ' + hojaDe(' PROP'));
   txt('hx-como-A', 'FLOTA ALQUILADA · COMO ' + hojaDe(' ALQ'));
+  txt('hx-como-T', 'TODA LA FLOTA · ' + (todasLasSedes() ? 'LAS HOJAS PROP Y ALQ JUNTAS' : sedeSel.join(' + ') + ' · PROP Y ALQ JUNTAS'));
 }
 
 /* ---------- los grupos en cada pestana ---------- */
