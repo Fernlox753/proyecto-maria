@@ -15,7 +15,7 @@
    los totales NO suman el tercer componente, igual que en el Excel.
    ══════════════════════════════════════════════════════════════════ */
 var HX = { P: { tipo: 'PROPIO' }, A: { tipo: 'ALQUILADO' }, T: { tipo: '*' } };
-/* T: TODA LA FLOTA, las dos hojas en una. Cada fila lleva los cuatro
+/* T: FLOTA COMPLETA, las dos hojas en una. Cada fila lleva los cuatro
    componentes por separado —c, v y A.v = [RyM, MOV, Dep, Alq]; A.c =
    [RyM, MOV, Dep, Alq, Seg]— y cuantos equipos propios (np) y alquilados
    (nq) suma: sin propios la columna Dep va con guion, sin alquilados la de
@@ -26,7 +26,7 @@ function hxTcT(st, o){ return o.c[0] + o.c[1] + (st.terD && o.np ? o.c[2] : 0) +
 function hxTvT(st, o){ return o.v[0] + o.v[1] + (st.terD && o.np ? o.v[2] : 0) + (st.terA && o.nq ? o.v[3] : 0); }
 function hxTacT(st, o){ return o.A.c[0] + o.A.c[1] + (st.terD && o.np ? o.A.c[2] : 0) + (st.terA && o.nq ? o.A.c[3] : 0); }
 function hxTavT(st, o){ return o.A.v[0] + o.A.v[1] + (st.terD && o.np ? o.A.v[2] : 0) + (st.terA && o.nq ? o.A.v[3] : 0); }
-/* el tipo de flota de una fila de TODA LA FLOTA, si es uno solo (para el TABLERO) */
+/* el tipo de flota de una fila de FLOTA COMPLETA, si es uno solo (para el TABLERO) */
 function hxTipoNodo(st, n){
   if(st.s !== 'T') return st.tipo;
   if(n.id && SEP.eq[n.id]) return SEP.eq[n.id].tipo;
@@ -420,7 +420,7 @@ function hxNivelOrigen(st, n){
             : n.lv === 2 ? ' Alcance: sólo este equipo.'
             : ' Alcance: suma de los ' + n.o.n + ' equipos de ' + (n.lv === 0 ? 'esta familia.' : 'este modelo.');
 }
-/* TODA LA FLOTA: Dep se explica como en la hoja PROP y Alq como en la ALQ; en
+/* FLOTA COMPLETA: Dep se explica como en la hoja PROP y Alq como en la ALQ; en
    las demas columnas, una fila de una sola flota como la hoja de esa flota y
    una mezclada con las dos explicaciones */
 function hxOrigen(st, n, col){
@@ -723,6 +723,24 @@ function hxLista(st){
 
 /* ---------- comentarios ---------- */
 var HX_NOTAS = {}, hxDb = null, hxUser = null, hxUid = null, hxNotaAbierta = null;
+/* una copia de los comentarios del artifact, para la version de GitHub, que no
+   tiene su base de datos: ensamblar.py la mete desde notas_artifact.json. Con
+   la base (en el artifact) no se usa. Lo que se escribe aqui se guarda en este
+   navegador y manda sobre la copia; borrar uno copiado lo esconde (texto vacio). */
+var HX_NOTAS_COPIA = { fecha: '', notas: {} };
+function hxNotasSinBase(){
+  var m = {}, k, loc = hxNotasLocal();
+  for(k in HX_NOTAS_COPIA.notas) m[k] = HX_NOTAS_COPIA.notas[k];
+  for(k in loc) m[k] = loc[k];
+  return m;
+}
+/* a este navegador va solo lo que difiere de la copia */
+function hxGuardarLocal(){
+  var out = {}, k, c = HX_NOTAS_COPIA.notas;
+  for(k in HX_NOTAS) if(!c[k] || c[k].texto !== HX_NOTAS[k].texto) out[k] = HX_NOTAS[k];
+  for(k in c) if(!HX_NOTAS[k]) out[k] = { texto: '', ts: new Date().toISOString() };
+  try { localStorage.setItem('torreSet.notas', JSON.stringify(out)); } catch(e){}
+}
 function hxClaveNota(s, n, col){
   /* los ids de documento solo admiten letras, digitos y unos pocos signos */
   return s + '.' + n.k.replace(/[^A-Za-z0-9-]/g, '_').slice(0, 150) + '.' + col;
@@ -745,7 +763,8 @@ function hxEstado(){
       + fmt(st.vistas || 0) + ' FILAS A LA VISTA · <b>' + n
       + (n === 1 ? ' COMENTARIO' : ' COMENTARIOS') + '</b> · '
       + (hxDb ? 'LOS COMENTARIOS SE GUARDAN EN LA PÁGINA Y LOS VE QUIEN LA ABRA'
-              : 'LOS COMENTARIOS SE GUARDAN SÓLO EN ESTE NAVEGADOR')
+              : 'LOS COMENTARIOS NUEVOS SE GUARDAN SÓLO EN ESTE NAVEGADOR'
+                + (HX_NOTAS_COPIA.fecha ? ' · LOS DEMÁS SON UNA COPIA DE LOS DEL ARTIFACT AL ' + HX_NOTAS_COPIA.fecha.split('-').reverse().join('/') : ''))
       + ' · LA ESQUINA ROJA DE UNA CELDA ABRE SU COMENTARIO · PRIMERA COLUMNA: DESPLEGAR');
   });
 }
@@ -759,7 +778,7 @@ function hxTituloCol(st, col){
 }
 function hxAbrirNota(s, n, col){
   var k = hxClaveNota(s, n, col), nota = HX_NOTAS[k] || {};
-  hxNotaAbierta = { k: k, fila: (s === 'P' ? 'PROPIOS' : s === 'A' ? 'ALQUILADOS' : 'TODA LA FLOTA') + ' · ' + (n.esTot ? 'TOTAL DE LA TABLA' : hxNivelesDe(HX[s])[n.lv] + ' ' + n.et)
+  hxNotaAbierta = { k: k, fila: (s === 'P' ? 'PROPIOS' : s === 'A' ? 'ALQUILADOS' : 'FLOTA COMPLETA') + ' · ' + (n.esTot ? 'TOTAL DE LA TABLA' : hxNivelesDe(HX[s])[n.lv] + ' ' + n.et)
                               + ' · ' + hxTituloCol(HX[s], col) };
   txt('hx-ed-fila', hxNotaAbierta.fila);
   var ta = $('hx-ed-txt'); ta.value = nota.texto || '';
@@ -795,7 +814,7 @@ function hxGuardarNota(texto){
     return;
   }
   if(texto) HX_NOTAS[k] = reg; else delete HX_NOTAS[k];
-  try { localStorage.setItem('torreSet.notas', JSON.stringify(HX_NOTAS)); } catch(e){}
+  hxGuardarLocal();
   listo();
 }
 
@@ -1335,7 +1354,7 @@ function hxIniciar(s){
   if(!tabla || !SEP || !SEP.eq) return;
   st.s = s; st.sel = null;
   st.ter = s === 'P';
-  /* TODA LA FLOTA abre como el Excel: con depreciacion, sin alquiler */
+  /* FLOTA COMPLETA abre como el Excel: con depreciacion, sin alquiler */
   st.terD = true; st.terA = false;
   st.cols = s === 'T' ? hxColumnasT(st) : hxColumnas(s === 'P', st);
   st.cerrado = {}; st.oculto = {}; st.filtros = {}; st.busca = ''; st.ab = {};
@@ -1561,7 +1580,7 @@ function hxIniciar(s){
   });
 }
 
-HX_NOTAS = hxNotasLocal();
+HX_NOTAS = hxNotasSinBase();
 HX_HOJAS.forEach(hxIniciar);
 
 esc_('hx-ed-cerrar', 'click', hxCerrarNota);
@@ -1591,7 +1610,7 @@ if(window.claude && typeof window.claude.use === 'function'){
       });
       HX_NOTAS = m;
       hxPintarTodo();
-    }, function(){ hxDb = null; HX_NOTAS = hxNotasLocal(); hxPintarTodo(); });
+    }, function(){ hxDb = null; HX_NOTAS = hxNotasSinBase(); hxPintarTodo(); });
   }, function(){});
 }
 

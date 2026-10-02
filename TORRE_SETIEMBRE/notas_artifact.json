@@ -1,0 +1,13 @@
+{
+ "fecha": "2026-10-02",
+ "notas": {
+  "A.e_T-582-AL.desv-3": {"texto": "Se debe cobrar por anexo 3?", "ts": "2026-10-01T20:16:45.304Z"},
+  "A.m_EXCAVADORA_SOBRE_ORUGAS_374FL.desv-3": {"texto": "COSTO ASUMIDO POR ALQUILER, SUSTITUTO DE UN EQUIPO PROPIO. +4000", "ts": "2026-10-02T22:02:10.143Z"},
+  "A.m_PERFORADORA_ROCK_DRILL_T-450.desv-3": {"texto": "COSTO ASUMIDO POR ALQUILER, SUSTITUTO DE UN EQUIPO PROPIO. +2200", "ts": "2026-10-02T22:02:22.511Z"},
+  "A.tot_ATOC.desv-3": {"texto": "Se agrega +4000, total final -10, 524", "ts": "2026-10-02T22:01:35.903Z"},
+  "A.tot_TEMB.desv-3": {"texto": "Se agrega +14000, total final -8,754.\nConsiderar equipos:\nRE-1264-AL\nRE-1319-AL\nEP-159-AL", "ts": "2026-10-02T22:27:13.126Z"},
+  "A.tot_TRMA.desv-3": {"texto": "Se agrega +2200, total final -3,943.", "ts": "2026-10-02T22:25:31.735Z"},
+  "P.f_CAMI_N_FUERA_DE_CARRETERA.oper-2": {"texto": "por que estevalor", "ts": "2026-09-30T17:12:36.931Z"},
+  "P.m_CAMI_N_FUERA_DE_CARRETERA_785C.costo-2": {"texto": "hola", "ts": "2026-09-30T19:47:54.149Z"}
+ }
+}

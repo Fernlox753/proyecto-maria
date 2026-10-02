@@ -23,7 +23,7 @@ dinámicas y se cruzan equipo por equipo con las hojas PROP y ALQ; lo que en el 
   filtros por valor en cada columna, **DESPLEGAR / SELECCIONAR** para elegir familias, modelos,
   equipos u órdenes (las tarjetas y los totales se recalculan), comentarios por celda y una barra
   que dice de dónde sale cada cifra.
-- **Toda la flota**: Propios y Alquilados juntos en una sola tabla, con las columnas de
+- **Flota completa** (la primera hoja, antes de Propios y Alquilados): Propios y Alquilados juntos en una sola tabla, con las columnas de
   depreciación y de alquiler siempre a la vista (guion donde no aplica) y botones CON/SIN DEP y
   CON/SIN ALQ para sumarlas o no al total. Las cifras de la fila Total también se pueden comentar,
   en las tres hojas.
@@ -50,7 +50,9 @@ dinámicas y se cruzan equipo por equipo con las hojas PROP y ALQ; lo que en el 
   que la tabla ocupa toda la pantalla y el botón «⤢ SOLO LA TABLA».
 
 Los comentarios por celda se guardan en el navegador de quien los escribe cuando la página se abre
-desde GitHub Pages. En la versión publicada como Artifact de Claude se comparten entre quienes la abren.
+desde GitHub Pages; además se ve una copia de los comentarios hechos en el Artifact
+(`TORRE_SETIEMBRE
+otas_artifact.json`, con su fecha). En la versión publicada como Artifact de Claude se comparten entre quienes la abren.
 
 ## Cómo se regenera
 

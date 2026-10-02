@@ -360,6 +360,46 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
 }
 </style>
 
+<!-- ═══════════════════ FLOTA COMPLETA ═══════════════════ -->
+<section class="vista luz hojaXl" id="v-toda" data-pes="Flota completa">
+  <div class="wrap">
+    <div class="tituloV">
+      <div class="ord"><span class="num">03</span><span class="lin"></span><span class="num" id="hx-como-T">FLOTA COMPLETA · LAS HOJAS PROP Y ALQ JUNTAS</span></div>
+      <h2 class="d d-l">Flota completa, al día __CORTE__.</h2>
+      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
+      <p class="lede">Son <b>Propios</b> y <b>Alquilados</b> en una sola tabla: los equipos propios y los
+      alquilados de una misma familia y modelo se suman juntos. Las columnas de <b>depreciación</b> y de
+      <b>alquiler</b> van siempre a la vista; una fila sin equipos propios lleva guion en Dep y una sin
+      alquilados lo lleva en Alq. Los botones <b>DEP</b> y <b>ALQ</b> deciden si cada una entra al total:
+      abre como el Excel, con la depreciación y sin el alquiler, que <b>no es un costo real</b> (sale de la
+      tarifa de venta). Las cifras son las mismas de las dos hojas; el botón TABLERO sale sólo en las filas
+      de una sola flota. Sigue al proyecto, pero no a los demás filtros de otras pestañas.</p></details>
+    </div>
+    <div class="granTotal" id="hx-cifras-T"></div>
+    <div class="xlBarra">
+      <div class="sedeHueco" data-clase="gc"></div>
+      <div><span class="gcT xlModoT" id="hx-modo-T" role="group" aria-label="Qué hacen los botones de nivel"></span><div class="gcB" id="hx-nivel-T"></div></div>
+      <div><span class="gcT">EN EL COSTO</span><div class="gcB" id="hx-ter-T"></div></div>
+      <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-T"></div></div>
+      <label class="fl xlBusca">BUSCAR
+        <input class="entradaEq" id="hx-buscar-T" autocomplete="off" placeholder="equipo, modelo, familia, propio o alquilado" title="Busca por equipo, modelo, familia, proveedor o flota (PROPIO, ALQUILADO)"></label>
+      <div class="xlMaxG"><span class="gcT">PANTALLA</span><div class="gcB"><button class="fbt xlMaxBtn" type="button" data-s="T" aria-pressed="false" title="Ver solo la tabla, a toda la pantalla">⤢ SOLO LA TABLA</button></div></div>
+    </div>
+    <p class="xlGira">↻ Gira el teléfono: en horizontal la tabla muestra más columnas.</p>
+    <div class="xlMaxBar"><b>FLOTA COMPLETA</b><span>al día __CORTE__<span class="gi"> · gira el teléfono para ver más columnas</span></span><button class="xlMaxSalir" type="button" data-s="T">✕ VOLVER</button></div>
+    <div class="xlEnv"><table class="xl" id="hx-tabla-T"></table></div>
+    <details class="xlPlg xlOrigenD" id="hx-origenD-T" data-plg="origen">
+      <summary><span class="fx" aria-hidden="true">fx</span><span class="res" id="hx-origenRes-T">DE DÓNDE SALE CADA CIFRA · haz clic en una celda</span></summary>
+      <div class="xlOrigen" id="hx-origen-T" aria-live="polite"></div>
+    </details>
+    <details class="xlPlg xlInfo" id="hx-info-T" data-plg="info">
+      <summary><span class="ic" aria-hidden="true">i</span>COMENTARIOS Y LEYENDA<span class="res" id="hx-infoRes-T"></span></summary>
+      <div class="xlEstado" id="hx-estado-T"></div>
+      <div class="xlLey" aria-label="Leyenda de columnas"><span><i style="background:#4A5A78">▼</i>costo</span><span><i style="background:#4F7657">▲</i>venta interna</span><span><i style="background:#7A6A4F">±</i>venta − costo</span><span><i style="background:#3F6F72">◷</i>horas y operación</span><span><i style="background:#5E6C88">/h</i>por hora</span><span><i style="background:#384459">Σ</i>acumulado 2026</span><span><i style="background:#9AA3AF">–</i>no aplica (sin propios o sin alquilados)</span></div>
+    </details>
+  </div>
+</section>
+
 <!-- ═══════════════════ PROPIOS ═══════════════════ -->
 <section class="vista luz hojaXl" id="v-propios" data-pes="Propios">
   <div class="wrap">
@@ -445,46 +485,6 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
       <summary><span class="ic" aria-hidden="true">i</span>COMENTARIOS Y LEYENDA<span class="res" id="hx-infoRes-A"></span></summary>
       <div class="xlEstado" id="hx-estado-A"></div>
       <div class="xlLey" aria-label="Leyenda de columnas"><span><i style="background:#4A5A78">▼</i>costo</span><span><i style="background:#4F7657">▲</i>venta interna</span><span><i style="background:#7A6A4F">±</i>venta − costo</span><span><i style="background:#3F6F72">◷</i>horas y operación</span><span><i style="background:#5E6C88">/h</i>por hora</span><span><i style="background:#384459">Σ</i>acumulado 2026</span></div>
-    </details>
-  </div>
-</section>
-
-<!-- ═══════════════════ TODA LA FLOTA ═══════════════════ -->
-<section class="vista luz hojaXl" id="v-toda" data-pes="Toda la flota">
-  <div class="wrap">
-    <div class="tituloV">
-      <div class="ord"><span class="num">03</span><span class="lin"></span><span class="num" id="hx-como-T">TODA LA FLOTA · LAS HOJAS PROP Y ALQ JUNTAS</span></div>
-      <h2 class="d d-l">Toda la flota, al día __CORTE__.</h2>
-      <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
-      <p class="lede">Son <b>Propios</b> y <b>Alquilados</b> en una sola tabla: los equipos propios y los
-      alquilados de una misma familia y modelo se suman juntos. Las columnas de <b>depreciación</b> y de
-      <b>alquiler</b> van siempre a la vista; una fila sin equipos propios lleva guion en Dep y una sin
-      alquilados lo lleva en Alq. Los botones <b>DEP</b> y <b>ALQ</b> deciden si cada una entra al total:
-      abre como el Excel, con la depreciación y sin el alquiler, que <b>no es un costo real</b> (sale de la
-      tarifa de venta). Las cifras son las mismas de las dos hojas; el botón TABLERO sale sólo en las filas
-      de una sola flota. Sigue al proyecto, pero no a los demás filtros de otras pestañas.</p></details>
-    </div>
-    <div class="granTotal" id="hx-cifras-T"></div>
-    <div class="xlBarra">
-      <div class="sedeHueco" data-clase="gc"></div>
-      <div><span class="gcT xlModoT" id="hx-modo-T" role="group" aria-label="Qué hacen los botones de nivel"></span><div class="gcB" id="hx-nivel-T"></div></div>
-      <div><span class="gcT">EN EL COSTO</span><div class="gcB" id="hx-ter-T"></div></div>
-      <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-T"></div></div>
-      <label class="fl xlBusca">BUSCAR
-        <input class="entradaEq" id="hx-buscar-T" autocomplete="off" placeholder="equipo, modelo, familia, propio o alquilado" title="Busca por equipo, modelo, familia, proveedor o flota (PROPIO, ALQUILADO)"></label>
-      <div class="xlMaxG"><span class="gcT">PANTALLA</span><div class="gcB"><button class="fbt xlMaxBtn" type="button" data-s="T" aria-pressed="false" title="Ver solo la tabla, a toda la pantalla">⤢ SOLO LA TABLA</button></div></div>
-    </div>
-    <p class="xlGira">↻ Gira el teléfono: en horizontal la tabla muestra más columnas.</p>
-    <div class="xlMaxBar"><b>TODA LA FLOTA</b><span>al día __CORTE__<span class="gi"> · gira el teléfono para ver más columnas</span></span><button class="xlMaxSalir" type="button" data-s="T">✕ VOLVER</button></div>
-    <div class="xlEnv"><table class="xl" id="hx-tabla-T"></table></div>
-    <details class="xlPlg xlOrigenD" id="hx-origenD-T" data-plg="origen">
-      <summary><span class="fx" aria-hidden="true">fx</span><span class="res" id="hx-origenRes-T">DE DÓNDE SALE CADA CIFRA · haz clic en una celda</span></summary>
-      <div class="xlOrigen" id="hx-origen-T" aria-live="polite"></div>
-    </details>
-    <details class="xlPlg xlInfo" id="hx-info-T" data-plg="info">
-      <summary><span class="ic" aria-hidden="true">i</span>COMENTARIOS Y LEYENDA<span class="res" id="hx-infoRes-T"></span></summary>
-      <div class="xlEstado" id="hx-estado-T"></div>
-      <div class="xlLey" aria-label="Leyenda de columnas"><span><i style="background:#4A5A78">▼</i>costo</span><span><i style="background:#4F7657">▲</i>venta interna</span><span><i style="background:#7A6A4F">±</i>venta − costo</span><span><i style="background:#3F6F72">◷</i>horas y operación</span><span><i style="background:#5E6C88">/h</i>por hora</span><span><i style="background:#384459">Σ</i>acumulado 2026</span><span><i style="background:#9AA3AF">–</i>no aplica (sin propios o sin alquilados)</span></div>
     </details>
   </div>
 </section>

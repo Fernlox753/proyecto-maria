@@ -202,7 +202,7 @@ function sedeTextos(){
   };
   txt('hx-como-P', 'FLOTA PROPIA · COMO ' + hojaDe(' PROP'));
   txt('hx-como-A', 'FLOTA ALQUILADA · COMO ' + hojaDe(' ALQ'));
-  txt('hx-como-T', 'TODA LA FLOTA · ' + (todasLasSedes() ? 'LAS HOJAS PROP Y ALQ JUNTAS' : sedeSel.join(' + ') + ' · PROP Y ALQ JUNTAS'));
+  txt('hx-como-T', 'FLOTA COMPLETA · ' + (todasLasSedes() ? 'LAS HOJAS PROP Y ALQ JUNTAS' : sedeSel.join(' + ') + ' · PROP Y ALQ JUNTAS'));
 }
 
 /* ---------- los grupos en cada pestana ---------- */

@@ -11,6 +11,7 @@ en un solo sitio.
   extra.js                  funciones que se vuelven a declarar para esta copia
   hojas.html, hojas.js      las hojas Propios y Alquilados, que sustituyen a Flota
   tablero.html, tablero.js  la hoja Tablero: el analisis de una flota o un modelo
+  notas_artifact.json       copia de los comentarios del artifact, para la version de GitHub
   desviaciones.png          el cuadro que abre DESVIACIONES en la burbuja
   burbuja.html, burbuja.js  la burbuja de herramientas (calculadora rapida, suma)
   division.html, .js        la pantalla dividida en dos pestanas
@@ -118,6 +119,15 @@ js_nav = lee(ORIG, "nuevo_js_nav.js")
 extra = lee(AQUI, "extra.js")
 hojas_html = lee(AQUI, "hojas.html")
 hojas_js = lee(AQUI, "hojas.js")
+# la copia de los comentarios del artifact (para GitHub Pages, que no tiene su base)
+_nc = os.path.join(AQUI, "notas_artifact.json")
+if "var HX_NOTAS_COPIA = { fecha: '', notas: {} };" not in hojas_js:
+    sys.exit("hojas.js: no encuentro HX_NOTAS_COPIA")
+if os.path.exists(_nc):
+    _copia = json.load(io.open(_nc, encoding="utf-8"))
+    hojas_js = hojas_js.replace("var HX_NOTAS_COPIA = { fecha: '', notas: {} };",
+                                "var HX_NOTAS_COPIA = " + json.dumps(_copia, ensure_ascii=False) + ";", 1)
+    print("comentarios copiados del artifact:", len(_copia.get("notas", {})), "al", _copia.get("fecha"))
 tablero_html = lee(AQUI, "tablero.html")
 tablero_js = lee(AQUI, "tablero.js")
 burbuja_html = lee(AQUI, "burbuja.html")
@@ -558,7 +568,7 @@ print("artifact.html:", len(nuevo), "bytes ->", SALIDA)
 for marca in ["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES", 'class="pes"',
               "function iniciarTajo", "function construirCamion", "function irA(", "var DATA = {",
               "var SETIEMBRE = {", 'id="tajo"', "TORRE DE SETIEMBRE — lo que esta copia hace distinto",
-              'id="fi-cuadre"', 'id="fi-zserv"', "var proyFiltro = PROYS[0];", 'id="v-propios"', 'id="v-alquilados"', 'id="v-toda"', "function hxColumnasT",
+              'id="fi-cuadre"', 'id="fi-zserv"', "var proyFiltro = PROYS[0];", 'id="v-propios"', 'id="v-alquilados"', 'id="v-toda"', 'data-pes="Flota completa"', "function hxColumnasT",
               "function hxTabla", 'id="hx-editor"', 'id="v-tablero"',
               "function tbPintar", "function hxOrigen", 'id="bz"', "function bzNumero",
               'id="divisor"', "function divAplicar", "function hxMaxi", "body.navMin",
