@@ -1,0 +1,42 @@
+<style>
+/* el buscador de la hoja Equipo: se escribe el codigo o el modelo y la
+   lista sugiere; el desplegable de al lado sigue para recorrer la flota */
+.buscaEq{display:flex; align-items:center; gap:8px; flex:0 1 300px; min-width:min(220px,100%)}
+.buscaEq span{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.14em; color:var(--tinta-3)}
+.buscaEq input{flex:1; min-width:0; font-family:"IBM Plex Mono",monospace; font-size:.9rem; color:var(--tinta);
+  background:#fff; border:1px solid var(--linea); padding:7px 9px}
+.buscaEq input:focus{outline:2px solid var(--sm); outline-offset:1px; border-color:var(--sm)}
+.buscaEq input.mal{border-color:#B3261E; background:#FFF4F2}
+.selEq .sinMov{font-family:"IBM Plex Mono",monospace; font-size:.74rem; letter-spacing:.06em; color:#8A5A00;
+  background:#FFF3D1; padding:3px 8px}
+.selEq .sinMov[hidden]{display:none}
+/* los filtros de flota en una fila arriba del equipo: los mismos de Tendencia
+   y Filtros (mandan en toda la torre) y acotan la lista de equipos */
+/* todo en una sola linea: filtros, buscador, equipo y su ficha (en pantallas
+   angostas se reparte en varias) */
+.selEq{flex-wrap:nowrap; align-items:flex-end; gap:10px 12px}
+.selEq .eqFil{flex:0 1 auto; display:flex; flex-wrap:nowrap; align-items:flex-end; gap:8px 10px; min-width:0}
+.selEq .eqFil .fl{gap:3px; letter-spacing:.06em; min-width:0; flex:0 1 auto}
+.selEq .eqFil .fl select{min-width:90px; max-width:170px; width:100%; padding:6px 24px 6px 7px; border:1px solid var(--linea);
+  background-color:#fff; font-size:.82rem}
+.selEq .eqFil .fbt{padding:6px 9px; letter-spacing:.04em; white-space:nowrap}
+.selEq .eqFil .nota{margin:0 0 7px; font-size:11px; color:var(--tinta-3); white-space:nowrap; cursor:help}
+.selEq .buscaEq{flex:0 1 230px; flex-direction:column; align-items:stretch; gap:3px; min-width:150px}
+.selEq .buscaEq input{padding:6px 8px; font-size:.85rem}
+.selEq select#selector{flex:0 1 220px; min-width:150px; padding-top:6px; padding-bottom:6px}
+.selEq .sinMov{align-self:flex-end; margin-bottom:6px; white-space:nowrap}
+.selEq .ficha{flex:1 1 0; min-width:0; flex-wrap:nowrap; overflow:hidden; white-space:nowrap; margin-bottom:8px}
+@media (max-width:1180px){
+  .selEq{flex-wrap:wrap}
+  .selEq .eqFil{flex:1 1 100%; flex-wrap:wrap}
+  .selEq .ficha{flex-basis:100%; flex-wrap:wrap; white-space:normal}
+}
+@media (max-width:620px){ .selEq .eqFil .fl, .selEq .eqFil .fl select{max-width:100%; width:100%} }
+</style>
+      <div class="panelF eqFil" id="filtrosEq5"></div>
+      <label class="buscaEq"><span>BUSCAR</span>
+        <input id="buscaEq" list="listaEqSel" autocomplete="off" spellcheck="false"
+               placeholder="código o modelo: FC-87, 6040, DML…" aria-label="Buscar equipo por código o modelo"></label>
+      <datalist id="listaEqSel"></datalist>
+      <select id="selector" aria-label="Elegir equipo"></select>
+      <span class="sinMov" id="sinMovEq" hidden>SIN COSTO EN EL PERIODO</span>

@@ -37,6 +37,8 @@ html{-webkit-text-size-adjust:100%; text-size-adjust:100%}
      sin el «N equipos», para que entren mas cifras (el boton TABLERO se queda) */
   table.xl .fija{max-width:46vw}
   table.xl .sub{display:none}
+  /* las cuatro cifras de Tendencia, de dos en dos */
+  #v-costos .panelCifras{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 /* al bajar la pagina en el telefono queda solo la fila de pestanas (movil.js) */
 body.navMin .nav .marcaSM,body.navMin .nav .navcap{display:none}
@@ -56,7 +58,9 @@ body.navMin .nav,body.navMin .nav.fondo,body.navMin .nav.claro{padding-top:2px; 
    varias filas en vez de deslizarse (en la tableta no se ve la barra de
    desplazamiento y quedaban escondidos) */
 @media (max-width:1180px),(pointer:coarse){
-  .xlBarra{flex-wrap:wrap; overflow-x:visible}
+  .xlBarra,#v-costos .grafControles{flex-wrap:wrap; overflow-x:visible}
+  #v-costos .grafControles .gcB{flex-wrap:wrap}
+  #v-costos .grafControles .gc{flex-shrink:1; min-width:0; max-width:100%}
   .xlBarra > *{flex-shrink:1; min-width:0; max-width:100%}
   .xlBarra .gcB{flex-wrap:wrap}
 }

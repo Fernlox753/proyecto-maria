@@ -1,0 +1,44 @@
+<style>
+/* ---------- Tendencia: lo de arriba ocupa poco, como en Propios y Alquilados ----------
+   Titulo y «como se lee» en una linea, las cuatro cifras en una fila, todos
+   los filtros en otra y los controles del grafico en otra: el grafico se ve
+   al abrir la hoja. Si los filtros no caben bajan a una segunda fila; los
+   controles se deslizan (en el telefono y la tableta se reparten, movil.html). */
+#v-costos.vista{padding-top:clamp(12px,2.2vh,24px)}
+#v-costos .tituloV{margin-bottom:4px; display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 20px}
+#v-costos .tituloV .ord{flex-basis:100%; margin-bottom:2px}
+#v-costos .tituloV h2{font-size:clamp(1.15rem,1.9vw,1.6rem); max-width:none; margin:2px 0}
+#v-costos .tituloV details.expl{margin:0; flex:1 1 260px}
+
+/* el panel deja de ser una caja: cifras arriba y los filtros en una fila */
+#v-costos .panel{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px 14px; margin:6px 0 0;
+  padding:0; border:0; background:none}
+#v-costos .panelT{display:none}
+#v-costos .panelF{display:contents}
+#v-costos .panel > *,#v-costos .panelF > *{flex:0 0 auto}
+#v-costos .panel .fl{gap:4px; letter-spacing:.08em}
+#v-costos .panel .fl select{min-width:0; max-width:210px; padding:6px 26px 6px 8px}
+#v-costos .panel .fl input.entradaEq{margin-top:0}
+#v-costos .panel label.fl[style]{flex:1 1 170px !important; min-width:150px; max-width:260px}
+#v-costos .atajos{margin:0; flex-wrap:nowrap; gap:5px}
+#v-costos .panel .fbt{padding:6px 8px; letter-spacing:.04em}
+#v-costos .grafControles .fbt{padding:6px 6px; letter-spacing:.03em}
+/* las cuatro cifras, una fila de tarjetas encima de los filtros */
+#v-costos .panelCifras{order:-1; flex:1 1 100%; display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px clamp(12px,1.6vw,24px); margin:0 0 4px; padding:10px 0; border-top:0; border-bottom:1px solid var(--linea)}
+#v-costos .panelCifras .v{font-size:clamp(1rem,1.5vw,1.32rem); margin-top:2px; white-space:nowrap}
+#v-costos .panelCifras .l{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+/* controles del grafico: una fila, rotulos cortos (el nombre entero va en el globo de ayuda) */
+#v-costos .grafControles{flex-wrap:nowrap; align-items:flex-end; gap:8px 10px; margin-top:10px;
+  padding:8px 0 2px; border-top:1px solid var(--linea); overflow-x:auto; scrollbar-width:thin}
+#v-costos .grafControles .gc{flex:0 0 auto}
+#v-costos .grafControles .gcT{letter-spacing:.08em; margin-bottom:4px}
+#v-costos .grafControles .gcB{flex-wrap:nowrap; gap:4px}
+#v-costos .gcObj{flex-wrap:nowrap; gap:6px}
+#v-costos .entradaObj{width:100px; padding:6px 7px}
+/* QUITAR solo con un objetivo puesto: el all:unset de .fbt le quitaba el efecto a hidden */
+#g-obj-x[hidden]{display:none}
+#v-costos .gcObj .u{letter-spacing:.04em; white-space:nowrap}
+#v-costos .grafEnv{margin-top:10px}
+</style>

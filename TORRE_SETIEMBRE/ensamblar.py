@@ -13,6 +13,11 @@ en un solo sitio.
   tablero.html, tablero.js  la hoja Tablero: el analisis de una flota o un modelo
   burbuja.html, burbuja.js  la burbuja de herramientas (calculadora rapida, suma)
   division.html, .js        la pantalla dividida en dos pestanas
+  equipo.html, equipo.js    hoja Equipo: todos los equipos en el selector y un buscador
+  detalle3d.js              herramientas de los modelos de detalle (pintura, llantas, faros...)
+  modelo_*.js               los modelos 3D de detalle, uno o varios por archivo (registrarModelo3d)
+  modelos3d.js              el camion 3D de cada modelo (CAT 785C y 785D); el resto usa el generico
+  tendencia.html            Tendencia compacta: cifras, filtros y controles del grafico en filas
   movil.html, movil.js      telefono y tableta: cabecera corta, vista girada, «solo la tabla»
   datos.json                la tabla de hechos de setiembre (gen_datos.py)
   setiembre.json            tarifa real contra venta, DM y usaje (gen_datos.py)
@@ -27,7 +32,8 @@ import io, json, os, re, sys
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 ORIG = os.path.join(os.path.dirname(AQUI), "PROCESO")
-SALIDA = os.path.join(AQUI, "artifact.html")
+# TORRE_SALIDA cambia el archivo de salida (lo usa prueba3d.py para no pisar artifact.html)
+SALIDA = os.environ.get("TORRE_SALIDA") or os.path.join(AQUI, "artifact.html")
 
 
 def lee(base, *partes):
@@ -100,6 +106,18 @@ burbuja_html = lee(AQUI, "burbuja.html")
 burbuja_js = lee(AQUI, "burbuja.js")
 division_html = lee(AQUI, "division.html")
 division_js = lee(AQUI, "division.js")
+modelos3d_js = lee(AQUI, "modelos3d.js")
+detalle3d_js = lee(AQUI, "detalle3d.js")
+# los modelos 3D de detalle: todos los modelo_*.js de esta carpeta, en orden de
+# nombre. TORRE_MODELOS (lista separada por comas) deja solo esos, para probar
+# uno sin que otro a medio hacer rompa la pagina.
+_solo = [x.strip() for x in (os.environ.get("TORRE_MODELOS") or "").split(",") if x.strip()]
+MODELOS_JS = sorted(f for f in os.listdir(AQUI) if f.startswith("modelo_") and f.endswith(".js")
+                    and (not _solo or f in _solo))
+modelos_det_js = "\n".join("/* ---- %s ---- */\n" % f + lee(AQUI, f) for f in MODELOS_JS)
+equipo_html = lee(AQUI, "equipo.html")
+equipo_js = lee(AQUI, "equipo.js")
+tendencia_html = lee(AQUI, "tendencia.html")
 movil_html = lee(AQUI, "movil.html")
 movil_js = lee(AQUI, "movil.js")
 
@@ -147,7 +165,7 @@ cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
 # siguen estando en Tendencia y en Filtros.
 cuerpo = entre(cuerpo, "<!-- ═══════════════════ FLOTA ═══════════════════ -->", "</section>",
                (hojas_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
-                + "\n" + movil_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
+                + "\n" + tendencia_html + "\n" + movil_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
 
 # ---- Tendencia
 cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo.', "</p></details>",
@@ -160,6 +178,8 @@ cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota
 cuerpo = cambia(cuerpo, 'id="t3-var-l">DEL PRIMER AL ÚLTIMO MES', 'id="t3-var-l">DEL PRIMER AL ÚLTIMO DÍA', C)
 cuerpo = cambia(cuerpo, 'aria-label="Evolución mensual"', 'aria-label="Evolución diaria"', C)
 cuerpo = cambia(cuerpo, ">Mes a mes</h3>", ">Día a día</h3>", C)
+cuerpo = cambia(cuerpo, '<span class="gcT">LÍNEAS A LA VEZ</span>',
+                '<span class="gcT" title="Cuántas líneas se dibujan a la vez">LÍNEAS</span>', C)
 cuerpo = cambia(cuerpo, "CLIC EN UN MES PARA AISLARLO · LOS MESES FUERA DEL PERIODO VAN ATENUADOS",
                 "CLIC EN UN DÍA PARA AISLARLO · LOS DÍAS FUERA DEL PERIODO VAN ATENUADOS", C)
 cuerpo = cambia(cuerpo, "<th>Mes</th>", "<th>Día</th>", C)
@@ -252,6 +272,14 @@ cuerpo = entre(cuerpo, '<p class="lede"><b>Una sola fuente para el dinero.</b>',
 
 # ---- Tarifa (la antigua pestaña Setiembre)
 cuerpo = cambia(cuerpo, 'id="v-setiembre" data-pes="Setiembre"', 'id="v-setiembre" data-pes="Tarifa"', C)
+
+# ---- Ordenes, Cortes, Ficha y Tarifa salen de la barra de pestanas. Las
+#      secciones quedan en la pagina, ocultas y sin la clase «vista» (asi no
+#      generan pestana ni se pueden abrir): el JS que las pinta sigue igual y
+#      no hay que tocar sus funciones.
+for _id, _pes in [("v-ordenes", "Órdenes"), ("v-articulos", "Cortes"), ("v-ficha", "Ficha"), ("v-setiembre", "Tarifa")]:
+    cuerpo = cambia(cuerpo, '<section class="vista luz" id="%s" data-pes="%s">' % (_id, _pes),
+                    '<section class="pesQuitada" id="%s" hidden>' % _id, C)
 cuerpo = entre(cuerpo, '<p class="lede">Ésta es la única pestaña que no sale del libro mayor.', "</p></details>",
     '<p class="lede">El costo real por hora contra la <b>tarifa de venta</b> interna, más la '
     '<b>disponibilidad mecánica</b> y el <b>usaje</b>. Las tres salen de las tablas de apoyo del '
@@ -336,6 +364,24 @@ js_tend = cambia(js_tend, "' · EL ATAJO «TODO» REABRE LOS DIECISIETE MESES'",
                  "' · EL ATAJO «TODO» REABRE TODO EL PERIODO'", T)
 js_tend = cambia(js_tend, "(gEscalaX === 'ano' ? 'año' : 'mes') + ' anterior</em>'", "'día anterior</em>'", T)
 js_tend = cambia(js_tend, ": 'DEL PRIMER AL ÚLTIMO MES');", ": 'DEL PRIMER AL ÚLTIMO DÍA');", T)
+# ---- los controles del grafico en una sola fila: rotulos cortos, y el nombre
+#      entero en el globo de ayuda de cada boton (botonera lee o.t)
+js_tend = cambia(js_tend, "+ (o.c === valor) + '\">' + esc(o.n) + '</button>';",
+                 "+ (o.c === valor) + '\"' + (o.t ? ' title=\"' + esc(o.t) + '\"' : '') + '>' + esc(o.n) + '</button>';", T)
+for _v, _n in [("  { c: 'cph',    n: 'US$ POR HORA', u: 'US$/h' },",
+                "  { c: 'cph',    n: 'US$/HORA', t: 'Costo por hora máquina', u: 'US$/h' },"),
+               ("  { c: 'horas',  n: 'HORAS MÁQUINA', u: 'h' },",
+                "  { c: 'horas',  n: 'HORAS', t: 'Horas máquina', u: 'h' },"),
+               ("  { c: 'auto', n: 'AUTOMÁTICA' },", "  { c: 'auto', n: 'AUTO', t: 'Escala automática' },"),
+               ("  { c: 'cero', n: 'DESDE CERO' },", "  { c: 'cero', n: 'DESDE 0', t: 'El eje empieza en cero' },"),
+               ("  { c: 'log',  n: 'LOGARÍTMICA' }", "  { c: 'log',  n: 'LOG', t: 'Escala logarítmica' }"),
+               ("  { c: 'todo', n: 'TODO EL PERIODO' }", "  { c: 'todo', n: 'PERIODO', t: 'Todo el periodo en un solo punto' }"),
+               ("  { c: 'fam',     n: 'POR FLOTA' },", "  { c: 'fam',     n: 'FLOTA', t: 'Una línea por flota' },"),
+               ("  { c: 'tipo',    n: 'PROPIO / ALQUILADO' },", "  { c: 'tipo',    n: 'PROP/ALQ', t: 'Propio contra alquilado' },"),
+               ("{ c: 'proy',    n: 'POR ALCANCE' }", "{ c: 'proy',    n: 'ALCANCE', t: 'Una línea por alcance' }"),
+               ("  { c: 'ro',      n: 'POR TIPO DE COSTO' },", "  { c: 'ro',      n: 'RECURSO', t: 'Una línea por recurso (MAT, SERV, MO) y depreciación' },"),
+               ("  { c: 'eq',      n: 'POR EQUIPO' }", "  { c: 'eq',      n: 'EQUIPO', t: 'Una línea por equipo' }")]:
+    js_tend = cambia(js_tend, _v, _n, T)
 
 js_filt = cambia(js_filt, "+ '% del libro');", "+ '% de lo cargado');", "nuevo_js_filtros.js")
 
@@ -372,6 +418,64 @@ js_nav = cambia(js_nav, "+ '. El detalle de mantenimiento sólo cubre la sede SH
 js_nav = cambia(js_nav, "dentro ? 'Salir de pantalla completa' : 'Ver a pantalla completa'",
                 "dentro ? 'Salir de pantalla completa (F)' : 'Ver a pantalla completa (F)'", N)
 cuerpo = cambia(cuerpo, 'title="Ver a pantalla completa">', 'title="Ver a pantalla completa (F)">', C)
+# girar el camion y soltar contaba como clic y elegia el sistema que quedaba bajo el puntero
+T3 = "piezas/tres_d.js"
+tres_d = cambia(tres_d, "var estudioVisible = false, modelo3d = true;",
+                "var estudioVisible = false, modelo3d = true, movioE = 0;", T3)
+tres_d = cambia(tres_d, "arrastra = true; ultX = ev.clientX; ultY = ev.clientY;",
+                "arrastra = true; ultX = ev.clientX; ultY = ev.clientY; movioE = 0;", T3)
+tres_d = cambia(tres_d, "      rotY += (ev.clientX - ultX) * 0.0075;",
+                "      movioE += Math.abs(ev.clientX - ultX) + Math.abs(ev.clientY - ultY);\n"
+                "      rotY += (ev.clientX - ultX) * 0.0075;", T3)
+tres_d = cambia(tres_d, "  cv.addEventListener('click', function(){\n    if(sobre && sobre.userData.code)",
+                "  cv.addEventListener('click', function(){\n    if(movioE > 6) return;\n    if(sobre && sobre.userData.code)", T3)
+# la camara mira a la altura de cada maquina (una perforadora con el mastil arriba
+# pasa los 15 m) y se puede alejar mas; la sombra cubre maquinas mas largas
+tres_d = cambia(tres_d, "  var ry = 2.6 + Math.sin(rotX) * dist * 0.62;",
+                "  var my = (camion && camion.userData.mirarY) || 2.85;\n"
+                "  var ry = my - 0.25 + Math.sin(rotX) * dist * 0.62;", T3)
+tres_d = cambia(tres_d, "  camE.lookAt(0, 2.85, 0);", "  camE.lookAt(0, my, 0);", T3)
+tres_d = cambia(tres_d, "dist = clamp(dist + (ev.deltaY > 0 ? 1.6 : -1.6), 16, 46);",
+                "dist = clamp(dist + (ev.deltaY > 0 ? 1.6 : -1.6), 16, 72);", T3)
+tres_d = cambia(tres_d, "key.shadow.mapSize.set(1024, 1024);", "key.shadow.mapSize.set(2048, 2048);", T3)
+tres_d = cambia(tres_d, "c.left = -13; c.right = 13; c.top = 13; c.bottom = -13;",
+                "c.left = -20; c.right = 20; c.top = 20; c.bottom = -20;", T3)
+# en 3D se ve todo equipo que tenga modelo (modelos3d.js), no solo los de acarreo;
+# y si el usuario eligio la vista 2D, se respeta al cambiar de equipo
+js_nav = cambia(js_nav, "  ponerModo(e.fam === 'ACARREO' && modelo3d, e.fam !== 'ACARREO');",
+                "  ponerModo(tiene3d(e) && prefiere3d, !tiene3d(e));", N)
+js_nav = cambia(js_nav, "esc_('v-3d', 'click', function(){ ponerModo(true); });",
+                "esc_('v-3d', 'click', function(){ prefiere3d = true; ponerModo(true); });", N)
+js_nav = cambia(js_nav, "esc_('v-2d', 'click', function(){ ponerModo(false); });",
+                "esc_('v-2d', 'click', function(){ prefiere3d = false; ponerModo(false); });", N)
+# Atlas Copco / Epiroc tambien son amarillas: su mapa de calor va en la escala ambar
+tres_d = cambia(tres_d, "(CAT|CATERPILLAR|KOMATSU)([^A-Z]|$)", "(CAT|CATERPILLAR|KOMATSU|ATLAS COPCO|EPIROC)([^A-Z]|$)", T3)
+# hoja Equipo: todos los equipos en el selector (equipo.js) y un buscador al lado
+cuerpo = cambia(cuerpo, '      <select id="selector" aria-label="Elegir equipo"></select>\n', equipo_html, C)
+_SEL = ("htm('selector', EQ.map(function(e){\n"
+        "    return '<option value=\"' + esc(e.id) + '\">' + esc(e.id + ' — ' + (e.mod || e.fam)) + '</option>';\n"
+        "  }).join(''));")
+js_datos = cambia(js_datos, "  " + _SEL, "  llenarSelectorEq();", D)
+# con un filtro que solo deja equipos sin costo, la hoja Equipo elige igual uno de ellos
+js_datos = cambia(js_datos, "  if(EQ.length) elegirEquipo(byId[eqActual] ? eqActual : EQ[0].id);",
+                  "  var eqLista = EQ.concat(EQ_SIN_MOV);\n"
+                  "  if(eqLista.length) elegirEquipo(byId[eqActual] ? eqActual : eqLista[0].id);", D)
+# los filtros de flota tambien arriba de la hoja Equipo (sufijo 5, equipo.js)
+js_datos = cambia(js_datos, "var SUFS = ['', '3'];", "var SUFS = ['', '3', '5'];", D)
+# filtros en cascada: cada desplegable ofrece solo lo que queda con los demas (equipo.js)
+for _c, _v, _t in [("tipo", "tipoFiltro", "TODOS"), ("fam", "famFiltro", "TODAS"), ("mod", "modFiltro", "TODOS"), ("prov", "provFiltro", "TODOS")]:
+    js_datos = cambia(js_datos, "opciones(u.%s, %s, '%s')" % (_c, _v, _t), "opciones(universoPara('%s'), %s, '%s')" % (_c, _v, _t), D)
+js_nav = cambia(js_nav, _SEL.replace("\n    ", "\n  ").replace("\n  })", "\n})"), "llenarSelectorEq();", N)
+js_nav = cambia(js_nav, "  var e = byId[id];\n",
+                "  var e = byId[id];\n  var sm = $('sinMovEq'); if(sm) sm.hidden = !e.sinMov;\n", N)
+# con los modelos de detalle en espacio lineal, los colores del mapa de calor
+# tambien se pasan a lineal (la base ya lo esta)
+tres_d = cambia(tres_d, "    if(c === sysActual) hex = css('--hivis') || '#FCE624';\n    m.material.color.set(hex);",
+                "    if(c === sysActual) hex = css('--hivis') || '#FCE624';\n    m.material.color.set(hex);\n"
+                "    if(camion.userData.colorLineal && hex !== m.userData.base) m.material.color.convertSRGBToLinear();", T3)
+# el camion del estudio es el del modelo del equipo (modelos3d.js), antes de pintarlo
+js_nav = cambia(js_nav, "  pintarCarroceria(camion, esMarcaAmarilla(e.marca));",
+                "  ponerModelo3d(e);\n  pintarCarroceria(camion, esMarcaAmarilla(e.marca));", N)
 
 # ══════════════════════════════════════════════════════════════════════
 #  letra para proyectar: los rotulos, notas y cabeceras chicos se agrandan
@@ -401,7 +505,9 @@ nuevo = (cabecera + css + "\n" + cuerpo + "\n<script>\n(function(){\n"
          + util + "\nvar DATA = " + datos + ";\n"
          + "var SETIEMBRE = " + sep + ";\n"
          + js_datos + "\n" + js_tend + "\n" + js_filt + "\n" + js_sep + "\n" + cont + tres_d
-         + "\n" + extra + "\n" + hojas_js + "\n" + tablero_js + "\n" + burbuja_js + "\n" + js_nav
+         + "\n" + extra + "\n" + hojas_js + "\n" + tablero_js + "\n" + burbuja_js
+         # los modelos 3D antes de la navegacion: al final de ella se elige el primer equipo
+         + "\n" + modelos3d_js + "\n" + detalle3d_js + "\n" + modelos_det_js + "\n" + equipo_js + "\n" + js_nav
          # la division envuelve irA(): tiene que ir despues de nuevo_js_nav.js
          + "\n" + division_js + "\n" + movil_js + "\n})();\n</script>\n")
 

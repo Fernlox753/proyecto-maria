@@ -22,6 +22,13 @@ con las mismas reglas de las tablas dinámicas del libro y lo presenta como una 
   horas, tarifa, causa, RyM y MOV, equipos, acumulado).
 - **Pantalla dividida** (botón ⊟ o tecla D): dos pestañas a la vez, una arriba y otra abajo.
 - **Pantalla completa** con la tecla F y una burbuja de herramientas con calculadora y suma.
+- **Equipo**: cada máquina de la flota (unos 80 modelos: camiones CAT, Komatsu, TONLY, LGMG,
+  Scania, Mercedes, Kenworth…, excavadoras, palas, cargadores, tractores, motoniveladoras,
+  perforadoras y torres de iluminación) en un modelo 3D armado con las medidas del fabricante, con
+  el costo de mantenimiento de SAP pintado sobre cada pieza. Filtros en cascada (propio/alquilado,
+  flota, modelo, proveedor) y buscador. Los modelos están en `TORRE_SETIEMBRE\modelo_*.js`;
+  `prueba3d.py` los fotografía desde seis ángulos y `GUIA_MODELOS3D.md` explica cómo hacer uno.
+- **Tendencia** compacta, con cifras, filtros y controles del gráfico en filas.
 - **Teléfono y tableta**: cabecera corta que se aparta al bajar la página, vista horizontal en la
   que la tabla ocupa toda la pantalla y el botón «⤢ SOLO LA TABLA».
 
