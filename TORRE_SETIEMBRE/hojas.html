@@ -233,6 +233,10 @@ table.xl tfoot td{position:sticky; bottom:0; z-index:2; background:var(--tinta);
                   font-weight:600; border-bottom:0}
 table.xl tfoot .fija{background:var(--tinta); color:#fff; z-index:3}
 table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl tfoot .z{color:#fff}
+/* Flota completa: Dep o Alq fuera del total (botones DEP / ALQ) quedan en gris */
+table.xl tbody td.fuera,table.xl tbody td.fuera .neg,table.xl tbody td.fuera .pos{color:#A3ABB6}
+table.xl thead th.fuera{color:#8C95A1; text-decoration:line-through; text-decoration-thickness:1px}
+table.xl tfoot td.fuera,table.xl tfoot td.fuera .neg,table.xl tfoot td.fuera .pos{color:rgba(255,255,255,.42)}
 /* las cifras del Total tambien se eligen y se comentan, como las de cualquier fila */
 table.xl tfoot td:not(.fija){cursor:pointer}
 table.xl tfoot td:not(.fija):hover{background:#22344F}

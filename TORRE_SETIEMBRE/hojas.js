@@ -235,12 +235,17 @@ function hxColumnasT(st){
   var D = function(o, x){ return o.np ? x : null; }, Q = function(o, x){ return o.nq ? x : null; };
   var tc = function(o){ return hxTcT(st, o); }, tv = function(o){ return hxTvT(st, o); };
   var tac = function(o){ return hxTacT(st, o); }, tav = function(o){ return hxTavT(st, o); };
-  /* las cuatro columnas de un grupo: f(o, i) da el valor del componente i */
-  var cuatro = function(f, fm){
+  /* las cuatro columnas de un grupo: f(o, i) da el valor del componente i.
+     Dep y Alq quedan en gris cuando su boton los saca del total (fuera); en
+     las desviaciones (desv) ademas van con guion: sin el componente no hay
+     desviacion que mirar. Asi el alquiler de tarifa mensual, que el Excel
+     vende por horas, no asoma como desviacion con SIN ALQ. */
+  var sinD = function(){ return !st.terD; }, sinA = function(){ return !st.terA; };
+  var cuatro = function(f, fm, desv){
     return [{ t: 'RyM', f: fm, v: function(o){ return f(o, 0); } },
             { t: 'MOV', f: fm, v: function(o){ return f(o, 1); } },
-            { t: 'Dep', f: fm, v: function(o){ return D(o, f(o, 2)); } },
-            { t: 'Alq', f: fm, v: function(o){ return Q(o, f(o, 3)); } }];
+            { t: 'Dep', f: fm, fuera: sinD, v: function(o){ return desv && !st.terD ? null : D(o, f(o, 2)); } },
+            { t: 'Alq', f: fm, fuera: sinA, v: function(o){ return desv && !st.terA ? null : Q(o, f(o, 3)); } }];
   };
   return [
     { id: 'oper', t: 'OPERACIÓN', cols: [
@@ -252,7 +257,7 @@ function hxColumnasT(st){
         .concat([{ t: 'Total', f: 'n', k: 1, v: tc }]) },
     { id: 'venta', t: 'VENTA INTERNA AL ' + hxCorte(), cols: cuatro(function(o, i){ return o.v[i]; }, 'n')
         .concat([{ t: 'Total', f: 'n', k: 1, v: tv }]) },
-    { id: 'desv', t: 'DESVIACIÓN VENTA − COSTO', cols: cuatro(function(o, i){ return o.v[i] - o.c[i]; }, 'd')
+    { id: 'desv', t: 'DESVIACIÓN VENTA − COSTO', cols: cuatro(function(o, i){ return o.v[i] - o.c[i]; }, 'd', true)
         .concat([{ t: 'Total', f: 'd', k: 1, v: function(o){ return tv(o) - tc(o); } }]) },
     { id: 'treal', t: 'TARIFA REAL US$/H', cols: cuatro(function(o, i){ return por(o.c[i], o.hr); }, 'n1')
         .concat([{ t: 'Real', f: 'n1', k: 1, v: function(o){ return por(tc(o), o.hr); } }]) },
@@ -266,7 +271,7 @@ function hxColumnasT(st){
                  { t: 'Horas acum', f: 'n1', v: function(o){ return o.A.h; } }]) },
     { id: 'vacum', ac: 1, t: 'VENTA ACUMULADA 2026', cols: cuatro(function(o, i){ return o.A.v[i]; }, 'n')
         .concat([{ t: 'Venta acum', f: 'n', k: 1, v: tav }]) },
-    { id: 'dacum', ac: 1, t: 'DESVIACIÓN ACUMULADA', cols: cuatro(function(o, i){ return o.A.v[i] - o.A.c[i]; }, 'd')
+    { id: 'dacum', ac: 1, t: 'DESVIACIÓN ACUMULADA', cols: cuatro(function(o, i){ return o.A.v[i] - o.A.c[i]; }, 'd', true)
         .concat([{ t: 'Total', f: 'd', k: 1, v: function(o){ return tav(o) - tac(o); } }]) }
   ];
 }
@@ -382,7 +387,7 @@ function hxCeldas(st, n, o0){
         if(vs !== null) h = '<span class="sem ' + (vs >= c.sem ? 'v' : 'r') + '">' + h + '</span>';
       }
       var sel = st.sel && n.k && st.sel.k === n.k && st.sel.col === col;
-      return '<td class="g-' + g.id + (i ? '' : ' ini') + (m ? ' cn' : '') + (sel ? ' sel' : '') + '">'
+      return '<td class="g-' + g.id + (i ? '' : ' ini') + (m ? ' cn' : '') + (sel ? ' sel' : '') + (c.fuera && c.fuera() ? ' fuera' : '') + '">'
         + (c.k ? '<b>' + h + '</b>' : h)
         + (o0 ? '<span class="xo" title="Sin filtros">' + hxCelda(c, o0).replace(/<[^>]+>/g, '') + '</span>' : '') + m + '</td>';
     }).join('');
@@ -966,7 +971,8 @@ function hxTabla(s){
     + st.cols.map(function(g){
         return hxVisibles(st, g).map(function(c, i){
           var col = g.id + '-' + g.cols.indexOf(c), fon = !!(st.filtros && st.filtros[col]);
-          return '<th class="g-' + g.id + (i ? '' : ' ini') + (st.cerrado[g.id] ? ' cerr' : '') + (fon ? ' xf' : '') + marca(g.id, g.cols.indexOf(c)) + '" data-s="' + g.id + '|'
+          return '<th class="g-' + g.id + (i ? '' : ' ini') + (st.cerrado[g.id] ? ' cerr' : '') + (fon ? ' xf' : '') + (c.fuera && c.fuera() ? ' fuera' : '') + marca(g.id, g.cols.indexOf(c))
+            + '"' + (c.fuera && c.fuera() ? ' title="No entra al total (botón ' + (c.t === 'Dep' ? 'DEP' : 'ALQ') + ')"' : '') + ' data-s="' + g.id + '|'
             + g.cols.indexOf(c) + '">' + c.t
             + '<button type="button" class="xlF' + (fon ? ' on' : '') + '" data-f="' + col + '" title="'
             + (fon ? 'Filtro: ' + esc(hxTextoFiltro(st, col)) : 'Filtrar por valor') + '" aria-label="Filtrar esta columna por valor">▾</button></th>';
