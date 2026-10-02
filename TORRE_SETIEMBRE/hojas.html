@@ -233,10 +233,6 @@ table.xl tfoot td{position:sticky; bottom:0; z-index:2; background:var(--tinta);
                   font-weight:600; border-bottom:0}
 table.xl tfoot .fija{background:var(--tinta); color:#fff; z-index:3}
 table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl tfoot .z{color:#fff}
-/* Flota completa: Dep o Alq fuera del total (botones DEP / ALQ) quedan en gris */
-table.xl tbody td.fuera,table.xl tbody td.fuera .neg,table.xl tbody td.fuera .pos{color:#A3ABB6}
-table.xl thead th.fuera{color:#8C95A1; text-decoration:line-through; text-decoration-thickness:1px}
-table.xl tfoot td.fuera,table.xl tfoot td.fuera .neg,table.xl tfoot td.fuera .pos{color:rgba(255,255,255,.42)}
 /* las cifras del Total tambien se eligen y se comentan, como las de cualquier fila */
 table.xl tfoot td:not(.fija){cursor:pointer}
 table.xl tfoot td:not(.fija):hover{background:#22344F}
@@ -373,8 +369,9 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
       <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
       <p class="lede">Son <b>Propios</b> y <b>Alquilados</b> en una sola tabla: los equipos propios y los
       alquilados de una misma familia y modelo se suman juntos. Las columnas de <b>depreciación</b> y de
-      <b>alquiler</b> van siempre a la vista; una fila sin equipos propios lleva guion en Dep y una sin
-      alquilados lo lleva en Alq. Los botones <b>DEP</b> y <b>ALQ</b> deciden si cada una entra al total:
+      <b>alquiler</b> van lado a lado; una fila sin equipos propios lleva guion en Dep y una sin
+      alquilados lo lleva en Alq. Los botones <b>DEP</b> y <b>ALQ</b> deciden si cada una entra al total;
+      la que queda fuera se esconde y vuelve al sumarla:
       abre como el Excel, con la depreciación y sin el alquiler, que <b>no es un costo real</b> (sale de la
       tarifa de venta). Las cifras son las mismas de las dos hojas; el botón TABLERO sale sólo en las filas
       de una sola flota. Sigue al proyecto, pero no a los demás filtros de otras pestañas.</p></details>

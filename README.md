@@ -24,8 +24,8 @@ dinámicas y se cruzan equipo por equipo con las hojas PROP y ALQ; lo que en el 
   equipos u órdenes (las tarjetas y los totales se recalculan), comentarios por celda y una barra
   que dice de dónde sale cada cifra.
 - **Flota completa** (la primera hoja, antes de Propios y Alquilados): Propios y Alquilados juntos en una sola tabla, con las columnas de
-  depreciación y de alquiler siempre a la vista (guion donde no aplica) y botones CON/SIN DEP y
-  CON/SIN ALQ para sumarlas o no al total. Las cifras de la fila Total también se pueden comentar,
+  depreciación y de alquiler (guion donde no aplica) y botones CON/SIN DEP y
+  CON/SIN ALQ que las suman al total o las sacan de la tabla. Las cifras de la fila Total también se pueden comentar,
   en las tres hojas.
 - **Tablero**: el análisis de una o varias familias, modelos o equipos en siete pasos (resultado,
   horas, tarifa, causa, RyM y MOV, equipos, acumulado).
