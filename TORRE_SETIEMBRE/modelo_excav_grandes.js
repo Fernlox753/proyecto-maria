@@ -666,6 +666,8 @@ function exgConstruir(clave, piezas){
 
   /* ── pluma ── */
   var hexP = col.pluma;
+  /* para el tajo: los tres subgrupos son el equipo de trabajo; el cucharon
+     ademas se abre (gira sobre el pasador del brazo) al vaciar */
   sub(fb.x, fb.y, fb.ang, function(){
     var NS = 30, top = [], bot = [];
     for(var i = 0; i <= NS; i++){ top.push(bordeB(i / NS, 1)); bot.push(bordeB(i / NS, -1)); }
@@ -930,6 +932,19 @@ function exgConstruir(clave, piezas){
 
   /* centrar: de la punta del cucharon a la cola */
   MG.position.x = -(ps.xmin + C.D) / 2;
+  /* lo que el tajo necesita para girar la casa, levantar la pluma y abrir el
+     cucharon, ya en las coordenadas centradas */
+  MG.children.forEach(function(g){
+    if(!g.isGroup) return;
+    if(g.position.x === fb.x && g.position.y === fb.y) g.userData.equipo = true;
+    if(g.position.x === fs.x && g.position.y === fs.y){ g.userData.equipo = true; g.userData.palo = true; }
+    if(g.position.x === fc.x && g.position.y === fc.y){ g.userData.equipo = true; g.userData.cucharon = true; }
+  });
+  G.userData.giroX = MG.position.x;
+  G.userData.pie = [fb.x + MG.position.x, fb.y];
+  G.userData.frente = XF + MG.position.x;
+  G.userData.bisagra = [fc.x + MG.position.x, fc.y];
+  G.userData.pivPalo = [fs.x + MG.position.x, fs.y];
   G.userData.ruedas = [];
   G.userData.ponerNumero = function(id){ texNum.userData.poner(id); };
   G.userData.mirarY = 3.4;

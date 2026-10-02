@@ -339,6 +339,8 @@ function palConstruirPala(id, piezas){
     bloque(null, 0.14, 0.20, 0.26, 'mate', PAL_NEGRO, XF - 0.48, YD + 1.18, q[0], 0.03);
     bloque(q[1], 0.03, 0.15, 0.20, 'vidrio', '#F4EDCF', XF - 0.56, YD + 1.18, q[0], 0.01);
   });
+  /* para el tajo: las escaleras van con la casa (al girar no se quedan en el suelo) */
+  var nCasa = G.children.length;
   /* escalera vertical con jaula, por fuera del pasillo */
   var xe = C.escalera, yE0 = Math.max(1.0, C.altoOr - 0.5);
   [-0.24, 0.24].forEach(function(dx){ bloque(null, 0.06, YD + 1.0 - yE0, 0.07, 'pintura', PAL_BAR, xe + dx, (YD + 1.0 + yE0) / 2, zW + 0.06, 0.015); });
@@ -394,6 +396,7 @@ function palConstruirPala(id, piezas){
   tubo(null, [xs0 + (xs1 - xs0) * 0.45, ys0 + (ys1 - ys0) * 0.45 - 0.1, zS], [xs0 + (xs1 - xs0) * 0.62, YB + 0.05, ZL - 0.05], 0.06, 'pintura', PAL_AM, 10);
   /* el cilindro que la sube y baja */
   D.cilHidD('PHY', [xs0 + 0.2, YB + 0.55, ZL + 0.08], [xs0 + (xs1 - xs0) * 0.32, ys0 + (ys1 - ys0) * 0.32 - 0.12, zS - aS / 2], 0.05, PAL_NEGRO, 0.55);
+  G.children.slice(nCasa).forEach(function(m){ m.userData.casa = true; });
 
   /* ═══ cubierta: tanque, engrase, capots de motores, filtros y escapes ═══ */
   /* tanque hidraulico adelante a la derecha, con filtros y respiradero */
@@ -625,6 +628,10 @@ function palConstruirPala(id, piezas){
   });
 
   /* ═══ cucharon de descarga por el fondo ═══ */
+  /* para el tajo: la almeja (costados, piso, labio y dientes) se marca para
+     poder abrirla sobre su bisagra; la espalda y la viga quedan con el brazo */
+  var marcarAlmeja = function(n0){ G.children.slice(n0).forEach(function(m){ m.userData.almeja = true; }); };
+  var nAl = G.children.length;
   var WC = C.balde, zLc = WC / 2 - 0.07;
   var lado = BAL.map(function(p){ return bk([p[0] / sb, p[1] / sb]); });
   [-1, 1].forEach(function(l){
@@ -639,10 +646,13 @@ function palConstruirPala(id, piezas){
     var f0 = bk([2.30, 0.20]), f1 = bk([3.80, -2.42]);
     tubo(null, [-f0[0], f0[1], l * (zLc + 0.02)], [-f1[0], f1[1], l * (zLc + 0.02)], 0.10 * sb, 'pintura', PAL_AM2, 12);
   });
+  marcarAlmeja(nAl);
   /* piso, espalda y viga de arriba */
+  nAl = G.children.length;
   var piso = [[0.33, -2.00], [0.55, -2.45], [1.05, -2.72], [3.30, -2.80], [3.72, -2.62], [3.80, -2.42], [3.55, -2.40], [3.15, -2.58], [1.10, -2.50], [0.70, -2.30], [0.52, -1.95]]
     .map(function(p){ return bk(p); });
   perfil('LPN', mp(piso), WC - 0.12, 0, 'pintura', PAL_AM, 0.03);
+  marcarAlmeja(nAl);
   var espalda = [[0.33, 0.52], [0.58, 0.52], [0.58, -2.0], [0.33, -2.0]].map(function(p){ return bk(p); });
   perfil('LPN', mp(espalda), WC - 0.12, 0, 'pintura', PAL_AM, 0.03);
   /* nervios verticales en la espalda */
@@ -653,6 +663,7 @@ function palConstruirPala(id, piezas){
   var viga = [[0.33, 0.66], [1.60, 0.76], [1.65, 0.50], [0.33, 0.40]].map(function(p){ return bk(p); });
   perfil('LPN', mp(viga), WC + 0.04, 0, 'pintura', PAL_AM, 0.04);
   /* interior gastado del piso (se ve desde arriba) */
+  nAl = G.children.length;
   var gast = [[0.62, -1.95], [0.75, -2.28], [1.10, -2.46], [3.15, -2.54], [3.50, -2.38], [3.45, -2.30], [1.10, -2.38], [0.70, -1.95]].map(function(p){ return bk(p); });
   perfil(null, mp(gast), WC - 0.5, 0, 'metal', '#8E8676', 0.02);
   /* labio, dientes y protectores entre dientes */
@@ -668,6 +679,7 @@ function palConstruirPala(id, piezas){
     dn.scale.set(1, 1, 1.6);
     if(dt < 5) bloque('GET', 0.40 * sb, 0.16 * sb, 0.36, 'metal', '#5D6167', -pa[0] + 0.05, pa[1] + 0.03, zd + (WC - 0.84) / 10, 0.03, [0, 0, -dirD]);
   }
+  marcarAlmeja(nAl);
   /* orejas del brazo y de los cilindros de volteo en la espalda */
   var Bl = bk([0.05, -1.30]);
   [-1, 1].forEach(function(l){
@@ -690,6 +702,13 @@ function palConstruirPala(id, piezas){
   var caja = new THREE.Box3().setFromObject(G);
   var off = -(caja.min.x + caja.max.x) / 2;
   G.children.forEach(function(m){ m.position.x += off; });
+  /* lo que el tajo necesita para girar la casa, levantar el frente y abrir la
+     almeja, ya centrado (el modelo esta en espejo: x del dibujo -> -x) */
+  var hb = bk([0.50, 0.62]);
+  G.userData.giroX = off;
+  G.userData.pie = [-F[0] + off, F[1]];
+  G.userData.frente = XF + off;
+  G.userData.bisagra = [-hb[0] + off, hb[1]];
 
   G.userData.ruedas = [];
   G.userData.ponerNumero = function(id2){ texNum.userData.poner(id2); };

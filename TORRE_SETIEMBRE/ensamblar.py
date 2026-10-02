@@ -19,6 +19,8 @@ en un solo sitio.
   modelos3d.js              el camion 3D de cada modelo (CAT 785C y 785D); el resto usa el generico
   tendencia.html            Tendencia compacta: cifras, filtros y controles del grafico en filas
   movil.html, movil.js      telefono y tableta: cabecera corta, vista girada, «solo la tabla»
+  tajo.html, tajo.js        el fondo de Inicio y En vivo: el tajo con la flota real (reemplaza
+                            iniciarTajo/ajustarTajo/renderTajo de tres_d.js)
   datos.json                la tabla de hechos de setiembre (gen_datos.py)
   setiembre.json            tarifa real contra venta, DM y usaje (gen_datos.py)
 
@@ -28,7 +30,7 @@ ya no aparece, el ensamblado se detiene y dice cual: hay que revisarlo aqui.
     python gen_datos.py
     python ensamblar.py      # escribe artifact.html en esta carpeta
 """
-import io, json, os, re, sys
+import base64, io, json, os, re, sys
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 ORIG = os.path.join(os.path.dirname(AQUI), "PROCESO")
@@ -120,6 +122,20 @@ equipo_js = lee(AQUI, "equipo.js")
 tendencia_html = lee(AQUI, "tendencia.html")
 movil_html = lee(AQUI, "movil.html")
 movil_js = lee(AQUI, "movil.js")
+tajo_html = lee(AQUI, "tajo.html")
+tajo_js = lee(AQUI, "tajo.js")
+# las texturas del tajo (tajo_tex/): el mapa de luz horneado en Blender y el
+# detalle de roca y grava de Poly Haven, metidas en la pagina como data URI.
+# Si falta alguna, el tajo se ve con la luz por vertice de siempre.
+_tex = {}
+for _n in ("luz", "roca", "grava"):
+    _f = os.path.join(AQUI, "tajo_tex", ("luz.jpg" if _n == "luz" else "det_%s.jpg" % _n))
+    if os.path.exists(_f):
+        _tex[_n] = "data:image/jpeg;base64," + base64.b64encode(open(_f, "rb").read()).decode("ascii")
+if "var TJ_TEX = {};" not in tajo_js:
+    sys.exit("tajo.js: no encuentro 'var TJ_TEX = {};'")
+tajo_js = tajo_js.replace("var TJ_TEX = {};", "var TJ_TEX = " + json.dumps(_tex) + ";", 1)
+print("texturas del tajo:", ", ".join("%s %d KB" % (k, len(v) * 3 // 4 // 1024) for k, v in _tex.items()) or "ninguna")
 
 # ══════════════════════════════════════════════════════════════════════
 #  cabecera
@@ -165,7 +181,7 @@ cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
 # siguen estando en Tendencia y en Filtros.
 cuerpo = entre(cuerpo, "<!-- ═══════════════════ FLOTA ═══════════════════ -->", "</section>",
                (hojas_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
-                + "\n" + tendencia_html + "\n" + movil_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
+                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
 
 # ---- Tendencia
 cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo.', "</p></details>",
@@ -507,7 +523,7 @@ nuevo = (cabecera + css + "\n" + cuerpo + "\n<script>\n(function(){\n"
          + js_datos + "\n" + js_tend + "\n" + js_filt + "\n" + js_sep + "\n" + cont + tres_d
          + "\n" + extra + "\n" + hojas_js + "\n" + tablero_js + "\n" + burbuja_js
          # los modelos 3D antes de la navegacion: al final de ella se elige el primer equipo
-         + "\n" + modelos3d_js + "\n" + detalle3d_js + "\n" + modelos_det_js + "\n" + equipo_js + "\n" + js_nav
+         + "\n" + modelos3d_js + "\n" + detalle3d_js + "\n" + modelos_det_js + "\n" + tajo_js + "\n" + equipo_js + "\n" + js_nav
          # la division envuelve irA(): tiene que ir despues de nuevo_js_nav.js
          + "\n" + division_js + "\n" + movil_js + "\n})();\n</script>\n")
 

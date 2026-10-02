@@ -28,6 +28,12 @@ con las mismas reglas de las tablas dinámicas del libro y lo presenta como una 
   el costo de mantenimiento de SAP pintado sobre cada pieza. Filtros en cascada (propio/alquilado,
   flota, modelo, proveedor) y buscador. Los modelos están en `TORRE_SETIEMBRE\modelo_*.js`;
   `prueba3d.py` los fotografía desde seis ángulos y `GUIA_MODELOS3D.md` explica cómo hacer uno.
+- **Inicio y En vivo** tienen de fondo un tajo de hierro animado: bancos, rampa en espiral,
+  chancadora con su faja y ruma, y la flota real trabajando (pala y retro que cargan con el
+  cucharón lleno, camiones que hacen el ciclo completo y descargan en la chancadora). Una cámara de
+  dron recorre la faena. La luz del terreno se calculó en Blender (`TORRE_SETIEMBRE\tajo_tex\hornear_tajo.py`)
+  y las texturas de roca y grava son de [Poly Haven](https://polyhaven.com) (CC0). La animación
+  mantiene un ritmo de cuadros parejo según lo que dé la tarjeta de video.
 - **Tendencia** compacta, con cifras, filtros y controles del gráfico en filas.
 - **Teléfono y tableta**: cabecera corta que se aparta al bajar la página, vista horizontal en la
   que la tabla ocupa toda la pantalla y el botón «⤢ SOLO LA TABLA».
