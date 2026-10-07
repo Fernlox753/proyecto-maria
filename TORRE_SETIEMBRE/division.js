@@ -5,6 +5,10 @@
    ensenan dos: la de arriba (DIV.a) y la de abajo (DIV.b), cada una fija en
    su panel y con su propio desplazamiento. No se duplica nada: son las
    mismas secciones, asi que una pestana no puede estar en los dos paneles.
+   La excepcion es Flota completa: tiene una gemela (v-toda2, hoja U de
+   hojas.js) con su propio estado, que no sale en la barra de pestanas y
+   solo se usa aqui, para ver por ejemplo propios arriba y alquilados abajo
+   (boton ⧉ DOS FLOTAS).
 
    irA() se envuelve (va despues de nuevo_js_nav.js, dentro del mismo cierre):
      · una pestana elegida arriba se abre en el panel marcado (DIV.act), el
@@ -109,13 +113,15 @@ function divPoner(si){
   if(si){
     DIV.on = true;
     DIV.a = vistaActual || (vistas[0] && vistas[0].id);
-    DIV.b = DIV.a === 'v-tablero' ? 'v-propios' : 'v-tablero';
+    DIV.b = DIV.a === 'v-tablero' ? 'v-toda' : 'v-tablero';
     if(!$(DIV.b)) DIV.b = vistas.filter(function(v){ return v.id !== DIV.a; })[0].id;
     DIV.act = 'b';
     document.body.classList.add('dividida');
     divAplicar();
   } else {
     var queda = DIV[DIV.act];
+    /* la gemela no tiene pestana: al volver a una sola, queda la Flota completa de siempre */
+    if(queda === 'v-toda2') queda = 'v-toda';
     DIV.on = false;
     document.body.classList.remove('dividida');
     vistas.forEach(function(x){ x.classList.remove('divA', 'divB', 'divAct'); x.scrollTop = 0; });
@@ -126,9 +132,24 @@ function divPoner(si){
   }
 }
 
+/* Flota completa arriba y abajo, cada una con su filtro. Si las dos estan
+   en TODA, arriba quedan los propios y abajo los alquilados. */
+function divDosFlotas(){
+  if(!$('v-toda2')) return;
+  if(!DIV.on){ DIV.on = true; document.body.classList.add('dividida'); }
+  DIV.a = 'v-toda'; DIV.b = 'v-toda2'; DIV.act = 'a';
+  try {
+    if(hxFlota(HX.T) === '*' && hxFlota(HX.U) === '*'){ hxPonerFlota('T', 'PROPIO'); hxPonerFlota('U', 'ALQUILADO'); }
+  } catch(e){}
+  divAplicar();
+}
 (function divisionIniciar(){
   var nav = $('nav'), cont = $('pestanas');
   if(!nav || !cont) return;
+  /* la gemela de Flota completa no lleva pestana */
+  var gem = cont.querySelector('.pes[data-v="v-toda2"]');
+  if(gem) gem.parentNode.removeChild(gem);
+  esc_('divDos', 'click', divDosFlotas);
   /* el boton, junto al de quitar el encabezado */
   var b = document.createElement('button');
   b.type = 'button'; b.className = 'divBtn'; b.id = 'divBtn'; b.textContent = '⊟';

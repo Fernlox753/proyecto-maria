@@ -14,8 +14,8 @@
 
    Es un presupuesto flexible: la venta interna (tarifa x horas reales) es
    lo que corresponde gastar para las horas que de verdad se trabajaron.
-   Usa los mismos nodos de equipo que las hojas Propios y Alquilados
-   (HX[..].todos), asi que las cifras son las mismas.
+   Arma sus nodos de equipo desde SETIEMBRE.eq (tbTodos), los mismos que
+   usa Flota completa, asi que las cifras son las mismas.
    ══════════════════════════════════════════════════════════════════ */
 /* mods: los modelos elegidos; vacio es todos. Se pueden juntar varios,
    por ejemplo 785C y 785D, y el tablero los analiza como un solo grupo. */
@@ -32,10 +32,42 @@ var TB_TEC = { 'MECANI-A': 'Mecánico', 'LLANTE-A': 'Llantero', 'MECLUB-A': 'Mec
 var TB_PM = {};
 OTS.forEach(function(o){ TB_PM[o.ot] = o.pm; });
 
-function tbHoja(){ return TB.tipo === 'PROPIO' ? 'P' : 'A'; }
+/* Los equipos del tablero se arman aqui, desde SETIEMBRE.eq (los de la flota
+   y los proyectos elegidos), igual que en las hojas pero sin depender de
+   ellas. Con o sin Dep / Alq va con Flota completa (HX.T.terD / terA). */
+var TB_NODOS = { firma: '', lista: [] };
+function tbTodos(){
+  var firma = TB.tipo + '|' + (todasLasSedes() ? '*' : sedeSel.join('+'));
+  if(TB_NODOS.firma === firma) return TB_NODOS.lista;
+  var q = SEP.eq, out = [], id;
+  for(id in q){
+    var x = q[id];
+    if(x.tipo !== TB.tipo || !sedeOk(x.sede)) continue;
+    out.push({ k: 'e|' + id, lv: 3, et: id, fam: x.fam, mod: x.mod, sede: x.sede, id: id,
+               sub: x.prov && x.tipo === 'ALQUILADO' ? x.prov.slice(0, 24) : '',
+               busca: (id + ' ' + x.mod + ' ' + x.fam + ' ' + (x.prov || '')).toUpperCase(),
+               o: { c: x.c, v: x.v, hr: x.hr || 0, hrProf: x.hrProf || 0, dm: x.dm, use: x.use, n: 1, A: x.A,
+                    sd: x.dm === null || x.dm === undefined ? 0 : x.dm, nd: x.dm === null || x.dm === undefined ? 0 : 1,
+                    su: x.use === null || x.use === undefined ? 0 : x.use, nu: x.use === null || x.use === undefined ? 0 : 1 },
+               hijos: hxFases(id) });
+  }
+  TB_NODOS = { firma: firma, lista: out };
+  return out;
+}
+function tbConTer(){
+  var t = HX.T || {};
+  return TB.tipo === 'PROPIO' ? (t.terD === undefined ? true : !!t.terD) : !!t.terA;
+}
+function tbPonerTer(si){
+  var t = HX.T;
+  if(!t) return;
+  if(TB.tipo === 'PROPIO') t.terD = si; else t.terA = si;
+  if(t.arbol){ hxBotones('T'); hxTabla('T'); }
+  tbOpciones(); tbPintar();
+}
 /* los equipos que dejan familia y modelo: entre ellos se eligen los equipos */
 function tbEqDisponibles(){
-  return (HX[tbHoja()].todos || []).filter(function(e){
+  return tbTodos().filter(function(e){
     return (!TB.fams.length || TB.fams.indexOf(e.fam) >= 0) && (!TB.mods.length || TB.mods.indexOf(e.mod) >= 0);
   });
 }
@@ -117,7 +149,7 @@ function tbPintar(){
   var o = hxSuma(nodos.map(function(e){ return e.o; }));
   var corte = SEP.corteDia || 6, dias = SEP.diasMes || 30;
   /* con o sin el tercer componente, el mismo estado que la hoja de esa flota */
-  var ter = HX[tbHoja()].ter;
+  var ter = tbConTer();
   var c = o.c.slice(), v = o.v.slice(), h = o.hr;
   c[3] = hxTc(o, ter); v[3] = hxTv(o, ter);
   var desv = v[3] - c[3];
@@ -410,7 +442,7 @@ function tbPintar(){
 
 /* conFam === false: la lista de familias no se rehace (se esta marcando en ella) */
 function tbOpciones(conFam){
-  var nodos = HX[tbHoja()].todos || [], fams = [], mods = [], nEq = {}, nFam = {};
+  var nodos = tbTodos(), fams = [], mods = [], nEq = {}, nFam = {};
   nodos.forEach(function(e){
     if(fams.indexOf(e.fam) < 0) fams.push(e.fam);
     nFam[e.fam] = (nFam[e.fam] || 0) + 1;
@@ -443,7 +475,7 @@ function tbOpciones(conFam){
   txt('tb-modRot', !TB.mods.length ? 'TODOS' : TB.mods.length <= 3 ? TB.mods.join(' + ') : TB.mods.length + ' MODELOS');
   tbEqPodar(); tbEqFiltro();
   var st = $('tb-tipo'); if(st) st.value = TB.tipo;
-  var ter = HX[tbHoja()].ter, nom = TB.tipo === 'PROPIO' ? 'DEP' : 'ALQ';
+  var ter = tbConTer(), nom = TB.tipo === 'PROPIO' ? 'DEP' : 'ALQ';
   txt('tb-ter-t', (TB.tipo === 'PROPIO' ? 'DEPRECIACIÓN' : 'ALQUILER') + ' EN EL COSTO');
   htm('tb-ter', '<button class="fbt" type="button" data-t="1" aria-pressed="' + !!ter + '">CON ' + nom + '</button>'
     + '<button class="fbt" type="button" data-t="0" aria-pressed="' + !ter + '">SIN ' + nom + '</button>');
@@ -512,7 +544,7 @@ function tbEqAgregar(texto){
 
 /* la hoja de esa flota cambio con o sin el tercer componente: el tablero la sigue */
 function tbTer(s){
-  if(s !== tbHoja()) return;
+  if(s !== 'T') return;
   tbOpciones(); tbPintar();
 }
 /* desde las hojas Propios y Alquilados: abre el tablero de esa familia, modelo o equipo */
@@ -666,7 +698,7 @@ if($('tb-cuerpo') && SEP && SEP.eq){
   });
   esc_('tb-ter', 'click', function(ev){
     var b = ev.target.closest ? ev.target.closest('[data-t]') : null;
-    if(b) hxPonerTer(tbHoja(), b.getAttribute('data-t') === '1');
+    if(b) tbPonerTer(b.getAttribute('data-t') === '1');
   });
   /* la explicacion abierta sigue abierta al repintar (al abrir un equipo,
      al cambiar de modelo): se recuerda por paso */

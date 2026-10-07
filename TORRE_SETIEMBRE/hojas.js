@@ -14,26 +14,35 @@
    [RyM, MOV, Dep o Alq, total]; A es el acumulado del anio. En alquilados
    los totales NO suman el tercer componente, igual que en el Excel.
    ══════════════════════════════════════════════════════════════════ */
-var HX = { P: { tipo: 'PROPIO' }, A: { tipo: 'ALQUILADO' }, T: { tipo: '*' } };
+var HX = { P: { tipo: 'PROPIO' }, A: { tipo: 'ALQUILADO' }, T: { tipo: '*' }, U: { tipo: '*' } };
 /* T: FLOTA COMPLETA, las dos hojas en una. Cada fila lleva los cuatro
    componentes por separado —c, v y A.v = [RyM, MOV, Dep, Alq]; A.c =
    [RyM, MOV, Dep, Alq, Seg]— y cuantos equipos propios (np) y alquilados
    (nq) suma: sin propios la columna Dep va con guion, sin alquilados la de
    Alq. Dep y Alq entran al total con dos botones propios (terD, terA). */
-var HX_HOJAS = ['P', 'A', 'T'];
-function hxSeccion(s){ return s === 'A' ? 'v-alquilados' : s === 'T' ? 'v-toda' : 'v-propios'; }
+/* Propios y Alquilados quedan en la pagina, escondidas y sin arrancar: nada
+   depende de ellas (Flota completa las reemplaza con su filtro de flota). U
+   es una segunda Flota completa, con su propio estado, para ver dos a la vez
+   en la pantalla dividida (division.js); comparte los comentarios con T. */
+var HX_HOJAS = ['T', 'U'];
+function hxEsT(s){ return s === 'T' || s === 'U'; }
+function hxSeccion(s){ return s === 'A' ? 'v-alquilados' : s === 'T' ? 'v-toda' : s === 'U' ? 'v-toda2' : 'v-propios'; }
+/* la flota que muestra una Flota completa: '*' las dos, PROPIO o ALQUILADO */
+function hxFlota(st){ return st.flota || '*'; }
 function hxTcT(st, o){ return o.c[0] + o.c[1] + (st.terD && o.np ? o.c[2] : 0) + (st.terA && o.nq ? o.c[3] : 0); }
 function hxTvT(st, o){ return o.v[0] + o.v[1] + (st.terD && o.np ? o.v[2] : 0) + (st.terA && o.nq ? o.v[3] : 0); }
 function hxTacT(st, o){ return o.A.c[0] + o.A.c[1] + (st.terD && o.np ? o.A.c[2] : 0) + (st.terA && o.nq ? o.A.c[3] : 0); }
 function hxTavT(st, o){ return o.A.v[0] + o.A.v[1] + (st.terD && o.np ? o.A.v[2] : 0) + (st.terA && o.nq ? o.A.v[3] : 0); }
 /* el tipo de flota de una fila de FLOTA COMPLETA, si es uno solo (para el TABLERO) */
 function hxTipoNodo(st, n){
-  if(st.s !== 'T') return st.tipo;
+  if(!hxEsT(st.s)) return st.tipo;
   if(n.id && SEP.eq[n.id]) return SEP.eq[n.id].tipo;
   var o = n.o || {};
   return o.np && !o.nq ? 'PROPIO' : o.nq && !o.np ? 'ALQUILADO' : null;
 }
-var HX_NIVELES = ['FAMILIA', 'MODELO', 'EQUIPO', 'FASE', 'ORDEN'];
+var HX_NIVELES = ['PROYECTO', 'FAMILIA', 'MODELO', 'EQUIPO', 'FASE', 'ORDEN'];
+/* en los botones de nivel van con siglas, para que la barra siga en una linea */
+var HX_NIV_CORTO = { PROYECTO: 'PROY', FAMILIA: 'FAM', MODELO: 'MOD', EQUIPO: 'EQUIPO', FASE: 'FASE', ORDEN: 'ORDEN' };
 var HX_FASES = { LU: 'LUBRICACIÓN', MM: 'MANTENIMIENTO MECÁNICO', LL: 'LLANTAS', ED: 'ELEMENTOS DE DESGASTE',
                  RM: 'REPARACIÓN MAYOR', CA: 'CARRILERÍA' };
 /* debajo del equipo van sus fases y debajo de cada fase sus ordenes. Las dos
@@ -43,7 +52,7 @@ function hxFases(id){
   ((SEP.ots || {})[id] || []).forEach(function(r){
     var f = r[1] || '';
     if(!por[f]){ por[f] = []; orden.push(f); }
-    por[f].push({ k: 'o|' + r[0], lv: 4, et: r[0], sub: r[2], ot: 1, fase: f,
+    por[f].push({ k: 'o|' + r[0], lv: 5, et: r[0], sub: r[2], ot: 1, fase: f,
                   o: { c: [r[3], r[4], 0, r[3] + r[4]] }, hijos: [] });
   });
   return orden.map(function(f){ return hxNodoFase(id, f, por[f]); });
@@ -51,29 +60,30 @@ function hxFases(id){
 function hxNodoFase(id, f, os){
   var rym = 0, mov = 0;
   os.forEach(function(o){ rym += o.o.c[0]; mov += o.o.c[1]; });
-  return { k: 'fa|' + id + '|' + f, lv: 3, et: HX_FASES[f] || f || '(SIN FASE)', fase: f, ot: 1, esFase: 1,
+  return { k: 'fa|' + id + '|' + f, lv: 4, et: HX_FASES[f] || f || '(SIN FASE)', fase: f, ot: 1, esFase: 1,
            sub: os.length + (os.length === 1 ? ' orden' : ' órdenes'), o: { c: [rym, mov, 0, rym + mov] }, hijos: os };
 }
 /* el orden de los niveles del medio (modelo, equipo, fase) se elige
-   arrastrando sus botones; familia va siempre primero y orden al final.
+   arrastrando sus botones; proyecto y familia van siempre primero y orden
+   al final.
    Un nivel que queda por debajo de la fase solo tiene costo (ot: 1): horas,
    venta y depreciacion no se reparten por fase. */
 var HX_NIV_NOM = { mod: 'MODELO', eq: 'EQUIPO', fa: 'FASE' };
-var HX_NIV_LOG = { mod: 1, eq: 2, fa: 3 };      /* su indice en HX_ELEG / HX_NIVELES */
+var HX_NIV_LOG = { mod: 2, eq: 3, fa: 4 };      /* su indice en HX_ELEG / HX_NIVELES */
 function hxOrdenNiv(st){ return (st && st.ordenNiv) || ['mod', 'eq', 'fa']; }
 function hxEsNormal(st){ return hxOrdenNiv(st).join() === 'mod,eq,fa'; }
 function hxNivelesDe(st){
-  return ['FAMILIA'].concat(hxOrdenNiv(st).map(function(k){ return HX_NIV_NOM[k]; })).concat(['ORDEN']);
+  return ['PROYECTO', 'FAMILIA'].concat(hxOrdenNiv(st).map(function(k){ return HX_NIV_NOM[k]; })).concat(['ORDEN']);
 }
-/* posicion en la tabla (0-4) de cada nivel logico (0 familia ... 4 orden) */
+/* posicion en la tabla (0-5) de cada nivel logico (0 proyecto, 1 familia ... 5 orden) */
 function hxPosDe(st, logico){
-  if(logico === 0 || logico === 4) return logico;
-  var k = ['fam', 'mod', 'eq', 'fa'][logico];
-  return 1 + hxOrdenNiv(st).indexOf(k);
+  if(logico <= 1 || logico === 5) return logico;
+  var k = ['sede', 'fam', 'mod', 'eq', 'fa'][logico];
+  return 2 + hxOrdenNiv(st).indexOf(k);
 }
 /* bajo una familia, los niveles en el orden pedido. recs: [{ e, fa }] con fa
    en null hasta que el nivel FASE parte cada equipo en sus fases */
-function hxArmar(recs, niv, lv, pk, fam, eqArriba){
+function hxArmar(recs, niv, lv, pk, fam, eqArriba, sede){
   if(!niv.length){
     var os = [];
     recs.forEach(function(r){ os = os.concat(r.fa ? r.fa.hijos : hxOrdenes(r.e)); });
@@ -94,11 +104,11 @@ function hxArmar(recs, niv, lv, pk, fam, eqArriba){
   return orden.map(function(v){
     var rs = grupos[v], eqs = [];
     rs.forEach(function(r){ if(eqs.indexOf(r.e) < 0) eqs.push(r.e); });
-    var n = { lv: lv, fam: fam, hijos: null };
+    var n = { lv: lv, fam: fam, sede: sede, hijos: null };
     /* las claves de equipo y de modelo bajo la familia son las de siempre:
        asi se conservan los comentarios y lo abierto */
     if(k === 'eq' && !partido) n.k = 'e|' + v;
-    else if(k === 'mod' && !partido && lv === 1) n.k = 'm|' + fam + '|' + v;
+    else if(k === 'mod' && !partido && lv === 2) n.k = 'm|' + sede + '|' + fam + '|' + v;
     else n.k = pk + '>' + k + ':' + v;
     if(k === 'mod'){ n.esMod = 1; n.mod = v; n.et = v || '(sin modelo)'; }
     if(k === 'eq'){ var e = rs[0].e; n.id = e.id; n.et = e.id; n.busca = e.busca; n.mod = e.mod; }
@@ -113,7 +123,7 @@ function hxArmar(recs, niv, lv, pk, fam, eqArriba){
       n.o = eqs.length === 1 && k === 'eq' ? eqs[0].o : hxSuma(eqs.map(function(e){ return e.o; }));
       if(k === 'eq') n.sub = rs[0].e.sub;
     }
-    n.hijos = hxArmar(rs, resto, lv + 1, n.k, fam, eqArriba || k === 'eq');
+    n.hijos = hxArmar(rs, resto, lv + 1, n.k, fam, eqArriba || k === 'eq', sede);
     return n;
   });
 }
@@ -122,13 +132,17 @@ function hxArmar(recs, niv, lv, pk, fam, eqArriba){
 function hxVistaOrden(st){
   if(hxEsNormal(st)) return;
   var niv = hxOrdenNiv(st);
-  st.vista = st.vista.map(function(f){
-    var recs = [];
-    f.hijos.forEach(function(m){ m.hijos.forEach(function(e){ recs.push({ e: e, fa: null }); }); });
-    var c = {}, k;
-    for(k in f) c[k] = f[k];
-    c.hijos = hxArmar(recs, niv, 1, f.k, f.fam, false);
-    return c;
+  var copia = function(x){ var c = {}, k; for(k in x) c[k] = x[k]; return c; };
+  st.vista = st.vista.map(function(p){
+    var cp = copia(p);
+    cp.hijos = p.hijos.map(function(f){
+      var recs = [];
+      f.hijos.forEach(function(m){ m.hijos.forEach(function(e){ recs.push({ e: e, fa: null }); }); });
+      var c = copia(f);
+      c.hijos = hxArmar(recs, niv, 2, f.k, f.fam, false, f.sede);
+      return c;
+    });
+    return cp;
   });
 }
 /* cuantas ordenes cuelgan de una fila */
@@ -239,7 +253,9 @@ function hxColumnasT(st){
      Dep y Alq desaparecen cuando su boton los saca del total (fuera, ver
      hxVisibles) y vuelven al sumarlos, como el tercer componente en Propios
      y Alquilados */
-  var sinD = function(){ return !st.terD; }, sinA = function(){ return !st.terA; };
+  /* con la flota filtrada, la columna de la otra flota no tiene nada que mostrar */
+  var sinD = function(){ return !st.terD || hxFlota(st) === 'ALQUILADO'; };
+  var sinA = function(){ return !st.terA || hxFlota(st) === 'PROPIO'; };
   var cuatro = function(f, fm){
     return [{ t: 'RyM', f: fm, v: function(o){ return f(o, 0); } },
             { t: 'MOV', f: fm, v: function(o){ return f(o, 1); } },
@@ -275,7 +291,7 @@ function hxColumnasT(st){
   ];
 }
 /* la columna del total de cada hoja (para ordenar por ella) */
-function hxIdxTotal(s){ return s === 'T' ? 4 : 3; }
+function hxIdxTotal(s){ return hxEsT(s) ? 4 : 3; }
 function hxCorte(){ return ((SEP && SEP.corte) || '').replace(/\D/g, '') || '—'; }
 
 /* ---------- el arbol ---------- */
@@ -301,36 +317,45 @@ function hxSuma(filas){
 function hxArbol(s){
   var st = HX[s], q = SEP.eq, fams = {}, orden = [], id;
   /* solo los equipos de los proyectos elegidos (proyecto.js) */
-  for(id in q) if((st.tipo === '*' || q[id].tipo === st.tipo) && sedeOk(q[id].sede)){
+  var fl = hxEsT(s) ? hxFlota(st) : st.tipo;
+  for(id in q) if((fl === '*' || q[id].tipo === fl) && sedeOk(q[id].sede)){
     var x = q[id], pr = x.tipo === 'PROPIO';
-    var sub = s === 'T' ? (pr ? 'propio' : 'alquilado' + (x.prov ? ' · ' + x.prov.slice(0, 18) : ''))
+    var sub = hxEsT(s) ? (pr ? 'propio' : 'alquilado' + (x.prov ? ' · ' + x.prov.slice(0, 18) : ''))
                         : x.prov && s === 'A' ? x.prov.slice(0, 24) : '';
     /* en T el tercer componente va a Dep o a Alq segun la flota del equipo */
-    var c4 = function(a){ return s === 'T' ? [a[0], a[1], pr ? a[2] : 0, pr ? 0 : a[2]] : a; };
-    var A = s === 'T' ? { c: c4(x.A.c).concat([x.A.c[3]]), h: x.A.h, v: c4(x.A.v) } : x.A;
-    var e = { k: 'e|' + id, lv: 2, et: id, fam: x.fam, mod: x.mod, sub: sub, id: id,
-              busca: (id + ' ' + x.mod + ' ' + x.fam + ' ' + (x.prov || '') + (s === 'T' ? ' ' + x.tipo : '')).toUpperCase(),
+    var c4 = function(a){ return hxEsT(s) ? [a[0], a[1], pr ? a[2] : 0, pr ? 0 : a[2]] : a; };
+    var A = hxEsT(s) ? { c: c4(x.A.c).concat([x.A.c[3]]), h: x.A.h, v: c4(x.A.v) } : x.A;
+    var e = { k: 'e|' + id, lv: 3, et: id, fam: x.fam, mod: x.mod, sede: x.sede, sub: sub, id: id,
+              busca: (id + ' ' + x.mod + ' ' + x.fam + ' ' + (x.prov || '') + (hxEsT(s) ? ' ' + x.tipo : '')).toUpperCase(),
               o: { c: c4(x.c), v: c4(x.v), hr: x.hr || 0, hrProf: x.hrProf || 0, dm: x.dm, use: x.use, n: 1, A: A,
                    np: pr ? 1 : 0, nq: pr ? 0 : 1,
                    sd: x.dm === null || x.dm === undefined ? 0 : x.dm, nd: x.dm === null || x.dm === undefined ? 0 : 1,
                    su: x.use === null || x.use === undefined ? 0 : x.use,
                    nu: x.use === null || x.use === undefined ? 0 : 1 },
               hijos: hxFases(id) };
-    if(!fams[x.fam]){ fams[x.fam] = {}; orden.push(x.fam); }
-    (fams[x.fam][x.mod] = fams[x.fam][x.mod] || []).push(e);
+    var ps = fams[x.sede] = fams[x.sede] || { orden: [], f: {} };
+    if(!ps.f[x.fam]){ ps.f[x.fam] = {}; ps.orden.push(x.fam); }
+    (ps.f[x.fam][x.mod] = ps.f[x.fam][x.mod] || []).push(e);
   }
   st.todos = [];
-  st.arbol = orden.map(function(f){
-    var mods = Object.keys(fams[f]).map(function(m){
-      var es = fams[f][m];
-      es.forEach(function(e){ st.todos.push(e); });
-      return { k: 'm|' + f + '|' + m, lv: 1, et: m || '(sin modelo)', sub: '', hijos: es, fam: f, mod: m,
-               o: hxSuma(es.map(function(e){ return e.o; })) };
+  /* las claves de familia y modelo llevan el proyecto: la misma familia
+     esta en varios proyectos y cada una se despliega y se comenta aparte */
+  st.arbol = sedesL().filter(function(sd){ return fams[sd]; }).map(function(sd){
+    var ps = fams[sd];
+    var fs = ps.orden.map(function(f){
+      var mods = Object.keys(ps.f[f]).map(function(m){
+        var es = ps.f[f][m];
+        es.forEach(function(e){ st.todos.push(e); });
+        return { k: 'm|' + sd + '|' + f + '|' + m, lv: 2, et: m || '(sin modelo)', sub: '', hijos: es, fam: f, mod: m,
+                 sede: sd, esMod: 1, o: hxSuma(es.map(function(e){ return e.o; })) };
+      });
+      return { k: 'f|' + sd + '|' + f, lv: 1, et: f, sub: '', hijos: mods, fam: f, mod: '', sede: sd, esFam: 1,
+               o: hxSuma(mods.map(function(m){ return m.o; })) };
     });
-    return { k: 'f|' + f, lv: 0, et: f, sub: '', hijos: mods, fam: f, mod: '',
-             o: hxSuma(mods.map(function(m){ return m.o; })) };
+    return { k: 's|' + sd, lv: 0, et: (sedeNomL()[sd] || sd) + ' · ' + sd, sub: '', hijos: fs, fam: '', mod: '', sede: sd, esSede: 1,
+             o: hxSuma(fs.map(function(f){ return f.o; })) };
   });
-  st.total = hxSuma(st.arbol.map(function(f){ return f.o; }));
+  st.total = hxSuma(st.arbol.map(function(p){ return p.o; }));
 }
 
 /* ---------- celdas ---------- */
@@ -421,15 +446,16 @@ function hxNivelOrigen(st, n){
             : n.ot ? ' Alcance: sólo el costo de las ' + hxNOrdenes(n) + ' órdenes que cuelgan de esta fila'
                      + (n.esFase ? ' (fase ' + n.et + ')' : '') + '; horas, venta y depreciación no se reparten por fase.'
             : n.id ? ' Alcance: sólo este equipo.'
-            : n.esMod && n.lv > 1 ? ' Alcance: suma de los ' + n.o.n + ' equipos de este modelo en esta rama.'
-            : n.lv === 2 ? ' Alcance: sólo este equipo.'
-            : ' Alcance: suma de los ' + n.o.n + ' equipos de ' + (n.lv === 0 ? 'esta familia.' : 'este modelo.');
+            : n.esSede ? ' Alcance: suma de los ' + n.o.n + ' equipos de este proyecto.'
+            : n.esFam ? ' Alcance: suma de los ' + n.o.n + ' equipos de esta familia en este proyecto.'
+            : n.esMod && n.lv > 2 ? ' Alcance: suma de los ' + n.o.n + ' equipos de este modelo en esta rama.'
+            : ' Alcance: suma de los ' + n.o.n + ' equipos de este modelo.';
 }
 /* FLOTA COMPLETA: Dep se explica como en la hoja PROP y Alq como en la ALQ; en
    las demas columnas, una fila de una sola flota como la hoja de esa flota y
    una mezclada con las dos explicaciones */
 function hxOrigen(st, n, col){
-  if(st.s !== 'T') return hxOrigenPA(st, n, col);
+  if(!hxEsT(st.s)) return hxOrigenPA(st, n, col);
   var p = col.split('-'), g = p[0], i = parseInt(p[1], 10);
   if(g === 'oper') return hxOrigenPA(HX.P, n, col, true) + hxNivelOrigen(st, n);
   var esDep = i === 2, esAlq = i === 3, nTot = g === 'cacum' ? 5 : 4;
@@ -465,7 +491,7 @@ function hxOrigenPA(st, n, col, sinNivel){
   /* lo que en el Excel es formula se toma de la fila del equipo, tal cual */
   var de = function(bloque, rot){ return 'Columna «' + rot + '» del bloque «' + bloque + '» de ' + hoja + ', tal cual.'; };
   var nivel = hxNivelOrigen(st, n);
-  var grupo = n.lv < 2 && !n.id ? ' En un grupo es la suma de sus equipos.' : '';
+  var grupo = !n.id ? ' En un grupo es la suma de sus equipos.' : '';
   var nomC = ['RyM', 'MOV', t3, 'Total'];
   var porDias = (esProp ? SEP.depPorDias : SEP.alqPorDias) || [];
   var o = '';
@@ -479,8 +505,8 @@ function hxOrigenPA(st, n, col, sinNivel){
                + (st.ter ? 'Está sumado al total (botón CON ALQ).' : 'NO entra al total.') + grupo,
       hxOrTot(st, 'Costo')][i];
   else if(g === 'oper') o = [
-      de('%DM', '%DM') + (n.lv < 2 ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
-      de('%Utiliz.', '%Utiliz.') + (n.lv < 2 ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
+      de('%DM', '%DM') + (!n.id ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
+      de('%Utiliz.', '%Utiliz.') + (!n.id ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
       de('Hras Real al ' + corte, 'Hras Real') + ' Son las horas del horómetro de SAP hasta el día ' + corte + '.' + grupo,
       de('Hras Prof (mes)', 'Hras Prof') + ' Son las horas proformadas para TODO el mes, no sólo hasta el día ' + corte + '.' + grupo][i];
   else if(g === 'venta') o = i < 3 ? de('Venta Interna al ' + corte, nomC[i]) + ' En el Excel es la tarifa de venta × horas reales.'
@@ -582,16 +608,18 @@ function hxHayFiltros(st){ return !!(st.filtros && Object.keys(st.filtros).lengt
    st.eleg guarda lo elegido por nivel (claves de nodo de familia y modelo,
    codigo de equipo, numero de orden). Vacio es todo. Cada nivel solo ofrece
    lo que queda dentro de lo elegido en los niveles de arriba. */
-var HX_ELEG = ['fam', 'mod', 'eq', 'fa', 'ot'];
-var HX_ELEG_PL = ['FAMILIAS', 'MODELOS', 'EQUIPOS', 'FASES', 'ÓRDENES'];
+var HX_ELEG = ['sede', 'fam', 'mod', 'eq', 'fa', 'ot'];
+var HX_ELEG_PL = ['PROYECTOS', 'FAMILIAS', 'MODELOS', 'EQUIPOS', 'FASES', 'ÓRDENES'];
+function hxElegVacia(){ return { sede: [], fam: [], mod: [], eq: [], fa: [], ot: [] }; }
 function hxHayEleccion(st){
   var x = st.eleg;
-  return !!(x && (x.fam.length || x.mod.length || x.eq.length || x.fa.length || x.ot.length));
+  return !!(x && (x.sede.length || x.fam.length || x.mod.length || x.eq.length || x.fa.length || x.ot.length));
 }
 function hxHayRecorte(st){ return hxHayFiltros(st) || hxHayEleccion(st); }
-function hxPasaEleccion(st, f, m, e){
+function hxPasaEleccion(st, p, f, m, e){
   var x = st.eleg;
   if(!x) return true;
+  if(x.sede.length && x.sede.indexOf(p.k) < 0) return false;
   if(x.fam.length && x.fam.indexOf(f.k) < 0) return false;
   if(x.mod.length && x.mod.indexOf(m.k) < 0) return false;
   if(x.eq.length && x.eq.indexOf(e.id) < 0) return false;
@@ -607,29 +635,34 @@ function hxPasaEleccion(st, f, m, e){
 /* las opciones de un nivel, dentro de lo elegido arriba */
 function hxOpciones(st, i){
   var x = st.eleg, out = [], fases = {}, orden = [];
-  st.arbol.forEach(function(f){
-    if(i === 0){ out.push({ v: f.k, t: f.et, d: f.o.n + (f.o.n === 1 ? ' equipo' : ' equipos') }); return; }
-    if(x.fam.length && x.fam.indexOf(f.k) < 0) return;
-    f.hijos.forEach(function(m){
-      if(i === 1){ out.push({ v: m.k, t: m.et, d: f.et }); return; }
-      if(x.mod.length && x.mod.indexOf(m.k) < 0) return;
-      m.hijos.forEach(function(e){
-        if(i === 2){ out.push({ v: e.id, t: e.id, d: m.et + (e.sub ? ' · ' + e.sub : '') }); return; }
-        if(x.eq.length && x.eq.indexOf(e.id) < 0) return;
-        e.hijos.forEach(function(fa){
-          if(i === 3){
-            /* una fase se ofrece una vez, con cuantas ordenes y equipos la tienen */
-            if(!fases[fa.fase]){ fases[fa.fase] = { n: 0, eqs: 0, t: fa.et }; orden.push(fa.fase); }
-            fases[fa.fase].n += fa.hijos.length; fases[fa.fase].eqs++;
-            return;
-          }
-          if(x.fa.length && x.fa.indexOf(fa.fase) < 0) return;
-          fa.hijos.forEach(function(o){ out.push({ v: o.et, t: o.et, d: e.id + ' · ' + fa.et + ' · ' + o.sub }); });
+  var eqs = function(n){ return n.o.n + (n.o.n === 1 ? ' equipo' : ' equipos'); };
+  st.arbol.forEach(function(p){
+    if(i === 0){ out.push({ v: p.k, t: p.et, d: eqs(p) }); return; }
+    if(x.sede.length && x.sede.indexOf(p.k) < 0) return;
+    p.hijos.forEach(function(f){
+      if(i === 1){ out.push({ v: f.k, t: f.et, d: p.sede + ' · ' + eqs(f) }); return; }
+      if(x.fam.length && x.fam.indexOf(f.k) < 0) return;
+      f.hijos.forEach(function(m){
+        if(i === 2){ out.push({ v: m.k, t: m.et, d: f.et + ' · ' + p.sede }); return; }
+        if(x.mod.length && x.mod.indexOf(m.k) < 0) return;
+        m.hijos.forEach(function(e){
+          if(i === 3){ out.push({ v: e.id, t: e.id, d: m.et + ' · ' + p.sede + (e.sub ? ' · ' + e.sub : '') }); return; }
+          if(x.eq.length && x.eq.indexOf(e.id) < 0) return;
+          e.hijos.forEach(function(fa){
+            if(i === 4){
+              /* una fase se ofrece una vez, con cuantas ordenes y equipos la tienen */
+              if(!fases[fa.fase]){ fases[fa.fase] = { n: 0, eqs: 0, t: fa.et }; orden.push(fa.fase); }
+              fases[fa.fase].n += fa.hijos.length; fases[fa.fase].eqs++;
+              return;
+            }
+            if(x.fa.length && x.fa.indexOf(fa.fase) < 0) return;
+            fa.hijos.forEach(function(o){ out.push({ v: o.et, t: o.et, d: e.id + ' · ' + fa.et + ' · ' + o.sub }); });
+          });
         });
       });
     });
   });
-  if(i === 3) out = orden.map(function(c){
+  if(i === 4) out = orden.map(function(c){
     var z = fases[c];
     return { v: c, t: z.t, d: z.n + (z.n === 1 ? ' orden' : ' órdenes') + ' · ' + z.eqs + (z.eqs === 1 ? ' equipo' : ' equipos') };
   });
@@ -646,9 +679,10 @@ function hxPodarEleccion(st, desde){
   }
 }
 function hxNombreEleg(st, i, v){
-  if(i === 0) return v.replace(/^f\|/, '');
-  if(i === 1) return v.split('|').slice(2).join('|') || '(sin modelo)';
-  if(i === 3) return HX_FASES[v] || v || '(SIN FASE)';
+  if(i === 0) return v.replace(/^s\|/, '');
+  if(i === 1) return v.split('|').slice(2).join('|') + ' (' + v.split('|')[1] + ')';
+  if(i === 2) return v.split('|').slice(3).join('|') || '(sin modelo)';
+  if(i === 4) return HX_FASES[v] || v || '(SIN FASE)';
   return v;
 }
 function hxPasaFiltros(st, e){
@@ -665,28 +699,32 @@ function hxArbolVista(st){
      ordenes (la suma de cada fase es la de sus ordenes a la vista) */
   var fas = st.eleg && st.eleg.fa.length ? st.eleg.fa : null;
   var ots = st.eleg && st.eleg.ot.length ? st.eleg.ot : null;
-  st.vista = st.arbol.map(function(f){
-    var mods = f.hijos.map(function(m){
-      var es = m.hijos.filter(function(e){ return hxPasaFiltros(st, e) && hxPasaEleccion(st, f, m, e); })
-        .map(function(e){
-          if(!fas && !ots) return e;
-          var c = {}, k;
-          for(k in e) c[k] = e[k];
-          c.hijos = e.hijos.filter(function(fa){ return !fas || fas.indexOf(fa.fase) >= 0; })
-            .map(function(fa){
-              if(!ots) return fa;
-              var os = fa.hijos.filter(function(o){ return ots.indexOf(o.et) >= 0; });
-              return os.length ? hxNodoFase(e.id, fa.fase, os) : null;
-            }).filter(Boolean);
-          return c;
-        });
-      return es.length ? { k: m.k, lv: 1, et: m.et, sub: '', hijos: es, fam: m.fam, mod: m.mod,
-                           o: hxSuma(es.map(function(e){ return e.o; })) } : null;
+  st.vista = st.arbol.map(function(p){
+    var fs = p.hijos.map(function(f){
+      var mods = f.hijos.map(function(m){
+        var es = m.hijos.filter(function(e){ return hxPasaFiltros(st, e) && hxPasaEleccion(st, p, f, m, e); })
+          .map(function(e){
+            if(!fas && !ots) return e;
+            var c = {}, k;
+            for(k in e) c[k] = e[k];
+            c.hijos = e.hijos.filter(function(fa){ return !fas || fas.indexOf(fa.fase) >= 0; })
+              .map(function(fa){
+                if(!ots) return fa;
+                var os = fa.hijos.filter(function(o){ return ots.indexOf(o.et) >= 0; });
+                return os.length ? hxNodoFase(e.id, fa.fase, os) : null;
+              }).filter(Boolean);
+            return c;
+          });
+        return es.length ? { k: m.k, lv: 2, et: m.et, sub: '', hijos: es, fam: m.fam, mod: m.mod, sede: m.sede, esMod: 1,
+                             o: hxSuma(es.map(function(e){ return e.o; })) } : null;
+      }).filter(Boolean);
+      return mods.length ? { k: f.k, lv: 1, et: f.et, sub: '', hijos: mods, fam: f.fam, mod: '', sede: f.sede, esFam: 1,
+                             o: hxSuma(mods.map(function(m){ return m.o; })) } : null;
     }).filter(Boolean);
-    return mods.length ? { k: f.k, lv: 0, et: f.et, sub: '', hijos: mods, fam: f.fam, mod: '',
-                           o: hxSuma(mods.map(function(m){ return m.o; })) } : null;
+    return fs.length ? { k: p.k, lv: 0, et: p.et, sub: '', hijos: fs, fam: '', mod: '', sede: p.sede, esSede: 1,
+                         o: hxSuma(fs.map(function(f){ return f.o; })) } : null;
   }).filter(Boolean);
-  st.totalVista = st.vista.length ? hxSuma(st.vista.map(function(f){ return f.o; })) : hxCero();
+  st.totalVista = st.vista.length ? hxSuma(st.vista.map(function(p){ return p.o; })) : hxCero();
   hxVistaOrden(st);
 }
 function hxTextoFiltro(st, col){
@@ -710,7 +748,7 @@ function hxLista(st){
     /* el equipo (tenga el lugar que tenga, con o sin ⇄) es el que se busca;
        lo que cuelga de el (fases, ordenes) pasa con su equipo */
     if(n.busca) return n.busca.indexOf(b) >= 0;
-    if(n.lv >= 3) return true;
+    if(n.lv >= 4) return true;
     return n.hijos.some(pasa);
   };
   var baja = function(lista){
@@ -718,7 +756,7 @@ function hxLista(st){
       if(!pasa(n)) return;
       out.push(n);
       /* buscando, familias y modelos van abiertos para que se vea lo hallado */
-      var abierto = (b && n.lv < hxPosDe(st, 2)) || st.ab[n.k];
+      var abierto = (b && n.lv < hxPosDe(st, 3)) || st.ab[n.k];
       if(abierto && n.hijos.length) baja(n.hijos);
     });
   };
@@ -742,13 +780,62 @@ function hxNotasSinBase(){
 /* a este navegador va solo lo que difiere de la copia */
 function hxGuardarLocal(){
   var out = {}, k, c = HX_NOTAS_COPIA.notas;
-  for(k in HX_NOTAS) if(!c[k] || c[k].texto !== HX_NOTAS[k].texto) out[k] = HX_NOTAS[k];
+  for(k in HX_NOTAS) if(!c[k] || c[k].texto !== HX_NOTAS[k].texto || (c[k].estado || 'pendiente') !== (HX_NOTAS[k].estado || 'pendiente')) out[k] = HX_NOTAS[k];
   for(k in c) if(!HX_NOTAS[k]) out[k] = { texto: '', ts: new Date().toISOString() };
   try { localStorage.setItem('torreSet.notas', JSON.stringify(out)); } catch(e){}
 }
+/* la hoja en la que vive un comentario: las dos Flota completa comparten los suyos */
+function hxNotaS(s){ return s === 'U' ? 'T' : s; }
+function hxHash(x){
+  var h = 5381;
+  for(var i = 0; i < x.length; i++) h = ((h << 5) + h + x.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+/* Las cifras de un grupo (proyecto, familia, modelo) y del total cambian con
+   lo que se filtra: su comentario va con ese filtro y solo aparece con el.
+   Firma: la flota, los proyectos (solo el total: un grupo ya es de un
+   proyecto) y, si hay seleccion o filtros por valor, una huella de ellos.
+   Un equipo, una fase o una orden valen lo mismo con cualquier filtro. */
+function hxFirma(st, n){
+  if(n.ot || !(n.esTot || n.esSede || n.esFam || n.esMod || /^m\|/.test(n.k || ''))) return '';
+  var fl = hxEsT(st.s) ? hxFlota(st) : st.tipo;
+  var p = [fl === 'PROPIO' ? 'PRO' : fl === 'ALQUILADO' ? 'ALQ' : 'TOD'];
+  if(n.esTot) p.push(todasLasSedes() ? 'TODOS' : sedeSel.join('+'));
+  if(hxHayRecorte(st)) p.push('r' + hxHash(JSON.stringify([st.eleg, st.filtros])));
+  return p.join('.');
+}
 function hxClaveNota(s, n, col){
   /* los ids de documento solo admiten letras, digitos y unos pocos signos */
-  return s + '.' + n.k.replace(/[^A-Za-z0-9-]/g, '_').slice(0, 150) + '.' + col;
+  var f = hxFirma(HX[s], n);
+  return hxNotaS(s) + '.' + (n.esTot ? 'tot' : n.k.replace(/[^A-Za-z0-9-]/g, '_').slice(0, 150))
+       + (f ? '.' + f : '') + '.' + col;
+}
+/* lo que estaba puesto al comentar, para la pestana Comentarios y para volver a el */
+function hxContexto(st){
+  var x = { hoja: hxNotaS(st.s), flota: hxEsT(st.s) ? hxFlota(st) : st.tipo,
+            sedes: todasLasSedes() ? 'TODOS' : sedeSel.join('+') };
+  if(hxEsT(st.s)){ x.terD = !!st.terD; x.terA = !!st.terA; } else x.ter = !!st.ter;
+  if(hxHayEleccion(st)){
+    x.eleg = JSON.parse(JSON.stringify(st.eleg));
+    x.elegTxt = HX_ELEG.map(function(k, i){
+      return st.eleg[k].length ? HX_NIVELES[i] + ': ' + st.eleg[k].map(function(v){ return hxNombreEleg(st, i, v); }).join(', ') : '';
+    }).filter(Boolean);
+  }
+  if(hxHayFiltros(st)){
+    x.filtros = JSON.parse(JSON.stringify(st.filtros));
+    x.filtrosTxt = Object.keys(st.filtros).map(function(c){ return hxTextoFiltro(st, c); });
+  }
+  return x;
+}
+/* el filtro en palabras: FLOTA ALQUILADA · ATOC · CON DEP · SIN ALQ · ... */
+function hxContextoTxt(x){
+  if(!x) return '—';
+  var p = [x.flota === 'PROPIO' ? 'FLOTA PROPIA' : x.flota === 'ALQUILADO' ? 'FLOTA ALQUILADA' : 'TODA LA FLOTA',
+           x.sedes === 'TODOS' || !x.sedes ? 'TODOS LOS PROYECTOS' : x.sedes.replace(/\+/g, ' + ')];
+  if('terD' in x) p.push((x.terD ? 'CON' : 'SIN') + ' DEP', (x.terA ? 'CON' : 'SIN') + ' ALQ');
+  (x.elegTxt || []).forEach(function(e){ p.push(e); });
+  (x.filtrosTxt || []).forEach(function(e){ p.push(e); });
+  return p.join(' · ');
 }
 function hxNotasLocal(){
   try { return JSON.parse(localStorage.getItem('torreSet.notas') || '{}') || {}; } catch(e){ return {}; }
@@ -757,14 +844,14 @@ function hxEstado(){
   HX_HOJAS.forEach(function(s){
     var st = HX[s];
     if(!st.arbol) return;
-    var alq = (s === 'A' && st.ter) || (s === 'T' && st.terA);
+    var alq = (s === 'A' && st.ter) || (hxEsT(s) && st.terA);
     var n = 0, k;
-    for(k in HX_NOTAS) if(k.indexOf(s + '.') === 0 && HX_NOTAS[k].texto) n++;
+    for(k in HX_NOTAS) if(k.indexOf(hxNotaS(s) + '.') === 0 && HX_NOTAS[k].texto) n++;
     /* lo esencial queda a la vista aunque el bloque este plegado */
     htm('hx-infoRes-' + s, ' · <b>' + n + (n === 1 ? ' comentario' : ' comentarios') + '</b> · '
       + fmt(st.vistas || 0) + ' filas a la vista'
       + (alq ? ' · <span class="av">⚠ el alquiler no es costo real</span>' : ''));
-    htm('hx-estado-' + s, (alq ? '<span class="neg" style="color:#B3261E">' + esc(hxAvisoAlq(s === 'T' ? st.todos.filter(function(e){ return e.o.nq; }) : st.todos, s === 'T' ? 3 : 2).toUpperCase()) + '</span><br>' : '')
+    htm('hx-estado-' + s, (alq ? '<span class="neg" style="color:#B3261E">' + esc(hxAvisoAlq(hxEsT(s) ? st.todos.filter(function(e){ return e.o.nq; }) : st.todos, hxEsT(s) ? 3 : 2).toUpperCase()) + '</span><br>' : '')
       + fmt(st.vistas || 0) + ' FILAS A LA VISTA · <b>' + n
       + (n === 1 ? ' COMENTARIO' : ' COMENTARIOS') + '</b> · '
       + (hxDb ? 'LOS COMENTARIOS SE GUARDAN EN LA PÁGINA Y LOS VE QUIEN LA ABRA'
@@ -782,13 +869,20 @@ function hxTituloCol(st, col){
   return out;
 }
 function hxAbrirNota(s, n, col){
-  var k = hxClaveNota(s, n, col), nota = HX_NOTAS[k] || {};
-  hxNotaAbierta = { k: k, fila: (s === 'P' ? 'PROPIOS' : s === 'A' ? 'ALQUILADOS' : 'FLOTA COMPLETA') + ' · ' + (n.esTot ? 'TOTAL DE LA TABLA' : hxNivelesDe(HX[s])[n.lv] + ' ' + n.et)
-                              + ' · ' + hxTituloCol(HX[s], col) };
+  var st = HX[s], k = hxClaveNota(s, n, col), nota = HX_NOTAS[k] || {};
+  var cc = col === 'et' ? null : hxColDe(st, col);
+  var ctx = hxContexto(st);
+  hxNotaAbierta = { k: k, nodo: n.k, col: col, estado: nota.estado || 'pendiente', ctx: ctx,
+                    valor: cc ? hxCelda(cc.c, n.o).replace(/<[^>]+>/g, '') : '',
+                    fila: (s === 'P' ? 'PROPIOS' : s === 'A' ? 'ALQUILADOS' : 'FLOTA COMPLETA') + ' · '
+                          + (n.esTot ? 'TOTAL DE LA TABLA' : hxNivelesDe(st)[n.lv] + ' ' + n.et + (n.sede && !n.esSede ? ' (' + n.sede + ')' : ''))
+                          + ' · ' + hxTituloCol(st, col) };
   txt('hx-ed-fila', hxNotaAbierta.fila);
   var ta = $('hx-ed-txt'); ta.value = nota.texto || '';
   var meta = $('hx-ed-meta'); meta.className = 'meta';
-  meta.textContent = nota.ts ? 'Último cambio: ' + String(nota.ts).slice(0, 16).replace('T', ' ') : '';
+  meta.textContent = 'Filtro: ' + hxContextoTxt(nota.ctx || ctx)
+    + (nota.texto ? ' · ' + (hxNotaAbierta.estado === 'tratado' ? 'TRATADO' : 'PENDIENTE') : '')
+    + (nota.ts ? ' · Último cambio: ' + String(nota.ts).slice(0, 16).replace('T', ' ') : '');
   if(nota.autor && hxUser){
     hxUser.profiles([nota.autor]).then(function(ps){
       if(hxNotaAbierta && hxNotaAbierta.k === k && ps[nota.autor] && ps[nota.autor].name)
@@ -802,7 +896,9 @@ function hxCerrarNota(){ $('hx-editor').hidden = true; hxNotaAbierta = null; }
 function hxGuardarNota(texto){
   if(!hxNotaAbierta) return;
   var k = hxNotaAbierta.k, meta = $('hx-ed-meta');
-  var reg = { k: k, fila: hxNotaAbierta.fila, texto: texto, autor: hxUid || null, ts: new Date().toISOString() };
+  var A = hxNotaAbierta;
+  var reg = { k: k, fila: A.fila, texto: texto, autor: hxUid || null, ts: new Date().toISOString(),
+              nodo: A.nodo, col: A.col, valor: A.valor, ctx: A.ctx, estado: A.estado || 'pendiente' };
   var listo = function(){ hxCerrarNota(); hxPintarTodo(); };
   if(hxDb){
     meta.className = 'meta'; meta.textContent = 'Guardando…';
@@ -826,7 +922,7 @@ function hxGuardarNota(texto){
 /* ---------- pintado ---------- */
 function hxCifras(s){
   /* las tarjetas siguen a lo que se ve: con una seleccion o un filtro, suman solo eso */
-  var st = HX[s], tot = st.totalVista || st.total, esProp = s === 'P', ter = st.ter, h = tot.hr, esT = s === 'T';
+  var st = HX[s], tot = st.totalVista || st.total, esProp = s === 'P', ter = st.ter, h = tot.hr, esT = hxEsT(s);
   var tc = esT ? hxTcT(st, tot) : hxTc(tot, ter), tv = esT ? hxTvT(st, tot) : hxTv(tot, ter), d = tv - tc;
   var comps = [['RyM', 0], ['MOV', 1]];
   if(esT){ if(st.terD && tot.np) comps.push(['Dep', 2]); if(st.terA && tot.nq) comps.push(['Alq', 3]); }
@@ -902,7 +998,7 @@ function hxBarras(filas){
 var HX_MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre',
                 'octubre', 'noviembre', 'diciembre'];
 function hxTarjetaAcum(st, tot, ter, esProp, comps){
-  var esT = st.s === 'T';
+  var esT = hxEsT(st.s);
   var A = tot.A, tac = esT ? hxTacT(st, tot) : hxTac(tot, ter), tav = esT ? hxTavT(st, tot) : hxTav(tot, ter), h = A.h, t3 = esProp ? 'Depreciación' : 'Alquiler';
   var per = SEP.acumPeriodos || [];
   var desde = per.length ? HX_MESES[per[0] - 1] + (per.length > 1 ? ' a ' + HX_MESES[per[per.length - 1] - 1] : '') : 'ningún mes';
@@ -979,19 +1075,19 @@ function hxTabla(s){
       }).join('');
   /* con filtros, familias, modelos y total llevan debajo su cifra original */
   var filt = hxHayRecorte(st), orig = {};
-  if(filt) st.arbol.forEach(function(f){ orig[f.k] = f; f.hijos.forEach(function(m){ orig[m.k] = m; }); });
+  if(filt) st.arbol.forEach(function(p){ orig[p.k] = p; p.hijos.forEach(function(f){ orig[f.k] = f; f.hijos.forEach(function(m){ orig[m.k] = m; }); }); });
   var cuerpo = filas.map(function(n){
-    var tiene = n.hijos.length > 0, ab = st.ab[n.k] || (st.busca && n.lv < hxPosDe(st, 2)), m = hxMarca(st, n, 'et');
-    var o0 = filt && n.lv < 2 && orig[n.k] ? orig[n.k].o : null;
+    var tiene = n.hijos.length > 0, ab = st.ab[n.k] || (st.busca && n.lv < hxPosDe(st, 3)), m = hxMarca(st, n, 'et');
+    var o0 = filt && orig[n.k] ? orig[n.k].o : null;
     return '<tr class="n' + n.lv + '" tabindex="0" data-k="' + esc(n.k) + '"'
       + (tiene ? ' aria-expanded="' + !!ab + '"' : '') + '>'
       + '<td class="fija' + (m ? ' cn' : '') + '"><span class="car">' + (tiene ? (ab ? '▾' : '▸') : '') + '</span>' + esc(n.et)
-      + ((n.lv === 0 || n.esMod || /^m\|/.test(n.k)) && !n.ot ? '<span class="sub">' + n.o.n + (o0 ? ' de ' + o0.n : '') + (n.o.n === 1 && !o0 ? ' equipo' : ' equipos') + '</span>' : '')
+      + ((n.esSede || n.esFam || n.esMod || /^m\|/.test(n.k)) && !n.ot ? '<span class="sub">' + n.o.n + (o0 ? ' de ' + o0.n : '') + (n.o.n === 1 && !o0 ? ' equipo' : ' equipos') + '</span>' : '')
       + (n.sub ? '<span class="sub">' + esc(n.sub) + '</span>' : '')
       /* familia, modelo y equipo llevan TABLERO; el equipo ademas VER (en
          cualquiera de los dos ordenes: el equipo es el nodo con id) */
-      + ((n.lv === 0 || n.esMod || /^m\|/.test(n.k) || n.id) && hxTipoNodo(st, n) ? '<button type="button" class="xlIr" data-tb="' + esc(n.k)
-          + '" title="Abrir el tablero de análisis de ' + (n.id ? 'este equipo' : n.lv ? 'este modelo' : 'esta familia') + '">TABLERO ▦</button>' : '')
+      + ((n.esFam || n.esMod || /^m\|/.test(n.k) || n.id) && hxTipoNodo(st, n) ? '<button type="button" class="xlIr" data-tb="' + esc(n.k)
+          + '" title="Abrir el tablero de análisis de ' + (n.id ? 'este equipo' : n.esFam ? 'esta familia' : 'este modelo') + '">TABLERO ▦</button>' : '')
       + (n.id && byId[n.id] ? '<button type="button" class="xlIr" data-ir="' + esc(n.id)
           + '" title="Abrir este equipo en la pestaña Equipo">VER ↗</button>' : '')
       + m + '</td>' + hxCeldas(st, n, o0) + '</tr>';
@@ -1025,8 +1121,23 @@ function hxPonerTer(s, si){
   hxCifras(s); hxBotones(s); hxTabla(s);
   if(typeof tbTer === 'function') tbTer(s);
 }
-function hxPintarTodo(){ HX_HOJAS.forEach(function(s){ if(HX[s].arbol) hxTabla(s); }); }
+function hxPintarTodo(){
+  HX_HOJAS.forEach(function(s){ if(HX[s].arbol) hxTabla(s); });
+  if(typeof cmPintar === 'function') cmPintar();
+}
 
+/* TODA, PROPIOS o ALQUILADOS en una Flota completa: se rearma el arbol; lo
+   desplegado se conserva y lo elegido que quedo fuera se suelta */
+function hxPonerFlota(s, fl){
+  var st = HX[s];
+  if(!st.arbol || hxFlota(st) === fl) return;
+  st.flota = fl;
+  hxArbol(s);
+  st.sel = null;
+  hxPodarEleccion(st, -1);
+  hxBotones(s); hxTabla(s);
+  if(typeof sedeTextos === 'function') sedeTextos();
+}
 /* abre todo hasta un nivel, como los botones 1 2 3 4 del esquema de Excel */
 function hxNivel(s, nivel){
   var st = HX[s];
@@ -1052,17 +1163,17 @@ function hxBotones(s){
   /* el orden de los botones sigue al de la tabla. Modelo, equipo y fase se
      arrastran (data-arr) para cambiar de lugar; familia y orden quedan fijos.
      En SELECCIONAR cada boton sigue eligiendo su propio nivel (data-e). */
-  var orden = [0].concat(hxOrdenNiv(st).map(function(k){ return HX_NIV_LOG[k]; })).concat([4]);
+  var orden = [0, 1].concat(hxOrdenNiv(st).map(function(k){ return HX_NIV_LOG[k]; })).concat([5]);
   htm('hx-nivel-' + s, orden.map(function(j, i){
-    var n = HX_NIVELES[j], arr = i >= 1 && i <= 3 ? ' data-arr="' + ['', 'mod', 'eq', 'fa'][j] + '"' : '';
+    var n = HX_NIVELES[j], arr = i >= 2 && i <= 4 ? ' data-arr="' + ['', '', 'mod', 'eq', 'fa'][j] + '"' : '';
     var ayuda = arr ? ' · mantén presionado y arrastra para cambiarlo de lugar' : '';
     if(!selec) return '<button class="fbt' + (arr ? ' xlArr' : '') + '" type="button" data-n="' + i + '"' + arr
         + ' aria-pressed="' + (st.nivel === i) + '" title="Desplegar hasta ' + n.toLowerCase() + ayuda + '">'
-        + (i + 1) + ' · ' + n + '</button>';
+        + (i + 1) + '·' + HX_NIV_CORTO[n] + '</button>';
     var c = st.eleg[HX_ELEG[j]].length;
     return '<button class="fbt' + (arr ? ' xlArr' : '') + '" type="button" data-e="' + j + '"' + arr
       + ' aria-haspopup="dialog" aria-pressed="' + (c > 0) + '"'
-      + ' title="Elegir ' + HX_ELEG_PL[j].toLowerCase() + ayuda + '">' + (i + 1) + ' · ' + n + (c ? ' (' + c + ')' : '') + ' ▾</button>';
+      + ' title="Elegir ' + HX_ELEG_PL[j].toLowerCase() + ayuda + '">' + (i + 1) + '·' + HX_NIV_CORTO[n] + (c ? ' (' + c + ')' : '') + ' ▾</button>';
   }).join(''));
   /* el boton marcado dice que vista hay; si se plego un grupo a mano, ninguno */
   var hayOculto = st.cols.some(function(g){ return st.oculto && st.oculto[g.id]; });
@@ -1070,10 +1181,17 @@ function hxBotones(s){
   var soloMes = hayOculto && st.cols.every(function(g){ return !st.cerrado[g.id]; });
   var totales = !hayOculto && st.cols.every(function(g){ return st.cerrado[g.id]; });
   var nom = s === 'P' ? 'DEP' : 'ALQ';
-  if(s === 'T') htm('hx-ter-T',
+  if(hxEsT(s)){
+    var fl = hxFlota(st);
+    htm('hx-flota-' + s, [['*', 'TODA'], ['PROPIO', 'PROPIOS'], ['ALQUILADO', 'ALQUILADOS']].map(function(x){
+      return '<button type="button" data-fl="' + x[0] + '" aria-pressed="' + (fl === x[0]) + '" title="'
+        + (x[0] === '*' ? 'Propios y alquilados juntos' : 'Sólo los ' + x[1].toLowerCase()) + '">' + x[1] + '</button>';
+    }).join(''));
+  }
+  if(hxEsT(s)) htm('hx-ter-' + s,
       '<button class="fbt" type="button" data-t="d" aria-pressed="' + !!st.terD + '" title="Depreciación de los propios: '
-        + (st.terD ? 'sumada al costo y a la venta (clic para quitarla)' : 'fuera del total (clic para sumarla)') + '">' + (st.terD ? 'CON' : 'SIN') + ' DEP</button>'
-    + '<button class="fbt" type="button" data-t="a" aria-pressed="' + !!st.terA + '" title="Alquiler de los alquilados (tarifa de venta, no costo real): '
+        + (st.terD ? 'sumada al costo y a la venta (clic para quitarla)' : 'fuera del total (clic para sumarla)') + '"' + (hxFlota(st) === 'ALQUILADO' ? ' hidden' : '') + '>' + (st.terD ? 'CON' : 'SIN') + ' DEP</button>'
+    + '<button class="fbt" type="button" data-t="a"' + (hxFlota(st) === 'PROPIO' ? ' hidden' : '') + ' aria-pressed="' + !!st.terA + '" title="Alquiler de los alquilados (tarifa de venta, no costo real): '
         + (st.terA ? 'sumado al total (clic para quitarlo)' : 'fuera del total, como en el Excel (clic para sumarlo)') + '">' + (st.terA ? 'CON' : 'SIN') + ' ALQ</button>');
   else htm('hx-ter-' + s,
       '<button class="fbt" type="button" data-t="1" aria-pressed="' + !!st.ter + '">CON ' + nom + '</button>'
@@ -1100,7 +1218,7 @@ function hxBarraFiltros(s){
       var ee = ev.target.closest ? ev.target.closest('[data-ee]') : null;
       if(x){
         var c = x.getAttribute('data-fx');
-        if(c === '*'){ HX[s].filtros = {}; HX[s].eleg = { fam: [], mod: [], eq: [], fa: [], ot: [] }; }
+        if(c === '*'){ HX[s].filtros = {}; HX[s].eleg = hxElegVacia(); }
         else delete HX[s].filtros[c];
         hxCerrarFiltro(); hxCerrarEleccion(); hxBotones(s); hxTabla(s);
       } else if(ex){
@@ -1304,7 +1422,10 @@ function hxAjustarAlto(){
     var t = $('hx-tabla-' + s), env = t && t.parentElement;
     if(!env) return;
     if(document.body.classList.contains('dividida') || !env.offsetParent){ env.style.maxHeight = ''; return; }
-    var arriba = env.getBoundingClientRect().top + window.scrollY;
+    /* donde empieza la tabla en la pagina, sin la animacion de entrada de la
+       pestana (que la corre unos pixeles): offsetTop no cuenta transformaciones */
+    var arriba = 0;
+    for(var el = env; el; el = el.offsetParent) arriba += el.offsetTop;
     /* la tabla llega casi al borde de abajo: de la barra «fx» y de
        comentarios y leyenda solo asoma el canto, y se ven al bajar la pagina */
     var alto = window.innerHeight - arriba - 22;
@@ -1323,8 +1444,14 @@ function hxPantChica(){
   return !!(window.matchMedia && window.matchMedia('(max-width:1180px), (max-height:500px), (pointer:coarse)').matches);
 }
 window.addEventListener('resize', hxAjustarAlto);
+/* las letras llegan despues del primer pintado y cambian el alto de lo de arriba */
+try { document.fonts.ready.then(function(){ requestAnimationFrame(hxAjustarAlto); }); } catch(e){}
 /* abrir una pestana, plegar algo o poner un filtro mueve la tabla: se vuelve a medir */
-document.addEventListener('click', function(){ requestAnimationFrame(hxAjustarAlto); });
+document.addEventListener('click', function(){
+  requestAnimationFrame(hxAjustarAlto);
+  /* lo de arriba (tarjetas, filtros) termina de acomodarse un instante despues */
+  setTimeout(hxAjustarAlto, 300);
+});
 document.addEventListener('toggle', function(){ requestAnimationFrame(hxAjustarAlto); }, true);
 
 function hxCerrarEleccion(){
@@ -1361,9 +1488,9 @@ function hxIniciar(s){
   st.ter = s === 'P';
   /* FLOTA COMPLETA abre como el Excel: con depreciacion, sin alquiler */
   st.terD = true; st.terA = false;
-  st.cols = s === 'T' ? hxColumnasT(st) : hxColumnas(s === 'P', st);
+  st.cols = hxEsT(s) ? hxColumnasT(st) : hxColumnas(s === 'P', st);
   st.cerrado = {}; st.oculto = {}; st.filtros = {}; st.busca = ''; st.ab = {};
-  st.modo = 'desplegar'; st.eleg = { fam: [], mod: [], eq: [], fa: [], ot: [] };
+  st.modo = 'desplegar'; st.eleg = hxElegVacia();
   /* el orden de modelo, equipo y fase que se dejo la ultima vez en esta hoja */
   st.ordenNiv = null;
   try {
@@ -1373,7 +1500,7 @@ function hxIniciar(s){
   } catch(e){}
   st.ord = { g: 'costo', i: hxIdxTotal(s), dir: -1 };
   hxArbol(s);
-  hxNivel(s, 1);
+  hxNivel(s, 2);
   hxCifras(s); hxBotones(s); hxTabla(s);
 
   /* la tarjeta del acumulado: recuerda si esta abierta al repintar y se
@@ -1524,7 +1651,7 @@ function hxIniciar(s){
     if(nuevo.join() !== hxOrdenNiv(st).join()){
       st.ordenNiv = nuevo;
       try { localStorage.setItem('torreSet.ordenNiv.' + s, JSON.stringify(nuevo)); } catch(e2){}
-      hxNivel(s, st.nivel >= 0 ? st.nivel : 1);
+      hxNivel(s, st.nivel >= 0 ? st.nivel : 2);
       repinta();
     }
   });
@@ -1566,12 +1693,28 @@ function hxIniciar(s){
     var b = ev.target.closest ? ev.target.closest('[data-t]') : null;
     if(!b) return;
     var w = b.getAttribute('data-t');
-    if(s === 'T'){
+    if(hxEsT(s)){
       if(w === 'd') st.terD = !st.terD; else st.terA = !st.terA;
       hxBotones(s); hxTabla(s);
+      if(s === 'T' && typeof tbTer === 'function') tbTer('T');
       return;
     }
     hxPonerTer(s, w === '1');
+  });
+  /* esconder o mostrar las tarjetas: la tabla se estira o se acorta sola
+     (el clic vuelve a medir su alto). Al abrir la pagina siempre se ven */
+  var sec = $(hxSeccion(s)), tbt = sec ? sec.querySelector('.xlTarjBtn') : null;
+  if(tbt) tbt.addEventListener('click', function(){
+    var sin = !sec.classList.contains('sinTarj');
+    sec.classList.toggle('sinTarj', sin);
+    tbt.setAttribute('aria-pressed', !sin);
+    tbt.textContent = sin ? '▾ VER TARJETAS' : '▴ OCULTAR TARJETAS';
+    tbt.title = sin ? 'Volver a mostrar las tarjetas de arriba' : 'Esconder las tarjetas de arriba para ver más filas de la tabla';
+  });
+  esc_('hx-flota-' + s, 'click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('[data-fl]') : null;
+    if(!b) return;
+    hxPonerFlota(s, b.getAttribute('data-fl'));
   });
   esc_('hx-origen-' + s, 'click', function(ev){
     var b = ev.target.closest ? ev.target.closest('[data-com]') : null, n = st.sel ? hxBuscarNodo(st, st.sel.k) : null;
@@ -1587,6 +1730,48 @@ function hxIniciar(s){
 
 HX_NOTAS = hxNotasSinBase();
 HX_HOJAS.forEach(hxIniciar);
+/* lo que esta arriba de la tabla (titulo, tarjetas, filtros) cambia de alto al
+   abrir la hoja, al cargar las letras o al esconder las tarjetas: cada vez,
+   la tabla vuelve a tomar lo que queda de pantalla */
+if(window.ResizeObserver){
+  var hxRO = new ResizeObserver(function(){ requestAnimationFrame(hxAjustarAlto); });
+  HX_HOJAS.forEach(function(s){
+    var sec = $(hxSeccion(s));
+    if(sec) ['.tituloV', '.granTotal', '.xlBarra'].forEach(function(q){ var el = sec.querySelector(q); if(el) hxRO.observe(el); });
+  });
+}
+
+/* sin encabezado el titulo de la hoja se va, y con el el boton de las tarjetas:
+   su copia vive en la barra de pestanas, a la derecha junto a ▾ x÷ ⊟, y sale
+   solo en las hojas que tienen tarjetas. Mueve las de todas las hojas a la vista
+   (con la pantalla dividida pueden ser dos) */
+function hxTarjVisibles(){
+  return HX_HOJAS.map(function(s){ return $(hxSeccion(s)); })
+    .filter(function(sec){ return sec && sec.getClientRects().length && sec.querySelector('.xlTarjBtn'); });
+}
+function hxTarjNav(){
+  var b = $('tarjNav');
+  if(!b) return;
+  var secs = hxTarjVisibles(), sin = secs.length && secs.every(function(x){ return x.classList.contains('sinTarj'); });
+  b.hidden = !secs.length;
+  b.textContent = sin ? '▾ TARJETAS' : '▴ TARJETAS';
+  b.title = sin ? 'Volver a mostrar las tarjetas de arriba' : 'Esconder las tarjetas de arriba para ver más filas de la tabla';
+  b.setAttribute('aria-pressed', !sin);
+}
+(function(){
+  var nav = $('nav');
+  if(!nav) return;
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'tarjNav'; b.id = 'tarjNav'; b.hidden = true;
+  nav.insertBefore(b, $('pestanas'));
+  b.addEventListener('click', function(){
+    var secs = hxTarjVisibles(), ver = secs.every(function(x){ return x.classList.contains('sinTarj'); });
+    secs.forEach(function(x){ if(x.classList.contains('sinTarj') === ver) x.querySelector('.xlTarjBtn').click(); });
+  });
+  /* cambiar de pestana o esconder tarjetas pasa siempre por un clic */
+  document.addEventListener('click', function(){ setTimeout(hxTarjNav, 0); });
+  hxTarjNav();
+})();
 
 esc_('hx-ed-cerrar', 'click', hxCerrarNota);
 esc_('hx-ed-guardar', 'click', function(){ hxGuardarNota($('hx-ed-txt').value.trim().slice(0, 4000)); });
@@ -1611,7 +1796,7 @@ if(window.claude && typeof window.claude.use === 'function'){
       var m = {};
       snap.docs.forEach(function(d){
         var x = d.data();
-        if(x && x.texto) m[d.id] = { texto: String(x.texto), autor: x.autor || null, ts: x.ts || '' };
+        if(x && x.texto){ x.texto = String(x.texto); m[d.id] = x; }
       });
       HX_NOTAS = m;
       hxPintarTodo();

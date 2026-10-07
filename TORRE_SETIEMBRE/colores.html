@@ -1,0 +1,47 @@
+<style>
+/* ══ los grupos de filtros, cada uno con su tono pastel ══
+   Para distinguirlos de un vistazo, sobrios: el boton elegido lleva el
+   fondo pastel y el texto oscuro del mismo tono; los demas van en blanco
+   con el borde apenas tenido. Solo en las hojas claras: Inicio y En vivo
+   (fondo oscuro) siguen como estaban.
+     flota        arena        proyecto      verde agua
+     modo         lavanda      niveles       azul suave
+     en el costo  salvia       columnas      rosa viejo */
+:root{
+  --cfFlota:#F2E5CB;  --cfFlotaB:#D8BE8A;  --cfFlotaT:#6F521A;
+  --cfSede:#D4EBE8;   --cfSedeB:#8DC1BB;   --cfSedeT:#1D5A54;
+  --cfModo:#E4E2F1;   --cfModoB:#ACA7D0;   --cfModoT:#463F7C;
+  --cfNiv:#DAE6F4;    --cfNivB:#9CB7DC;    --cfNivT:#23476F;
+  --cfTer:#DDEBDB;    --cfTerB:#A2C3A0;    --cfTerT:#2D5A33;
+  --cfCols:#F2DFE4;   --cfColsB:#D3A8B5;   --cfColsT:#73344B;
+}
+/* el patron: [grupo] boton suelto / elegido / encima */
+.luz .sedeB .fbt{border-color:color-mix(in srgb, var(--cfSedeB) 55%, #fff)}
+.luz .sedeB .fbt:hover{border-color:var(--cfSedeB); color:var(--cfSedeT)}
+.luz .sedeB .fbt[aria-pressed="true"]{background:var(--cfSede); border-color:var(--cfSedeB); color:var(--cfSedeT); font-weight:600}
+
+.luz .xlFlotaT button{border-color:color-mix(in srgb, var(--cfFlotaB) 55%, #fff)}
+.luz .xlFlotaT button:hover{border-color:var(--cfFlotaB); color:var(--cfFlotaT)}
+.luz .xlFlotaT button[aria-pressed="true"]{background:var(--cfFlota); border-color:var(--cfFlotaB); color:var(--cfFlotaT); font-weight:600}
+
+.luz .xlModoT:not(.xlFlotaT) button{border-color:color-mix(in srgb, var(--cfModoB) 55%, #fff)}
+.luz .xlModoT:not(.xlFlotaT) button:hover{border-color:var(--cfModoB); color:var(--cfModoT)}
+.luz .xlModoT:not(.xlFlotaT) button[aria-pressed="true"]{background:var(--cfModo); border-color:var(--cfModoB); color:var(--cfModoT); font-weight:600}
+
+.luz [id^="hx-nivel-"] .fbt{border-color:color-mix(in srgb, var(--cfNivB) 55%, #fff)}
+.luz [id^="hx-nivel-"] .fbt:hover{border-color:var(--cfNivB); color:var(--cfNivT)}
+.luz [id^="hx-nivel-"] .fbt[aria-pressed="true"]{background-color:var(--cfNiv); border-color:var(--cfNivB); color:var(--cfNivT); font-weight:600}
+
+.luz [id^="hx-ter-"] .fbt,.luz #tb-ter .fbt{border-color:color-mix(in srgb, var(--cfTerB) 55%, #fff)}
+.luz [id^="hx-ter-"] .fbt:hover,.luz #tb-ter .fbt:hover{border-color:var(--cfTerB); color:var(--cfTerT)}
+.luz [id^="hx-ter-"] .fbt[aria-pressed="true"],.luz #tb-ter .fbt[aria-pressed="true"]{background:var(--cfTer); border-color:var(--cfTerB); color:var(--cfTerT); font-weight:600}
+
+.luz [id^="hx-cols-"] .fbt{border-color:color-mix(in srgb, var(--cfColsB) 55%, #fff)}
+.luz [id^="hx-cols-"] .fbt:hover{border-color:var(--cfColsB); color:var(--cfColsT)}
+.luz [id^="hx-cols-"] .fbt[aria-pressed="true"]{background:var(--cfCols); border-color:var(--cfColsB); color:var(--cfColsT); font-weight:600}
+
+/* el rotulo de cada grupo, en su tono, para que el color diga que es */
+.luz .xlBarra .sedeF > .gcT:not(.xlModoT),.luz .fl.sedeF{color:var(--cfSedeT)}
+.luz .xlBarra div:has(> [id^="hx-ter-"]) > .gcT,.luz #tb-ter-t{color:var(--cfTerT)}
+.luz .xlBarra div:has(> [id^="hx-cols-"]) > .gcT{color:var(--cfColsT)}
+</style>

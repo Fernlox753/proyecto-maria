@@ -106,8 +106,11 @@ function sedeBotones(){
           + '">' + esc(s === '*' ? 'TODOS' : s) + '</button>';
       }).join('') + '</span>';
 }
-function sedeGrupo(clase){
+function sedeGrupo(clase, s){
   if(sedesL().length < 2) return '';
+  /* en Flota completa, el renglon del rotulo lleva la flota (hojas.js lo llena) */
+  if(clase === 'flota') return '<div class="sedeF"><span class="gcT xlModoT xlFlotaT" id="hx-flota-' + s
+                             + '" role="group" aria-label="Flota"></span>' + sedeBotones() + '</div>';
   return clase === 'fl' ? '<div class="fl sedeF">PROYECTO' + sedeBotones() + '</div>'
                         : '<div class="sedeF"><span class="gcT">PROYECTO</span>' + sedeBotones() + '</div>';
 }
@@ -162,7 +165,7 @@ function sedeHojas(){
     hxBotones(s); hxTabla(s);
     hxBarraOrigen(s);
   });
-  if($('tb-cuerpo') && typeof tbOpciones === 'function' && HX.P.arbol){ tbOpciones(); tbPintar(); }
+  if($('tb-cuerpo') && typeof tbOpciones === 'function'){ tbOpciones(); tbPintar(); }
 }
 /* los importes de las fichas de Inicio siguen al proyecto: alcance, tipo
    de flota (resultado operativo) y cada proyecto (sin el filtro de proyecto) */
@@ -202,7 +205,12 @@ function sedeTextos(){
   };
   txt('hx-como-P', 'FLOTA PROPIA · COMO ' + hojaDe(' PROP'));
   txt('hx-como-A', 'FLOTA ALQUILADA · COMO ' + hojaDe(' ALQ'));
-  txt('hx-como-T', 'FLOTA COMPLETA · ' + (todasLasSedes() ? 'LAS HOJAS PROP Y ALQ JUNTAS' : sedeSel.join(' + ') + ' · PROP Y ALQ JUNTAS'));
+  ['T', 'U'].forEach(function(s){
+    /* proyecto.js corre antes que hojas.js: al arrancar HX todavia no existe */
+    var fl = typeof hxFlota === 'function' && HX && HX[s] ? hxFlota(HX[s]) : '*';
+    txt('hx-como-' + s, 'FLOTA COMPLETA · ' + (todasLasSedes() ? '' : sedeSel.join(' + ') + ' · ')
+      + (fl === 'PROPIO' ? 'COMO LAS HOJAS PROP' : fl === 'ALQUILADO' ? 'COMO LAS HOJAS ALQ' : 'LAS HOJAS PROP Y ALQ JUNTAS'));
+  });
 }
 
 /* ---------- los grupos en cada pestana ---------- */
@@ -224,7 +232,7 @@ function sedeTextos(){
   }
   /* Propios, Alquilados y Tablero traen su hueco en el html */
   Array.prototype.forEach.call(document.querySelectorAll('.sedeHueco'), function(h){
-    h.outerHTML = sedeGrupo(h.getAttribute('data-clase') || 'gc');
+    h.outerHTML = sedeGrupo(h.getAttribute('data-clase') || 'gc', h.getAttribute('data-s'));
   });
   /* Filtros: delante de propio / alquilado */
   var ft = $('fTipo'), pf = ft && ft.closest ? ft.closest('.panelF') : null;

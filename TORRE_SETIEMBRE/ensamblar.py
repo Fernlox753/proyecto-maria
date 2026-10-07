@@ -24,6 +24,8 @@ en un solo sitio.
   tajo.html, tajo.js        el fondo de Inicio y En vivo: el tajo con la flota real (reemplaza
                             iniciarTajo/ajustarTajo/renderTajo de tres_d.js)
   proyecto.html, .js        el filtro de proyecto (SHGN, ATOC, TRMA, TEMB) en cada pestana
+  comentarios.html, .js     la pestana Comentarios: todos, con su filtro y su estado
+  colores.html              un tono pastel por grupo de filtros (flota, proyecto, niveles...)
   datos.json                la tabla de hechos de setiembre, de todos los proyectos (gen_datos.py)
   setiembre.json            la fila de cada equipo como en las hojas PROP y ALQ (gen_datos.py)
 
@@ -157,6 +159,18 @@ movil_js = lee(AQUI, "movil.js")
 tajo_html = lee(AQUI, "tajo.html")
 tajo_js = lee(AQUI, "tajo.js")
 proyecto_html = lee(AQUI, "proyecto.html")
+comentarios_html = lee(AQUI, "comentarios.html")
+colores_html = lee(AQUI, "colores.html")
+comentarios_js = lee(AQUI, "comentarios.js")
+# la gemela de Flota completa (hoja U), para verla dos veces en la pantalla
+# dividida: la misma seccion con sus ids cambiados; va al final, sin pestana
+_a = hojas_html.index('<section class="vista luz hojaXl" id="v-toda"')
+_b = hojas_html.index("</section>", _a) + len("</section>")
+toda2_html = (hojas_html[_a:_b].replace('id="v-toda"', 'id="v-toda2"')
+              .replace('data-pes="Flota completa"', 'data-pes="Flota completa ②"')
+              .replace('-T"', '-U"').replace('data-s="T"', 'data-s="U"'))
+if "-T\"" in toda2_html or 'data-s="T"' in toda2_html:
+    sys.exit("la gemela de Flota completa conserva ids de la original")
 proyecto_js = lee(AQUI, "proyecto.js")
 # las texturas del tajo (tajo_tex/): el mapa de luz horneado en Blender y el
 # detalle de roca y grava de Poly Haven, metidas en la pagina como data URI.
@@ -215,8 +229,8 @@ cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
 # las dos hojas del consolidado en tabla. El periodo y los filtros de flota
 # siguen estando en Tendencia y en Filtros.
 cuerpo = entre(cuerpo, "<!-- ═══════════════════ FLOTA ═══════════════════ -->", "</section>",
-               (hojas_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
-                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
+               (hojas_html + "\n" + comentarios_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
+                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html + "\n" + colores_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
 
 # ---- Tendencia
 cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo.', "</p></details>",
@@ -548,6 +562,12 @@ def agrandar(t):
 # ══════════════════════════════════════════════════════════════════════
 fondo = ('<div class="cielo" id="cielo" aria-hidden="true"></div>\n'
          '<div class="tajo" id="tajo" aria-hidden="true"><canvas id="lienzo-tajo"></canvas></div>\n')
+# la gemela de Flota completa, la ultima de todas: asi su pestana (que division.js quita) no corre las demas
+# con el mismo numero que Flota completa (la tomo de la seccion ya renumerada)
+_num = re.search(r'id="v-toda".*?<div class="ord"><span class="num">(\d\d)</span>', cuerpo, re.S)
+toda2_html = re.sub(r'(<div class="ord"><span class="num">)\d\d(</span>)',
+                    r'\g<1>' + (_num.group(1) if _num else '01') + r'\g<2>', toda2_html, count=1)
+cuerpo = cambia(cuerpo, "</main>", toda2_html.replace("__CORTE__", str(CORTE)) + "\n</main>", C)
 if 'id="tajo"' not in cuerpo:
     cuerpo = cuerpo.replace('<header class="nav" id="nav">', fondo + '<header class="nav" id="nav">', 1)
 
@@ -555,7 +575,7 @@ nuevo = (cabecera + css + "\n" + cuerpo + "\n<script>\n(function(){\n"
          + util + "\nvar DATA = " + datos + ";\n"
          + "var SETIEMBRE = " + sep + ";\n"
          + js_datos + "\n" + js_tend + "\n" + js_filt + "\n" + js_sep + "\n" + cont + tres_d
-         + "\n" + extra + "\n" + proyecto_js + "\n" + hojas_js + "\n" + tablero_js + "\n" + burbuja_js
+         + "\n" + extra + "\n" + proyecto_js + "\n" + hojas_js + "\n" + comentarios_js + "\n" + tablero_js + "\n" + burbuja_js
          # los modelos 3D antes de la navegacion: al final de ella se elige el primer equipo
          + "\n" + modelos3d_js + "\n" + detalle3d_js + "\n" + modelos_det_js + "\n" + tajo_js + "\n" + equipo_js + "\n" + js_nav
          # la division envuelve irA(): tiene que ir despues de nuevo_js_nav.js
@@ -572,7 +592,8 @@ for marca in ["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES
               "function hxTabla", 'id="hx-editor"', 'id="v-tablero"',
               "function tbPintar", "function hxOrigen", 'id="bz"', "function bzNumero",
               'id="divisor"', "function divAplicar", "function hxMaxi", "body.navMin",
-              "function sedeCambio", 'class="sedeHueco"', "function hxSedesDe"]:
+              "function sedeCambio", 'class="sedeHueco"', "function hxSedesDe",
+              'id="v-notas"', "function cmPintar", 'id="v-toda2"', "function hxPonerFlota", "function tbTodos", 'id="divDos"']:
     print(("  OK      " if marca in nuevo else "  FALTA   ") + marca)
 # nada de esto debe quedar a la vista: es vocabulario de la Torre del libro mayor
 for sobra in ["libro mayor le carga", "DIECISIETE", "<b>1,291 del libro</b>", "Ojo con agosto",

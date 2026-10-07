@@ -29,6 +29,20 @@ body.sinEnc .nav .marcaSM,body.sinEnc .nav .navcap{display:none}
 body.sinEnc .nav{padding-block:2px 0; row-gap:0}
 body.sinEnc .vista{padding-block:10px 60px}
 body.sinEnc .vista .tituloV{display:none}
+/* sin encabezado todo cabe en una sola fila: las pestanas a la izquierda y,
+   a la derecha y en fila, tarjetas, ▾, la calculadora y la pantalla doble */
+body.sinEnc .nav{flex-wrap:nowrap; column-gap:6px}
+body.sinEnc .nav .pestanas{flex:1 1 0}
+body.sinEnc .nav .encBtn,body.sinEnc .nav .bzVolver,body.sinEnc .nav .divBtn{order:5; margin:0; text-align:center; height:24px; line-height:22px; width:30px; padding:0}
+body.sinEnc .nav .tarjNav:not([hidden]){display:block}
+.tarjNav{all:unset; display:none; cursor:pointer; order:4; flex:0 0 auto; align-self:center; box-sizing:border-box; height:24px;
+  line-height:22px; padding:0 9px; font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em; white-space:nowrap;
+  border:1px solid var(--hair-fuerte); color:var(--claro-2); background:rgba(4,17,29,.6)}
+.tarjNav:hover{border-color:var(--hivis); color:var(--hivis)}
+.tarjNav:focus-visible{outline:2px solid var(--hivis); outline-offset:2px}
+.nav.claro .tarjNav{border-color:var(--linea); color:var(--tinta-2); background:#fff}
+.nav.claro .tarjNav:hover{border-color:var(--sm); color:var(--sm)}
+.nav.claro .tarjNav[aria-pressed="false"]{background:#EEF2F7; color:var(--tinta)}
 body.sinEnc .xlEnv{max-height:calc(100vh - 150px); max-height:calc(100dvh - 150px)}
 
 /* ---------- hojas Propios y Alquilados: el consolidado, en tabla ----------
@@ -129,13 +143,17 @@ table.xl tbody tr{cursor:pointer}
 table.xl tbody tr:hover td{background:#EAF1FB}
 table.xl tbody tr:focus-visible{outline:2px solid var(--sm); outline-offset:-2px}
 /* los cinco niveles (familia, modelo, equipo, fase, orden): cuanto mas arriba, mas peso */
-table.xl tr.n0 td{background:var(--luz-3); font-weight:700; border-bottom-color:var(--tinta-3)}
-table.xl tr.n1 td{background:var(--luz); font-weight:600}
-table.xl tr.n2 td{background:#fff}
-table.xl tr.n3 td{background:#F7F9FC; color:var(--tinta); font-size:11px; font-weight:500}
-table.xl tr.n4 td{background:#FBFCFD; color:var(--tinta-2); font-size:11px}
-table.xl tr.n1 .fija{padding-left:20px} table.xl tr.n2 .fija{padding-left:34px}
-table.xl tr.n3 .fija{padding-left:50px} table.xl tr.n4 .fija{padding-left:66px}
+/* el proyecto, arriba de todo: la banda mas oscura */
+table.xl tr.n0 td{background:#C9D1DC; font-weight:700; border-bottom:2px solid var(--tinta-2)}
+table.xl tbody tr.n0 td.fija{background:#BCC6D3; letter-spacing:.04em}
+table.xl tr.n1 td{background:var(--luz-3); font-weight:700; border-bottom-color:var(--tinta-3)}
+table.xl tr.n2 td{background:var(--luz); font-weight:600}
+table.xl tr.n3 td{background:#fff}
+table.xl tr.n4 td{background:#F7F9FC; color:var(--tinta); font-size:11px; font-weight:500}
+table.xl tr.n5 td{background:#FBFCFD; color:var(--tinta-2); font-size:11px}
+table.xl tr.n1 .fija{padding-left:16px}
+table.xl tr.n2 .fija{padding-left:30px} table.xl tr.n3 .fija{padding-left:44px}
+table.xl tr.n4 .fija{padding-left:60px} table.xl tr.n5 .fija{padding-left:76px}
 table.xl .car{display:inline-block; width:13px; color:var(--sm); font-size:10px}
 table.xl .sub{font-family:"IBM Plex Sans",sans-serif; font-weight:400; font-size:10.5px;
               color:var(--tinta-2); margin-left:6px}
@@ -170,55 +188,55 @@ table.xl tbody td:not(.fija){cursor:cell}
 table.xl thead tr.g th.g-costo{background:#4A5A78}
 table.xl thead tr.c th.g-costo{background:#E6EAF1; color:#4A5A78; box-shadow:inset 0 -3px 0 #4A5A78}
 table.xl tbody tr td.g-costo{background:#F3F5F9}
-table.xl tbody tr.n0 td.g-costo,table.xl tbody tr.n1 td.g-costo{background:#E6EAF1}
+table.xl tbody tr.n1 td.g-costo,table.xl tbody tr.n2 td.g-costo{background:#E6EAF1}
 table.xl thead tr.g th.g-oper{background:#3F6F72}
 table.xl thead tr.c th.g-oper{background:#E2EDED; color:#3F6F72; box-shadow:inset 0 -3px 0 #3F6F72}
 table.xl tbody tr td.g-oper{background:#F1F6F6}
-table.xl tbody tr.n0 td.g-oper,table.xl tbody tr.n1 td.g-oper{background:#E2EDED}
+table.xl tbody tr.n1 td.g-oper,table.xl tbody tr.n2 td.g-oper{background:#E2EDED}
 table.xl thead tr.g th.g-venta{background:#4F7657}
 table.xl thead tr.c th.g-venta{background:#E3EEE4; color:#4F7657; box-shadow:inset 0 -3px 0 #4F7657}
 table.xl tbody tr td.g-venta{background:#F2F7F2}
-table.xl tbody tr.n0 td.g-venta,table.xl tbody tr.n1 td.g-venta{background:#E3EEE4}
+table.xl tbody tr.n1 td.g-venta,table.xl tbody tr.n2 td.g-venta{background:#E3EEE4}
 table.xl thead tr.g th.g-desv{background:#7A6A4F}
 table.xl thead tr.c th.g-desv{background:#EFEBE1; color:#7A6A4F; box-shadow:inset 0 -3px 0 #7A6A4F}
 table.xl tbody tr td.g-desv{background:#F8F6F1}
-table.xl tbody tr.n0 td.g-desv,table.xl tbody tr.n1 td.g-desv{background:#EFEBE1}
+table.xl tbody tr.n1 td.g-desv,table.xl tbody tr.n2 td.g-desv{background:#EFEBE1}
 table.xl thead tr.g th.g-treal{background:#5E6C88}
 table.xl thead tr.c th.g-treal{background:#E9ECF3; color:#5E6C88; box-shadow:inset 0 -3px 0 #5E6C88}
 table.xl tbody tr td.g-treal{background:#F5F6FA}
-table.xl tbody tr.n0 td.g-treal,table.xl tbody tr.n1 td.g-treal{background:#E9ECF3}
+table.xl tbody tr.n1 td.g-treal,table.xl tbody tr.n2 td.g-treal{background:#E9ECF3}
 table.xl thead tr.g th.g-tventa{background:#62846A}
 table.xl thead tr.c th.g-tventa{background:#E6EFE7; color:#62846A; box-shadow:inset 0 -3px 0 #62846A}
 table.xl tbody tr td.g-tventa{background:#F4F8F4}
-table.xl tbody tr.n0 td.g-tventa,table.xl tbody tr.n1 td.g-tventa{background:#E6EFE7}
+table.xl tbody tr.n1 td.g-tventa,table.xl tbody tr.n2 td.g-tventa{background:#E6EFE7}
 table.xl thead tr.g th.g-tacum{background:#454F63}
 table.xl thead tr.c th.g-tacum{background:#E3E5EB; color:#454F63; box-shadow:inset 0 -3px 0 #454F63}
 table.xl tbody tr td.g-tacum{background:#F1F2F5}
-table.xl tbody tr.n0 td.g-tacum,table.xl tbody tr.n1 td.g-tacum{background:#E3E5EB}
+table.xl tbody tr.n1 td.g-tacum,table.xl tbody tr.n2 td.g-tacum{background:#E3E5EB}
 table.xl thead tr.g th.g-cacum{background:#384459}
 table.xl thead tr.c th.g-cacum{background:#DFE3EA; color:#384459; box-shadow:inset 0 -3px 0 #384459}
 table.xl tbody tr td.g-cacum{background:#EFF1F5}
-table.xl tbody tr.n0 td.g-cacum,table.xl tbody tr.n1 td.g-cacum{background:#DFE3EA}
+table.xl tbody tr.n1 td.g-cacum,table.xl tbody tr.n2 td.g-cacum{background:#DFE3EA}
 table.xl thead tr.g th.g-vacum{background:#3E5E46}
 table.xl thead tr.c th.g-vacum{background:#DFEAE1; color:#3E5E46; box-shadow:inset 0 -3px 0 #3E5E46}
 table.xl tbody tr td.g-vacum{background:#EFF5F0}
-table.xl tbody tr.n0 td.g-vacum,table.xl tbody tr.n1 td.g-vacum{background:#DFEAE1}
+table.xl tbody tr.n1 td.g-vacum,table.xl tbody tr.n2 td.g-vacum{background:#DFEAE1}
 table.xl thead tr.g th.g-dacum{background:#5E523C}
 table.xl thead tr.c th.g-dacum{background:#E9E3D7; color:#5E523C; box-shadow:inset 0 -3px 0 #5E523C}
 table.xl tbody tr td.g-dacum{background:#F5F2EC}
-table.xl tbody tr.n0 td.g-dacum,table.xl tbody tr.n1 td.g-dacum{background:#E9E3D7}
+table.xl tbody tr.n1 td.g-dacum,table.xl tbody tr.n2 td.g-dacum{background:#E9E3D7}
 /* la fila de familia (subtotal) un tono mas oscura que la de modelo, en cada grupo */
-table.xl tbody tr.n0 td.fija{background:#D8DEE7}
-table.xl tbody tr.n0 td.g-costo{background:#D8DEE9}
-table.xl tbody tr.n0 td.g-oper{background:#D2E2E2}
-table.xl tbody tr.n0 td.g-venta{background:#D3E5D6}
-table.xl tbody tr.n0 td.g-desv{background:#E5DECF}
-table.xl tbody tr.n0 td.g-treal{background:#DCE0EB}
-table.xl tbody tr.n0 td.g-tventa{background:#D6E6D9}
-table.xl tbody tr.n0 td.g-tacum{background:#D5D8E1}
-table.xl tbody tr.n0 td.g-cacum{background:#D0D6E0}
-table.xl tbody tr.n0 td.g-vacum{background:#CFE0D2}
-table.xl tbody tr.n0 td.g-dacum{background:#DED4C3}
+table.xl tbody tr.n1 td.fija{background:#D8DEE7}
+table.xl tbody tr.n1 td.g-costo{background:#D8DEE9}
+table.xl tbody tr.n1 td.g-oper{background:#D2E2E2}
+table.xl tbody tr.n1 td.g-venta{background:#D3E5D6}
+table.xl tbody tr.n1 td.g-desv{background:#E5DECF}
+table.xl tbody tr.n1 td.g-treal{background:#DCE0EB}
+table.xl tbody tr.n1 td.g-tventa{background:#D6E6D9}
+table.xl tbody tr.n1 td.g-tacum{background:#D5D8E1}
+table.xl tbody tr.n1 td.g-cacum{background:#D0D6E0}
+table.xl tbody tr.n1 td.g-vacum{background:#CFE0D2}
+table.xl tbody tr.n1 td.g-dacum{background:#DED4C3}
 /* el pase del raton, la celda comentada y la elegida mandan sobre el color del grupo */
 table.xl tbody tr:hover td{background:#E4ECF7}
 table.xl tbody tr td.cn{background:#FFF3B0}
@@ -233,6 +251,19 @@ table.xl tfoot td{position:sticky; bottom:0; z-index:2; background:var(--tinta);
                   font-weight:600; border-bottom:0}
 table.xl tfoot .fija{background:var(--tinta); color:#fff; z-index:3}
 table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl tfoot .z{color:#fff}
+/* Flota completa: TODA / PROPIOS / ALQUILADOS en el renglon del rotulo, arriba de los proyectos */
+.xlFlotaT button{all:unset; cursor:pointer; padding:2px 7px; border:1px solid var(--linea); font-size:10px;
+  letter-spacing:.06em; color:var(--tinta-2); white-space:nowrap}
+.xlFlotaT button + button{margin-left:-1px}
+.xlFlotaT button[aria-pressed="true"]{background:#A8701E; border-color:#A8701E; color:#fff}
+.xlFlotaT button:focus-visible{outline:2px solid var(--sm); outline-offset:1px}
+/* esconder las tarjetas de arriba: la tabla toma ese alto (hxAjustarAlto). Siempre abre con ellas */
+.xlTarjBtn{all:unset; cursor:pointer; align-self:center; padding:4px 10px; border:1px solid var(--linea);
+  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em; color:var(--tinta-2); white-space:nowrap; background:#fff}
+.xlTarjBtn:hover{border-color:var(--sm); color:var(--sm)}
+.xlTarjBtn:focus-visible{outline:2px solid var(--sm); outline-offset:2px}
+.xlTarjBtn[aria-pressed="false"]{background:#EEF2F7; color:var(--tinta)}
+.hojaXl.sinTarj .granTotal{display:none}
 /* las cifras del Total tambien se eligen y se comentan, como las de cualquier fila */
 table.xl tfoot td:not(.fija){cursor:pointer}
 table.xl tfoot td:not(.fija):hover{background:#22344F}
@@ -355,8 +386,9 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
 .xlEditor .meta.mal{color:#B3261E}
 .xlEditor .bot{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
 @media (max-width:620px){
-  table.xl tr.n1 .fija{padding-left:14px} table.xl tr.n2 .fija{padding-left:22px}
-  table.xl tr.n3 .fija{padding-left:30px} table.xl tr.n4 .fija{padding-left:38px}
+  table.xl tr.n1 .fija{padding-left:10px}
+  table.xl tr.n2 .fija{padding-left:18px} table.xl tr.n3 .fija{padding-left:26px}
+  table.xl tr.n4 .fija{padding-left:34px} table.xl tr.n5 .fija{padding-left:42px}
 }
 </style>
 
@@ -366,11 +398,14 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
     <div class="tituloV">
       <div class="ord"><span class="num">03</span><span class="lin"></span><span class="num" id="hx-como-T">FLOTA COMPLETA · LAS HOJAS PROP Y ALQ JUNTAS</span></div>
       <h2 class="d d-l">Flota completa, al día __CORTE__.</h2>
+      <button type="button" class="xlTarjBtn" data-s="T" aria-pressed="true" aria-controls="hx-cifras-T"
+        title="Esconder las tarjetas de arriba para ver más filas de la tabla">▴ OCULTAR TARJETAS</button>
       <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
       <p class="lede">Son <b>Propios</b> y <b>Alquilados</b> en una sola tabla: los equipos propios y los
       alquilados de una misma familia y modelo se suman juntos. Las columnas de <b>depreciación</b> y de
       <b>alquiler</b> van lado a lado; una fila sin equipos propios lleva guion en Dep y una sin
-      alquilados lo lleva en Alq. Los botones <b>DEP</b> y <b>ALQ</b> deciden si cada una entra al total;
+      alquilados lo lleva en Alq. Arriba de los proyectos se elige la flota: <b>TODA</b>, sólo <b>PROPIOS</b> o sólo
+      <b>ALQUILADOS</b> (reemplaza a las antiguas hojas Propios y Alquilados). Los botones <b>DEP</b> y <b>ALQ</b> deciden si cada una entra al total;
       la que queda fuera se esconde y vuelve al sumarla:
       abre como el Excel, con la depreciación y sin el alquiler, que <b>no es un costo real</b> (sale de la
       tarifa de venta). Las cifras son las mismas de las dos hojas; el botón TABLERO sale sólo en las filas
@@ -378,7 +413,7 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
     </div>
     <div class="granTotal" id="hx-cifras-T"></div>
     <div class="xlBarra">
-      <div class="sedeHueco" data-clase="gc"></div>
+      <div class="sedeHueco" data-clase="flota" data-s="T"></div>
       <div><span class="gcT xlModoT" id="hx-modo-T" role="group" aria-label="Qué hacen los botones de nivel"></span><div class="gcB" id="hx-nivel-T"></div></div>
       <div><span class="gcT">EN EL COSTO</span><div class="gcB" id="hx-ter-T"></div></div>
       <div><span class="gcT">COLUMNAS</span><div class="gcB" id="hx-cols-T"></div></div>
@@ -402,10 +437,12 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
 </section>
 
 <!-- ═══════════════════ PROPIOS ═══════════════════ -->
-<section class="vista luz hojaXl" id="v-propios" data-pes="Propios">
+<!-- escondida: Flota completa la reemplaza con su filtro de flota. Nada depende de ella;
+     para volver a mostrarla, la clase «vista luz» y 'P' en HX_HOJAS (hojas.js) -->
+<section class="pesQuitada hojaXl" id="v-propios" data-pes="Propios" hidden>
   <div class="wrap">
     <div class="tituloV">
-      <div class="ord"><span class="num">01</span><span class="lin"></span><span class="num" id="hx-como-P">FLOTA PROPIA · COMO LAS HOJAS PROP</span></div>
+      <div class="ord"><span class="num" data-sin-numero>01</span><span class="lin"></span><span class="num" id="hx-como-P">FLOTA PROPIA · COMO LAS HOJAS PROP</span></div>
       <h2 class="d d-l">Flota propia, al día __CORTE__.</h2>
       <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
       <p class="lede">Son las hojas <b>PROP</b> de los consolidados de cada proyecto (SHGN, ATOC, TRMA y TEMB),
@@ -447,10 +484,11 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
 </section>
 
 <!-- ═══════════════════ ALQUILADOS ═══════════════════ -->
-<section class="vista luz hojaXl" id="v-alquilados" data-pes="Alquilados">
+<!-- escondida, como Propios -->
+<section class="pesQuitada hojaXl" id="v-alquilados" data-pes="Alquilados" hidden>
   <div class="wrap">
     <div class="tituloV">
-      <div class="ord"><span class="num">02</span><span class="lin"></span><span class="num" id="hx-como-A">FLOTA ALQUILADA · COMO LAS HOJAS ALQ</span></div>
+      <div class="ord"><span class="num" data-sin-numero>02</span><span class="lin"></span><span class="num" id="hx-como-A">FLOTA ALQUILADA · COMO LAS HOJAS ALQ</span></div>
       <h2 class="d d-l">Flota alquilada, al día __CORTE__.</h2>
       <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
       <p class="lede">Son las hojas <b>ALQ</b> de los consolidados de cada proyecto (SHGN, ATOC, TRMA y TEMB),
