@@ -30,8 +30,12 @@ function hxMaxi(s, poner){
   if(poner === undefined) poner = !v.classList.contains('xlMaxi');
   v.classList.toggle('xlMaxi', poner);
   document.body.classList.toggle('xlMaxiOn', !!document.querySelector('.hojaXl.xlMaxi'));
-  var b = v.querySelector('.xlMaxBtn');
-  if(b) b.setAttribute('aria-pressed', poner);
+  /* dos botones lo abren: SOLO LA TABLA (telefono y tableta) y ⤢ en la esquina
+     de la tabla (escritorio); al volver, el foco va al que se ve */
+  var bs = Array.prototype.slice.call(v.querySelectorAll('.xlMaxBtn'));
+  bs.forEach(function(x){ x.setAttribute('aria-pressed', poner); });
+  if(!poner) requestAnimationFrame(hxAjustarAlto);
+  var b = bs.filter(function(x){ return x.offsetParent; })[0] || bs[0];
   var foco = poner ? v.querySelector('.xlMaxSalir') : b;
   if(foco) try { foco.focus({ preventScroll: true }); } catch(e){ foco.focus(); }
 }

@@ -134,6 +134,24 @@ table.xl .fija{position:sticky; left:0; z-index:2; background:#fff; text-align:l
                border-right:1px solid var(--tinta-3); max-width:min(56vw,300px); overflow:hidden;
                text-overflow:ellipsis}
 table.xl thead .fija{z-index:4}
+/* el ancho de la primera columna: se arrastra su borde derecho (en cualquier
+   fila), y doble clic ahi la devuelve a su ancho normal. --fijaW es el que
+   eligio la persona; --fijaAuto, el que pone SOLO EL MES para que entre todo */
+table.xl .fija{max-width:var(--fijaW, var(--fijaAuto, min(56vw,300px)))}
+table.xl.anchoFijo .fija{min-width:var(--fijaW)}
+table.xl .fija::after{content:""; position:absolute; top:0; bottom:0; right:-1px; width:6px; cursor:col-resize}
+table.xl .fija:hover::after{background:linear-gradient(90deg, transparent 2px, var(--sm) 2px, var(--sm) 4px, transparent 4px); opacity:.45}
+body.arrAncho table.xl .fija::after{background:linear-gradient(90deg, transparent 2px, var(--hivis) 2px, var(--hivis) 4px, transparent 4px); opacity:1}
+body.arrAncho,body.arrAncho *{cursor:col-resize !important; user-select:none !important}
+/* el ::after de la primera columna es el borde que se arrastra: su marca de orden va delante */
+table.xl thead tr.c th.fija.xord::after{content:""}
+table.xl thead tr.c th.fija.xord::before{content:"▼ "; font-size:8px}
+table.xl thead tr.c th.fija.xord.asc::before{content:"▲ "}
+/* SOLO EL MES: la tabla entra entera en el ancho, sin deslizarse. Primero las
+   columnas se juntan; si no basta, la tabla se achica lo justo (zoom, en hxAjustarAncho) */
+table.xl.ajusta th,table.xl.ajusta td{padding-left:4px; padding-right:4px}
+table.xl.ajusta thead tr.g th{padding:0 4px}
+table.xl.ajusta thead tr.c th{letter-spacing:0}
 table.xl thead tr.g .fija{background:var(--sm); border-left:0}
 table.xl thead tr.c .fija{background:var(--luz-2)}
 table.xl .ini{border-left:2px solid var(--linea)}
@@ -146,14 +164,17 @@ table.xl tbody tr:focus-visible{outline:2px solid var(--sm); outline-offset:-2px
 /* el proyecto, arriba de todo: la banda mas oscura */
 table.xl tr.n0 td{background:#C9D1DC; font-weight:700; border-bottom:2px solid var(--tinta-2)}
 table.xl tbody tr.n0 td.fija{background:#BCC6D3; letter-spacing:.04em}
-table.xl tr.n1 td{background:var(--luz-3); font-weight:700; border-bottom-color:var(--tinta-3)}
-table.xl tr.n2 td{background:var(--luz); font-weight:600}
-table.xl tr.n3 td{background:#fff}
-table.xl tr.n4 td{background:#F7F9FC; color:var(--tinta); font-size:11px; font-weight:500}
-table.xl tr.n5 td{background:#FBFCFD; color:var(--tinta-2); font-size:11px}
-table.xl tr.n1 .fija{padding-left:16px}
-table.xl tr.n2 .fija{padding-left:30px} table.xl tr.n3 .fija{padding-left:44px}
-table.xl tr.n4 .fija{padding-left:60px} table.xl tr.n5 .fija{padding-left:76px}
+/* FLOTA (propios / alquilados): entre el proyecto y la familia, gris azulado parejo en toda la fila */
+table.xl tbody tr.n1 td{background:#D9DFE8; font-weight:700; border-bottom:1px solid var(--tinta-3)}
+table.xl tbody tr.n1 td.fija{background:#CDD5E0; letter-spacing:.05em}
+table.xl tr.n2 td{background:var(--luz-3); font-weight:700; border-bottom-color:var(--tinta-3)}
+table.xl tr.n3 td{background:var(--luz); font-weight:600}
+table.xl tr.n4 td{background:#fff}
+table.xl tr.n5 td{background:#F7F9FC; color:var(--tinta); font-size:11px; font-weight:500}
+table.xl tr.n6 td{background:#FBFCFD; color:var(--tinta-2); font-size:11px}
+table.xl tr.n1 .fija{padding-left:10px} table.xl tr.n2 .fija{padding-left:20px}
+table.xl tr.n3 .fija{padding-left:32px} table.xl tr.n4 .fija{padding-left:46px}
+table.xl tr.n5 .fija{padding-left:60px} table.xl tr.n6 .fija{padding-left:74px}
 table.xl .car{display:inline-block; width:13px; color:var(--sm); font-size:10px}
 table.xl .sub{font-family:"IBM Plex Sans",sans-serif; font-weight:400; font-size:10.5px;
               color:var(--tinta-2); margin-left:6px}
@@ -188,55 +209,55 @@ table.xl tbody td:not(.fija){cursor:cell}
 table.xl thead tr.g th.g-costo{background:#4A5A78}
 table.xl thead tr.c th.g-costo{background:#E6EAF1; color:#4A5A78; box-shadow:inset 0 -3px 0 #4A5A78}
 table.xl tbody tr td.g-costo{background:#F3F5F9}
-table.xl tbody tr.n1 td.g-costo,table.xl tbody tr.n2 td.g-costo{background:#E6EAF1}
+table.xl tbody tr.n2 td.g-costo,table.xl tbody tr.n3 td.g-costo{background:#E6EAF1}
 table.xl thead tr.g th.g-oper{background:#3F6F72}
 table.xl thead tr.c th.g-oper{background:#E2EDED; color:#3F6F72; box-shadow:inset 0 -3px 0 #3F6F72}
 table.xl tbody tr td.g-oper{background:#F1F6F6}
-table.xl tbody tr.n1 td.g-oper,table.xl tbody tr.n2 td.g-oper{background:#E2EDED}
+table.xl tbody tr.n2 td.g-oper,table.xl tbody tr.n3 td.g-oper{background:#E2EDED}
 table.xl thead tr.g th.g-venta{background:#4F7657}
 table.xl thead tr.c th.g-venta{background:#E3EEE4; color:#4F7657; box-shadow:inset 0 -3px 0 #4F7657}
 table.xl tbody tr td.g-venta{background:#F2F7F2}
-table.xl tbody tr.n1 td.g-venta,table.xl tbody tr.n2 td.g-venta{background:#E3EEE4}
+table.xl tbody tr.n2 td.g-venta,table.xl tbody tr.n3 td.g-venta{background:#E3EEE4}
 table.xl thead tr.g th.g-desv{background:#7A6A4F}
 table.xl thead tr.c th.g-desv{background:#EFEBE1; color:#7A6A4F; box-shadow:inset 0 -3px 0 #7A6A4F}
 table.xl tbody tr td.g-desv{background:#F8F6F1}
-table.xl tbody tr.n1 td.g-desv,table.xl tbody tr.n2 td.g-desv{background:#EFEBE1}
+table.xl tbody tr.n2 td.g-desv,table.xl tbody tr.n3 td.g-desv{background:#EFEBE1}
 table.xl thead tr.g th.g-treal{background:#5E6C88}
 table.xl thead tr.c th.g-treal{background:#E9ECF3; color:#5E6C88; box-shadow:inset 0 -3px 0 #5E6C88}
 table.xl tbody tr td.g-treal{background:#F5F6FA}
-table.xl tbody tr.n1 td.g-treal,table.xl tbody tr.n2 td.g-treal{background:#E9ECF3}
+table.xl tbody tr.n2 td.g-treal,table.xl tbody tr.n3 td.g-treal{background:#E9ECF3}
 table.xl thead tr.g th.g-tventa{background:#62846A}
 table.xl thead tr.c th.g-tventa{background:#E6EFE7; color:#62846A; box-shadow:inset 0 -3px 0 #62846A}
 table.xl tbody tr td.g-tventa{background:#F4F8F4}
-table.xl tbody tr.n1 td.g-tventa,table.xl tbody tr.n2 td.g-tventa{background:#E6EFE7}
+table.xl tbody tr.n2 td.g-tventa,table.xl tbody tr.n3 td.g-tventa{background:#E6EFE7}
 table.xl thead tr.g th.g-tacum{background:#454F63}
 table.xl thead tr.c th.g-tacum{background:#E3E5EB; color:#454F63; box-shadow:inset 0 -3px 0 #454F63}
 table.xl tbody tr td.g-tacum{background:#F1F2F5}
-table.xl tbody tr.n1 td.g-tacum,table.xl tbody tr.n2 td.g-tacum{background:#E3E5EB}
+table.xl tbody tr.n2 td.g-tacum,table.xl tbody tr.n3 td.g-tacum{background:#E3E5EB}
 table.xl thead tr.g th.g-cacum{background:#384459}
 table.xl thead tr.c th.g-cacum{background:#DFE3EA; color:#384459; box-shadow:inset 0 -3px 0 #384459}
 table.xl tbody tr td.g-cacum{background:#EFF1F5}
-table.xl tbody tr.n1 td.g-cacum,table.xl tbody tr.n2 td.g-cacum{background:#DFE3EA}
+table.xl tbody tr.n2 td.g-cacum,table.xl tbody tr.n3 td.g-cacum{background:#DFE3EA}
 table.xl thead tr.g th.g-vacum{background:#3E5E46}
 table.xl thead tr.c th.g-vacum{background:#DFEAE1; color:#3E5E46; box-shadow:inset 0 -3px 0 #3E5E46}
 table.xl tbody tr td.g-vacum{background:#EFF5F0}
-table.xl tbody tr.n1 td.g-vacum,table.xl tbody tr.n2 td.g-vacum{background:#DFEAE1}
+table.xl tbody tr.n2 td.g-vacum,table.xl tbody tr.n3 td.g-vacum{background:#DFEAE1}
 table.xl thead tr.g th.g-dacum{background:#5E523C}
 table.xl thead tr.c th.g-dacum{background:#E9E3D7; color:#5E523C; box-shadow:inset 0 -3px 0 #5E523C}
 table.xl tbody tr td.g-dacum{background:#F5F2EC}
-table.xl tbody tr.n1 td.g-dacum,table.xl tbody tr.n2 td.g-dacum{background:#E9E3D7}
+table.xl tbody tr.n2 td.g-dacum,table.xl tbody tr.n3 td.g-dacum{background:#E9E3D7}
 /* la fila de familia (subtotal) un tono mas oscura que la de modelo, en cada grupo */
-table.xl tbody tr.n1 td.fija{background:#D8DEE7}
-table.xl tbody tr.n1 td.g-costo{background:#D8DEE9}
-table.xl tbody tr.n1 td.g-oper{background:#D2E2E2}
-table.xl tbody tr.n1 td.g-venta{background:#D3E5D6}
-table.xl tbody tr.n1 td.g-desv{background:#E5DECF}
-table.xl tbody tr.n1 td.g-treal{background:#DCE0EB}
-table.xl tbody tr.n1 td.g-tventa{background:#D6E6D9}
-table.xl tbody tr.n1 td.g-tacum{background:#D5D8E1}
-table.xl tbody tr.n1 td.g-cacum{background:#D0D6E0}
-table.xl tbody tr.n1 td.g-vacum{background:#CFE0D2}
-table.xl tbody tr.n1 td.g-dacum{background:#DED4C3}
+table.xl tbody tr.n2 td.fija{background:#D8DEE7}
+table.xl tbody tr.n2 td.g-costo{background:#D8DEE9}
+table.xl tbody tr.n2 td.g-oper{background:#D2E2E2}
+table.xl tbody tr.n2 td.g-venta{background:#D3E5D6}
+table.xl tbody tr.n2 td.g-desv{background:#E5DECF}
+table.xl tbody tr.n2 td.g-treal{background:#DCE0EB}
+table.xl tbody tr.n2 td.g-tventa{background:#D6E6D9}
+table.xl tbody tr.n2 td.g-tacum{background:#D5D8E1}
+table.xl tbody tr.n2 td.g-cacum{background:#D0D6E0}
+table.xl tbody tr.n2 td.g-vacum{background:#CFE0D2}
+table.xl tbody tr.n2 td.g-dacum{background:#DED4C3}
 /* el pase del raton, la celda comentada y la elegida mandan sobre el color del grupo */
 table.xl tbody tr:hover td{background:#E4ECF7}
 table.xl tbody tr td.cn{background:#FFF3B0}
@@ -264,10 +285,34 @@ table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl t
 .xlTarjBtn:focus-visible{outline:2px solid var(--sm); outline-offset:2px}
 .xlTarjBtn[aria-pressed="false"]{background:#EEF2F7; color:var(--tinta)}
 .hojaXl.sinTarj .granTotal{display:none}
+/* ⤢ la tabla a toda la pantalla (como el modo foco de Power BI): un boton
+   chico en la esquina de arriba a la derecha de la tabla, encima de la
+   cabecera de grupos y a un lado de la barra de desplazamiento. Lo hace
+   hxMaxi (movil.js); se vuelve con ✕ VOLVER o Esc */
+.xlEsq{position:relative; height:0; z-index:6}
+.xlMaxMini{all:unset; cursor:pointer; position:absolute; top:11px; right:14px; box-sizing:border-box; width:19px; height:18px;
+  text-align:center; line-height:16px; font-size:12px; color:#fff; background:var(--tinta); opacity:.8;
+  border:1px solid rgba(255,255,255,.55)}
+.xlMaxMini:hover{opacity:1; border-color:var(--hivis); color:var(--hivis)}
+.xlMaxMini:focus-visible{opacity:1; outline:2px solid var(--sm); outline-offset:1px}
+.hojaXl.xlMaxi .xlEsq,body.dividida .xlEsq{display:none}
+/* los grupos de columnas se mueven arrastrando su cabecera (hojas.js) */
+table.xl thead tr.g th[data-gm]{-webkit-user-select:none; user-select:none}
+@media (pointer:coarse){ table.xl thead tr.g th[data-gm]{touch-action:none; -webkit-touch-callout:none} }
+table.xl thead tr.g th.colMovil{opacity:.55}
+table.xl thead tr.g th.colAntes{box-shadow:inset 4px 0 0 var(--hivis)}
+table.xl thead tr.g th.colDespues{box-shadow:inset -4px 0 0 var(--hivis)}
+body.arrCol,body.arrCol *{cursor:grabbing !important}
 /* las cifras del Total tambien se eligen y se comentan, como las de cualquier fila */
 table.xl tfoot td:not(.fija){cursor:pointer}
 table.xl tfoot td:not(.fija):hover{background:#22344F}
 table.xl tfoot tr td.sel{outline:2px solid var(--hivis); outline-offset:-2px; background:#2A4F8C}
+/* la fila de la celda elegida: un velo ambar sobre toda la fila (encima de
+   los colores de grupo, sin taparlos) y una raya arriba y abajo */
+table.xl tbody tr.filaSel > td:not(.sel){background-image:linear-gradient(rgba(255,196,0,.22), rgba(255,196,0,.22));
+  box-shadow:inset 0 1px 0 #C99A00, inset 0 -1px 0 #C99A00}
+table.xl tbody tr.filaSel > td.fija{box-shadow:inset 0 1px 0 #C99A00, inset 0 -1px 0 #C99A00, inset 4px 0 0 #E0A800; font-weight:700}
+table.xl tfoot tr.filaSel > td{background-image:linear-gradient(rgba(255,214,90,.16), rgba(255,214,90,.16))}
 /* aqui se viene a leer la tabla: titulo y cifras ocupan poco */
 /* lo de arriba ocupa poco para que la tabla se vea desde el comienzo:
    titulo y «como se lee» en una linea, menos aire arriba de la hoja */
@@ -322,6 +367,14 @@ table.xl tfoot tr td.sel{outline:2px solid var(--hivis); outline-offset:-2px; ba
 .xlBarra .xlBusca{flex:1 1 170px; min-width:150px; max-width:300px}
 .xlBarra .entradaEq{width:100%; margin-top:0}
 .xlBarra .gcB{display:flex; flex-wrap:nowrap; gap:5px}
+/* con el nivel FLOTA hay un boton mas: en las laptops (1366 px) los botones
+   van mas juntos para que BUSCAR siga entrando en la fila */
+@media (max-width:1500px){
+  .xlBarra{column-gap:10px !important}
+  .xlBarra .fbt,.xlBarra .sedeB .fbt{padding-left:6px; padding-right:6px; letter-spacing:.02em}
+  .xlBarra .gcB{gap:4px}
+  .xlBarra .xlBusca{min-width:118px}
+}
 /* los botones de nivel: DESPLEGAR abre la tabla hasta ese nivel; SELECCIONAR
    abre una lista para elegir que familias, modelos, equipos u ordenes se ven */
 .xlModoT{display:inline-flex !important; gap:0; letter-spacing:.06em}
@@ -386,9 +439,9 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
 .xlEditor .meta.mal{color:#B3261E}
 .xlEditor .bot{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
 @media (max-width:620px){
-  table.xl tr.n1 .fija{padding-left:10px}
-  table.xl tr.n2 .fija{padding-left:18px} table.xl tr.n3 .fija{padding-left:26px}
-  table.xl tr.n4 .fija{padding-left:34px} table.xl tr.n5 .fija{padding-left:42px}
+  table.xl tr.n1 .fija{padding-left:6px} table.xl tr.n2 .fija{padding-left:12px}
+  table.xl tr.n3 .fija{padding-left:18px} table.xl tr.n4 .fija{padding-left:26px}
+  table.xl tr.n5 .fija{padding-left:34px} table.xl tr.n6 .fija{padding-left:42px}
 }
 </style>
 
@@ -423,6 +476,7 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
     </div>
     <p class="xlGira">↻ Gira el teléfono: en horizontal la tabla muestra más columnas.</p>
     <div class="xlMaxBar"><b>FLOTA COMPLETA</b><span>al día __CORTE__<span class="gi"> · gira el teléfono para ver más columnas</span></span><button class="xlMaxSalir" type="button" data-s="T">✕ VOLVER</button></div>
+    <div class="xlEsq"><button class="xlMaxBtn xlMaxMini" type="button" data-s="T" aria-pressed="false" title="Ver la tabla a toda la pantalla (Esc para volver)" aria-label="Ver la tabla a toda la pantalla">⤢</button></div>
     <div class="xlEnv"><table class="xl" id="hx-tabla-T"></table></div>
     <details class="xlPlg xlOrigenD" id="hx-origenD-T" data-plg="origen">
       <summary><span class="fx" aria-hidden="true">fx</span><span class="res" id="hx-origenRes-T">DE DÓNDE SALE CADA CIFRA · haz clic en una celda</span></summary>

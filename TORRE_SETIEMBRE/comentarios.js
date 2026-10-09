@@ -98,12 +98,14 @@ function cmEstado(k){
   hxGuardarLocal();
   cmPintar();
 }
-/* las claves de las filas de arriba de un nodo, para abrir la rama */
-function cmCamino(lista, k, arriba){
+/* la fila de un comentario y las de arriba, para abrir la rama. Se busca
+   por la clave del comentario y no por la de la fila: la misma familia
+   lleva otra clave de fila bajo PROPIOS o ALQUILADOS (nivel FLOTA) */
+function cmCamino(lista, k, col, arriba){
   for(var i = 0; i < lista.length; i++){
     var n = lista[i];
-    if(n.k === k) return arriba;
-    var r = cmCamino(n.hijos || [], k, arriba.concat([n.k]));
+    if(n.k && hxClaveNota('T', n, col) === k) return { n: n, arriba: arriba };
+    var r = cmCamino(n.hijos || [], k, col, arriba.concat([n.k]));
     if(r) return r;
   }
   return null;
@@ -120,17 +122,26 @@ function cmIr(k){
     if(quiero.join() !== hay.join()){ sedeSel = quiero; sedeCambio(); }
   }
   if('terD' in c){ st.terD = !!c.terD; st.terA = !!c.terA; }
-  st.eleg = c.eleg ? JSON.parse(JSON.stringify(c.eleg)) : hxElegVacia();
+  st.eleg = hxElegDe(c.eleg);
   st.filtros = c.filtros ? JSON.parse(JSON.stringify(c.filtros)) : {};
   st.busca = ''; var b = $('hx-buscar-T'); if(b) b.value = '';
   hxArbolVista(st);
-  (cmCamino(st.vista || st.arbol, x.nodo, []) || []).forEach(function(a){ st.ab[a] = 1; });
-  st.sel = { k: x.nodo, col: x.col };
+  var hit = /^tot\|/.test(x.nodo) ? { n: hxNodoTotal(st), arriba: [] } : cmCamino(st.vista || st.arbol, k, x.col, []);
+  /* un comentario de una rama PROPIOS hecho con TODA la flota: con el nivel
+     FLOTA mas abajo, la fila esta con el filtro de esa flota */
+  var fk = cmDeClave(k).flota;
+  if(!hit && fk && fk !== '*' && fk !== hxFlota(st)){
+    st.flota = fk; hxArbol('T'); hxArbolVista(st);
+    hit = cmCamino(st.vista || st.arbol, k, x.col, []);
+  }
+  if(hit) hit.arriba.forEach(function(a){ st.ab[a] = 1; });
+  var nk = hit ? hit.n.k : x.nodo;
+  st.sel = { k: nk, col: x.col };
   hxBotones('T'); hxTabla('T');
   irA('v-toda');
   setTimeout(function(){
     var d = $('hx-origenD-T'); if(d) d.open = true;
-    var tr = document.querySelector('#hx-tabla-T tr[data-k="' + String(x.nodo).replace(/["\\]/g, '\\$&') + '"]');
+    var tr = document.querySelector('#hx-tabla-T tr[data-k="' + String(nk).replace(/["\\]/g, '\\$&') + '"]');
     if(tr){ tr.scrollIntoView({ block: 'center' }); try { tr.focus({ preventScroll: true }); } catch(e){} }
   }, 90);
 }

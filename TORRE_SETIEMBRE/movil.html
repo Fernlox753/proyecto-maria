@@ -95,4 +95,16 @@ body.navMin .nav,body.navMin .nav.fondo,body.navMin .nav.claro{padding-top:2px; 
 .hojaXl.xlMaxi .xlEnv{position:fixed; top:36px; bottom:0; left:env(safe-area-inset-left); right:env(safe-area-inset-right);
   z-index:61; margin:0; min-height:0; max-height:none !important; border:0; overscroll-behavior:contain}
 body.xlMaxiOn{overflow:hidden}
+/* en el escritorio (⤢), a toda pantalla siguen arriba los filtros y lo
+   elegido, para cambiarlos sin salir: la hoja entera pasa a ocupar la
+   ventana y la tabla toma el alto que queda. En el telefono sigue sola. */
+@media (min-width:1181px) and (pointer:fine){
+  .hojaXl.xlMaxi{position:fixed; inset:0; padding:0 !important; min-height:0; overflow:hidden; background:var(--luz)}
+  .hojaXl.xlMaxi > .wrap{max-width:none; height:100%; padding:0; display:flex; flex-direction:column}
+  .hojaXl.xlMaxi .tituloV,.hojaXl.xlMaxi .granTotal,.hojaXl.xlMaxi .xlPlg,.hojaXl.xlMaxi .xlGira{display:none}
+  .hojaXl.xlMaxi .xlMaxBar{position:static; flex:0 0 36px; order:-1}
+  .hojaXl.xlMaxi .xlBarra{flex:0 0 auto; margin:0; padding:8px 12px; border-bottom:1px solid var(--linea)}
+  .hojaXl.xlMaxi .xlFiltros{flex:0 0 auto; margin:6px 12px 0}
+  .hojaXl.xlMaxi .xlEnv{position:static; flex:1 1 auto; min-height:0; margin:6px 0 0; border-left:0; border-right:0}
+}
 </style>

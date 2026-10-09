@@ -1,0 +1,41 @@
+<style>
+/* ══ INICIO: titulo gerencial y los filtros en una barra que se despliega ══
+   El titulo dice que es la torre (desempeno economico de la flota); la linea
+   de abajo, que proyectos y que periodo (la escribe sedeTextos). El realce
+   del titulo es un degradado cian a azul de la marca, con un brillo leve. */
+.lemaGr{max-width:22ch; margin-bottom:10px}
+.lemaGr em{background:linear-gradient(92deg,#6BE6FF 0%,#22A6FF 48%,#4C74D9 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 22px rgba(34,166,255,.30))}
+.lemaSub{margin:0 0 clamp(20px,3vh,32px); font-family:"IBM Plex Mono",monospace; font-size:13px; letter-spacing:.16em;
+  color:var(--claro-2); text-transform:uppercase}
+.lemaSub b{color:#8FE6FF; font-weight:600}
+.lemaSub i{font-style:normal; opacity:.45; margin:0 .5em}
+
+/* la barra: una pestana con flecha; cerrada dice en una linea que esta puesto */
+.iniFil{display:flex; align-items:center; gap:16px; min-width:0}
+.iniFilBtn{all:unset; cursor:pointer; flex:0 0 auto; display:inline-flex; align-items:center; gap:10px; height:38px;
+  padding:0 18px 0 12px; box-sizing:border-box; font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.2em;
+  color:#E4F7FF; border:1px solid rgba(107,230,255,.5);
+  background:linear-gradient(90deg,rgba(34,166,255,.30) 0%,rgba(34,166,255,.08) 100%);
+  box-shadow:inset 0 0 18px rgba(34,166,255,.16); transition:border-color .2s, box-shadow .2s}
+.iniFilBtn:hover{border-color:#6BE6FF; box-shadow:inset 0 0 22px rgba(34,166,255,.30), 0 0 14px rgba(34,166,255,.25)}
+.iniFilBtn:focus-visible{outline:2px solid var(--hivis); outline-offset:2px}
+.iniFilBtn .fl{display:inline-block; font-size:14px; color:#6BE6FF; transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.iniFil.ab .iniFilBtn .fl{transform:rotate(180deg)}
+.iniFilRes{flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.12em; color:var(--claro-2); transition:opacity .25s}
+.iniFilRes b{color:#E4F7FF; font-weight:600}
+.iniFilRes i{font-style:normal; opacity:.4; margin:0 .6em}
+.iniFil.ab .iniFilRes{opacity:0; pointer-events:none}
+/* la caja se abre hacia abajo y su contenido entra de izquierda a derecha */
+.iniFilCaja{display:grid; grid-template-rows:0fr; transition:grid-template-rows .4s ease}
+.iniFilCaja.ab{grid-template-rows:1fr}
+.iniFilCaja > div{min-height:0; overflow:hidden; clip-path:inset(0 100% 0 0);
+  transition:clip-path .6s cubic-bezier(.2,.7,.2,1)}
+.iniFilCaja.ab > div{clip-path:inset(0 0 0 0)}
+/* ya abierta, nada recorta (el desplegable de tipo de costo sale por debajo) */
+.iniFilCaja.fin > div{clip-path:none; overflow:visible}
+@media (prefers-reduced-motion:reduce){ .iniFilCaja,.iniFilCaja > div,.iniFilBtn .fl{transition:none} }
+@media (max-width:620px){ .iniFilRes{display:none} .lemaSub{font-size:11.5px; letter-spacing:.1em} }
+</style>

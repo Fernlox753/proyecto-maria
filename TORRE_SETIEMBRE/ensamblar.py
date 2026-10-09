@@ -26,6 +26,7 @@ en un solo sitio.
   proyecto.html, .js        el filtro de proyecto (SHGN, ATOC, TRMA, TEMB) en cada pestana
   comentarios.html, .js     la pestana Comentarios: todos, con su filtro y su estado
   colores.html              un tono pastel por grupo de filtros (flota, proyecto, niveles...)
+  inicio.html, .js          Inicio: titulo gerencial y los filtros en una barra que se despliega
   datos.json                la tabla de hechos de setiembre, de todos los proyectos (gen_datos.py)
   setiembre.json            la fila de cada equipo como en las hojas PROP y ALQ (gen_datos.py)
 
@@ -161,6 +162,8 @@ tajo_js = lee(AQUI, "tajo.js")
 proyecto_html = lee(AQUI, "proyecto.html")
 comentarios_html = lee(AQUI, "comentarios.html")
 colores_html = lee(AQUI, "colores.html")
+inicio_html = lee(AQUI, "inicio.html")
+inicio_js = lee(AQUI, "inicio.js")
 comentarios_js = lee(AQUI, "comentarios.js")
 # la gemela de Flota completa (hoja U), para verla dos veces en la pantalla
 # dividida: la misma seccion con sus ids cambiados; va al final, sin pestana
@@ -203,8 +206,11 @@ cuerpo = cambia(cuerpo, "font-size:10.5px; letter-spacing:.16em; padding:10px 16
                 "font-size:10.5px; letter-spacing:.06em; padding:10px 9px 11px;", C)
 
 # ---- Inicio
-cuerpo = cambia(cuerpo, "Toda la flota de <em>San Martín</em>, medida hora por hora.",
-                "La flota de <em>los %s proyectos</em> en setiembre, día por día." % N_SEDES, C)
+# un titulo de gerencia; la linea de abajo nombra los proyectos (sedeTextos la rehace al filtrar)
+cuerpo = cambia(cuerpo, '<h1 class="lemaGr">Toda la flota de <em>San Martín</em>, medida hora por hora.</h1>',
+                '<h1 class="lemaGr"><em>Desempeño económico</em><br>de la flota.</h1>\n'
+                '    <p class="lemaSub" id="lemaSub"><b>' + ' · '.join(SEDE_NOM.get(s, s).upper() for s in SEDES) + '</b>'
+                '<i>/</i>SETIEMBRE 2026<i>/</i>COSTO REAL FRENTE A VENTA INTERNA</p>', C)
 cuerpo = entre(cuerpo, '<p class="filtroProyPie" id="filtroProyPie">', "</p>",
     '<p class="filtroProyPie" id="filtroProyPie">PROYECTO = EL CONSOLIDADO DE CADA UNO (' + ' · '.join(SEDES) + ') · '
     'ALCANCE = FILTROS DE LAS DINÁMICAS PROP Y ALQ DE CADA PROYECTO (CONSIDERAR) · TIPO DE COSTO = '
@@ -230,7 +236,7 @@ cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
 # siguen estando en Tendencia y en Filtros.
 cuerpo = entre(cuerpo, "<!-- ═══════════════════ FLOTA ═══════════════════ -->", "</section>",
                (hojas_html + "\n" + comentarios_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
-                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html + "\n" + colores_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
+                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html + "\n" + colores_html + "\n" + inicio_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
 
 # ---- Tendencia
 cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo.', "</p></details>",
@@ -575,7 +581,7 @@ nuevo = (cabecera + css + "\n" + cuerpo + "\n<script>\n(function(){\n"
          + util + "\nvar DATA = " + datos + ";\n"
          + "var SETIEMBRE = " + sep + ";\n"
          + js_datos + "\n" + js_tend + "\n" + js_filt + "\n" + js_sep + "\n" + cont + tres_d
-         + "\n" + extra + "\n" + proyecto_js + "\n" + hojas_js + "\n" + comentarios_js + "\n" + tablero_js + "\n" + burbuja_js
+         + "\n" + extra + "\n" + proyecto_js + "\n" + inicio_js + "\n" + hojas_js + "\n" + comentarios_js + "\n" + tablero_js + "\n" + burbuja_js
          # los modelos 3D antes de la navegacion: al final de ella se elige el primer equipo
          + "\n" + modelos3d_js + "\n" + detalle3d_js + "\n" + modelos_det_js + "\n" + tajo_js + "\n" + equipo_js + "\n" + js_nav
          # la division envuelve irA(): tiene que ir despues de nuevo_js_nav.js
@@ -585,7 +591,7 @@ nuevo = agrandar(nuevo)
 io.open(SALIDA, "w", encoding="utf-8", newline="\n").write(nuevo)
 print("artifact.html:", len(nuevo), "bytes ->", SALIDA)
 
-for marca in ["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES", 'class="pes"',
+for marca in ["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES", "function iniFiltros", 'id="lemaSub"', 'class="pes"',
               "function iniciarTajo", "function construirCamion", "function irA(", "var DATA = {",
               "var SETIEMBRE = {", 'id="tajo"', "TORRE DE SETIEMBRE — lo que esta copia hace distinto",
               'id="fi-cuadre"', 'id="fi-zserv"', "var proyFiltro = PROYS[0];", 'id="v-propios"', 'id="v-alquilados"', 'id="v-toda"', 'data-pes="Flota completa"', "function hxColumnasT",

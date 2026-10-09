@@ -197,8 +197,9 @@ function sedeMontos(){
 function sedeTextos(){
   var rot = document.querySelector('.nav .rot i');
   if(rot) rot.textContent = (todasLasSedes() && sedesL().length > 1 ? sedesL().length + ' proyectos' : rotuloSedes(true)) + ' · setiembre 2026';
-  var lema = document.querySelector('#v-inicio .lemaGr em');
-  if(lema) lema.textContent = rotuloSedes(true);
+  /* la linea bajo el titulo de Inicio nombra los proyectos elegidos */
+  var lema = document.querySelector('#lemaSub b');
+  if(lema) lema.textContent = (todasLasSedes() ? sedesL() : sedeSel).map(function(s){ return String(sedeNomL()[s] || s).toUpperCase(); }).join(' · ');
   var hojaDe = function(suf){
     var ss = todasLasSedes() ? sedesL() : sedeSel;
     return ss.length === 1 ? ss[0] + suf : (ss.length === sedesL().length ? 'LAS HOJAS' + suf : ss.map(function(s){ return s + suf; }).join(' + '));
