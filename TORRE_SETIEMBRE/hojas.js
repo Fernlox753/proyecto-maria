@@ -2036,3 +2036,29 @@ function verFlota(n){
   ponerFiltroEq('fam', n);
   irA('v-costos');
 }
+
+/* Flota completa sobre azul oscuro que se mueve como agua (oscuro.html):
+   la capa va fija detras de todo y solo se prende con la hoja a la vista
+   (escondida no se anima). La barra de arriba pasa a oscura con ella:
+   irA la deja clara por ser una hoja .luz, y esto corre justo despues */
+(function aguaFondo(){
+  var secs = ['v-toda', 'v-toda2'].map(function(id){ return $(id); }).filter(function(v){ return v && v.classList.contains('oscuro'); });
+  if(!secs.length) return;
+  var f = document.createElement('div');
+  f.className = 'aguaFondo'; f.id = 'aguaFondo'; f.setAttribute('aria-hidden', 'true');
+  f.innerHTML = '<i></i><i></i><i></i><b></b>';
+  document.body.insertBefore(f, document.body.firstChild);
+  var mirar = function(){
+    var si = secs.some(function(v){ return v.classList.contains('on') || (document.body.classList.contains('dividida') && v.getClientRects().length); });
+    document.body.classList.toggle('conAgua', si);
+    var nav = $('nav');
+    if(si && nav) nav.classList.remove('claro');
+  };
+  if(window.MutationObserver){
+    secs.forEach(function(v){ new MutationObserver(mirar).observe(v, { attributes: true, attributeFilter: ['class'] }); });
+    var nav = $('nav');
+    if(nav) new MutationObserver(function(){ if(document.body.classList.contains('conAgua') && nav.classList.contains('claro')) nav.classList.remove('claro'); })
+      .observe(nav, { attributes: true, attributeFilter: ['class'] });
+  }
+  mirar();
+})();

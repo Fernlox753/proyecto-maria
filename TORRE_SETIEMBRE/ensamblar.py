@@ -27,6 +27,7 @@ en un solo sitio.
   comentarios.html, .js     la pestana Comentarios: todos, con su filtro y su estado
   colores.html              un tono pastel por grupo de filtros (flota, proyecto, niveles...)
   inicio.html, .js          Inicio: titulo gerencial y los filtros en una barra que se despliega
+  oscuro.html               Flota completa sobre azul oscuro que se mueve como agua (estilo trading)
   datos.json                la tabla de hechos de setiembre, de todos los proyectos (gen_datos.py)
   setiembre.json            la fila de cada equipo como en las hojas PROP y ALQ (gen_datos.py)
 
@@ -163,11 +164,12 @@ proyecto_html = lee(AQUI, "proyecto.html")
 comentarios_html = lee(AQUI, "comentarios.html")
 colores_html = lee(AQUI, "colores.html")
 inicio_html = lee(AQUI, "inicio.html")
+oscuro_html = lee(AQUI, "oscuro.html")
 inicio_js = lee(AQUI, "inicio.js")
 comentarios_js = lee(AQUI, "comentarios.js")
 # la gemela de Flota completa (hoja U), para verla dos veces en la pantalla
 # dividida: la misma seccion con sus ids cambiados; va al final, sin pestana
-_a = hojas_html.index('<section class="vista luz hojaXl" id="v-toda"')
+_a = hojas_html.index('<section class="vista luz hojaXl oscuro" id="v-toda"')
 _b = hojas_html.index("</section>", _a) + len("</section>")
 toda2_html = (hojas_html[_a:_b].replace('id="v-toda"', 'id="v-toda2"')
               .replace('data-pes="Flota completa"', 'data-pes="Flota completa ②"')
@@ -236,7 +238,7 @@ cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
 # siguen estando en Tendencia y en Filtros.
 cuerpo = entre(cuerpo, "<!-- ═══════════════════ FLOTA ═══════════════════ -->", "</section>",
                (hojas_html + "\n" + comentarios_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
-                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html + "\n" + colores_html + "\n" + inicio_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
+                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html + "\n" + colores_html + "\n" + inicio_html + "\n" + oscuro_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
 
 # ---- Tendencia
 cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo.', "</p></details>",

@@ -1643,7 +1643,7 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
 </style>
 
 <!-- ═══════════════════ FLOTA COMPLETA ═══════════════════ -->
-<section class="vista luz hojaXl" id="v-toda" data-pes="Flota completa">
+<section class="vista luz hojaXl oscuro" id="v-toda" data-pes="Flota completa">
   <div class="wrap">
     <div class="tituloV">
       <div class="ord"><span class="num">01</span><span class="lin"></span><span class="num" id="hx-como-T">FLOTA COMPLETA · LAS HOJAS PROP Y ALQ JUNTAS</span></div>
@@ -2610,6 +2610,112 @@ body.xlMaxiOn{overflow:hidden}
 @media (max-width:620px){ .iniFilRes{display:none} .lemaSub{font-size:11.5px; letter-spacing:.1em} }
 </style>
 
+<style>
+/* ══ FLOTA COMPLETA SOBRE AZUL OSCURO (como las mesas de trading) ══
+   Detras de la hoja, un fondo azul noche que se mueve lento como agua
+   (#aguaFondo, lo pone hojas.js y se ve solo con la hoja a la vista) y una
+   cuadricula tenue. Arriba (titulo, tarjetas, filtros) y abajo (origen,
+   comentarios) pasan a tema oscuro cambiando sus variables de color; la
+   tabla queda clara, como un panel, para leer las cifras sin esfuerzo.
+   Solo transform y opacidad se animan: lo mueve la tarjeta grafica sin
+   volver a pintar la pagina. */
+.aguaFondo{position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; display:none;
+  background:radial-gradient(130% 95% at 50% -10%, #0E3266 0%, #08204A 38%, #051432 70%, #030B1E 100%)}
+body.conAgua .aguaFondo{display:block}
+body.conAgua{background:#030B1E}
+.aguaFondo i{position:absolute; width:95vmax; height:95vmax; border-radius:50%; will-change:transform}
+.aguaFondo i:nth-child(1){left:-30vmax; top:-40vmax; background:radial-gradient(closest-side, rgba(0,150,255,.30), rgba(0,150,255,0));
+  animation:agua1 32s ease-in-out infinite alternate}
+.aguaFondo i:nth-child(2){right:-35vmax; top:-15vmax; background:radial-gradient(closest-side, rgba(0,205,210,.17), rgba(0,205,210,0));
+  animation:agua2 41s ease-in-out infinite alternate}
+.aguaFondo i:nth-child(3){left:5vmax; bottom:-60vmax; background:radial-gradient(closest-side, rgba(80,95,255,.22), rgba(80,95,255,0));
+  animation:agua3 53s ease-in-out infinite alternate}
+@keyframes agua1{to{transform:translate3d(22vmax,16vmax,0) scale(1.18)}}
+@keyframes agua2{to{transform:translate3d(-20vmax,22vmax,0) scale(.88)}}
+@keyframes agua3{to{transform:translate3d(16vmax,-20vmax,0) scale(1.22)}}
+/* un brillo que cruza en diagonal, como luz sobre el agua */
+.aguaFondo b{position:absolute; top:-20%; left:0; width:300%; height:140%; will-change:transform;
+  background:linear-gradient(112deg, transparent 38%, rgba(140,210,255,.055) 46%, rgba(140,210,255,.10) 50%, rgba(140,210,255,.055) 54%, transparent 62%);
+  animation:aguaLuz 22s linear infinite}
+@keyframes aguaLuz{from{transform:translate3d(-66.6%,0,0)} to{transform:translate3d(0,0,0)}}
+/* la cuadricula de las mesas de trading, que se apaga hacia los bordes */
+.aguaFondo::after{content:""; position:absolute; inset:0;
+  background-image:linear-gradient(rgba(120,175,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(120,175,255,.07) 1px, transparent 1px);
+  background-size:56px 56px;
+  -webkit-mask-image:radial-gradient(ellipse 85% 70% at 50% 35%, #000 25%, transparent 85%);
+  mask-image:radial-gradient(ellipse 85% 70% at 50% 35%, #000 25%, transparent 85%)}
+@media (prefers-reduced-motion:reduce){ .aguaFondo i,.aguaFondo b{animation:none} }
+
+/* la hoja deja ver el fondo, y usa todo el ancho de la pantalla: sin el
+   tope de 1640 px y con margenes chicos (en 1920 px quedaban 220 px vacios
+   a cada lado, que el fondo oscuro hacia notar) */
+.hojaXl.oscuro{background:transparent}
+.hojaXl.oscuro > .wrap{max-width:none; padding-inline:clamp(10px,1.3vw,26px)}
+.hojaXl.oscuro.xlMaxi{background:#051432}
+/* lo de arriba y lo de abajo de la tabla, en oscuro: basta con cambiar sus colores */
+.hojaXl.oscuro .tituloV,.hojaXl.oscuro .granTotal,.hojaXl.oscuro .xlBarra,.hojaXl.oscuro .xlFiltros,
+.hojaXl.oscuro .xlPlg,.hojaXl.oscuro .xlGira{
+  --tinta:#EAF3FC; --tinta-2:#B8CCE3; --tinta-3:#86A0BF; --linea:rgba(140,180,230,.28); --linea-2:rgba(140,180,230,.14);
+  --luz:rgba(255,255,255,.04); --luz-2:rgba(255,255,255,.07); --luz-3:rgba(255,255,255,.12); --sm:#62B8FF;
+  color:var(--tinta)}
+/* el desplegable del acumulado vuelve a ser claro: es una ventanita sobre blanco */
+.hojaXl.oscuro .gAcum .gDet{--tinta:#0F1E33; --tinta-2:#33465F; --tinta-3:#5B6E86; --linea:#CBD5E1; --linea-2:#E2E8F0; --sm:#25498E; color:var(--tinta)}
+.hojaXl.oscuro .tituloV h2{color:#fff}
+.hojaXl.oscuro .tituloV .lin{background:rgba(140,180,230,.28)}
+.hojaXl.oscuro .tituloV .lede{color:var(--tinta-2)}
+.hojaXl.oscuro .tituloV .lede b{color:#fff}
+/* botones y campos: vidrio oscuro con borde azul; el elegido conserva su pastel */
+.hojaXl.oscuro .xlTarjBtn,.hojaXl.oscuro .xlBarra .fbt:not([aria-pressed="true"]),
+.hojaXl.oscuro .xlBarra .xlModoT button:not([aria-pressed="true"]),
+.hojaXl.oscuro .xlBarra .entradaEq,.hojaXl.oscuro .xlFiltros .chip,.hojaXl.oscuro .xlFiltros button{
+  background:rgba(8,28,60,.72); color:#D6E6F7; border-color:rgba(120,175,255,.30)}
+.hojaXl.oscuro .xlBarra .fbt:not([aria-pressed="true"]):hover,.hojaXl.oscuro .xlBarra .xlModoT button:not([aria-pressed="true"]):hover,
+.hojaXl.oscuro .xlTarjBtn:hover{border-color:#6BE6FF; color:#fff}
+.hojaXl.oscuro .xlBarra .entradaEq::placeholder{color:#7F98B6}
+/* el elegido conserva su pastel (colores.html) con un leve brillo de su borde */
+.hojaXl.oscuro .xlBarra .fbt[aria-pressed="true"],.hojaXl.oscuro .xlBarra .xlModoT button[aria-pressed="true"]{box-shadow:0 0 10px rgba(107,230,255,.18)}
+/* los rotulos de cada grupo de filtros, en su tono pero claros para el fondo oscuro */
+.hojaXl.oscuro .xlBarra .gcT{color:#9FB7D3}
+.hojaXl.oscuro .xlBarra .sedeF > .gcT:not(.xlModoT){color:#8FD8D0}
+.hojaXl.oscuro .xlBarra div:has(> [id^="hx-ter-"]) > .gcT{color:#A9D8AE}
+.hojaXl.oscuro .xlBarra div:has(> [id^="hx-cols-"]) > .gcT{color:#EDB7C7}
+/* las barritas de las tarjetas: riel tenue y marca clara */
+.hojaXl.oscuro .gMini .gb{background:rgba(160,195,240,.16)}
+.hojaXl.oscuro .gMini .gb b{background:#EAF3FC}
+.hojaXl.oscuro .gMini .gb i.neu{background:#6D8DC9}
+/* la tabla: un panel claro que flota sobre el agua */
+.hojaXl.oscuro .xlEnv{border-color:rgba(120,175,255,.45); box-shadow:0 14px 44px rgba(0,0,0,.45), 0 0 0 1px rgba(107,230,255,.08)}
+.hojaXl.oscuro .xlEsq .xlMaxMini{border-color:rgba(107,230,255,.6)}
+/* la barra de origen de la cifra y los bloques de abajo: vidrio oscuro, no blanco */
+.hojaXl.oscuro .xlPlg{background:rgba(8,28,60,.62); border-color:rgba(120,175,255,.24)}
+.hojaXl.oscuro .xlOrigen,.hojaXl.oscuro .xlEstado,.hojaXl.oscuro .xlLey{background:rgba(8,28,60,.6); color:var(--tinta-2)}
+.hojaXl.oscuro .xlOrigen .nt{background:#5C4A12; color:#FFE8A3}
+.hojaXl.oscuro .xlPlg > summary{color:var(--tinta-2)}
+.hojaXl.oscuro .xlFiltros{background:rgba(8,28,60,.62); border-left-color:#62B8FF}
+.hojaXl.oscuro .granTotal.recorte{background:rgba(98,184,255,.08)}
+/* la tabla sin blanco puro: un velo azul grisaceo muy tenue sobre cada celda
+   (background-image, encima del color de su grupo sin reemplazarlo), asi
+   el blanco queda en un gris perla y los tonos de cada grupo se conservan.
+   La fila elegida (filaSel) pone su velo ambar en lugar de este */
+.hojaXl.oscuro .xlEnv{background:#E7ECF2}
+.hojaXl.oscuro table.xl tbody tr:not(.filaSel) > td,.hojaXl.oscuro table.xl thead tr.c th{
+  background-image:linear-gradient(rgba(22,45,85,.085), rgba(22,45,85,.085))}
+.hojaXl.oscuro table.xl tbody tr:not(.filaSel) > td.sel{background-image:none}
+/* proyecto y flota se distinguen en toda la fila, no solo en la primera
+   columna (en las cifras las dos tomaban el mismo tono de su grupo): el
+   proyecto lleva un velo mas marcado y raya firme abajo; la flota, uno
+   intermedio y una marca azul a la izquierda */
+.hojaXl.oscuro table.xl tbody tr.n0:not(.filaSel) > td{background-image:linear-gradient(rgba(20,45,100,.22), rgba(20,45,100,.22));
+  border-bottom:2px solid #6F86A8; font-weight:700}
+.hojaXl.oscuro table.xl tbody tr.n1:not(.filaSel) > td{background-image:linear-gradient(rgba(20,45,100,.13), rgba(20,45,100,.13));
+  border-bottom-color:rgba(60,85,125,.30); font-weight:600}
+.hojaXl.oscuro table.xl tbody tr.n1 > td.fija{box-shadow:inset 4px 0 0 #4F7FD0}
+.hojaXl.oscuro table.xl tbody tr.n0 > td.fija{letter-spacing:.05em}
+.hojaXl.oscuro table.xl td,.hojaXl.oscuro table.xl th{border-bottom-color:rgba(60,85,125,.16)}
+.hojaXl.oscuro table.xl .xlIr{background:#E3E9F1}
+.hojaXl.oscuro table.xl .xlIr:hover{background:#EEF2F7}
+</style>
+
 
 <!-- ═══════════════════ COSTOS ═══════════════════ -->
 <section class="vista luz" id="v-costos" data-pes="Tendencia">
@@ -3136,7 +3242,7 @@ body.xlMaxiOn{overflow:hidden}
   </div>
 </section>
 
-<section class="vista luz hojaXl" id="v-toda2" data-pes="Flota completa ②">
+<section class="vista luz hojaXl oscuro" id="v-toda2" data-pes="Flota completa ②">
   <div class="wrap">
     <div class="tituloV">
       <div class="ord"><span class="num">01</span><span class="lin"></span><span class="num" id="hx-como-U">FLOTA COMPLETA · LAS HOJAS PROP Y ALQ JUNTAS</span></div>
@@ -9618,6 +9724,32 @@ function verFlota(n){
   ponerFiltroEq('fam', n);
   irA('v-costos');
 }
+
+/* Flota completa sobre azul oscuro que se mueve como agua (oscuro.html):
+   la capa va fija detras de todo y solo se prende con la hoja a la vista
+   (escondida no se anima). La barra de arriba pasa a oscura con ella:
+   irA la deja clara por ser una hoja .luz, y esto corre justo despues */
+(function aguaFondo(){
+  var secs = ['v-toda', 'v-toda2'].map(function(id){ return $(id); }).filter(function(v){ return v && v.classList.contains('oscuro'); });
+  if(!secs.length) return;
+  var f = document.createElement('div');
+  f.className = 'aguaFondo'; f.id = 'aguaFondo'; f.setAttribute('aria-hidden', 'true');
+  f.innerHTML = '<i></i><i></i><i></i><b></b>';
+  document.body.insertBefore(f, document.body.firstChild);
+  var mirar = function(){
+    var si = secs.some(function(v){ return v.classList.contains('on') || (document.body.classList.contains('dividida') && v.getClientRects().length); });
+    document.body.classList.toggle('conAgua', si);
+    var nav = $('nav');
+    if(si && nav) nav.classList.remove('claro');
+  };
+  if(window.MutationObserver){
+    secs.forEach(function(v){ new MutationObserver(mirar).observe(v, { attributes: true, attributeFilter: ['class'] }); });
+    var nav = $('nav');
+    if(nav) new MutationObserver(function(){ if(document.body.classList.contains('conAgua') && nav.classList.contains('claro')) nav.classList.remove('claro'); })
+      .observe(nav, { attributes: true, attributeFilter: ['class'] });
+  }
+  mirar();
+})();
 
 /* ══════════════════════════════════════════════════════════════════
    COMENTARIOS — la lista de todos, con el filtro con que se hicieron
