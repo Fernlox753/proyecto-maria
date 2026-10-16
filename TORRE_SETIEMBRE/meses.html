@@ -1,0 +1,21 @@
+<style>
+/* ══ los meses ══
+   JUL · AGO · SET de Flota completa va a la derecha del renglon de
+   DESPLEGAR / SELECCIONAR (ahi sobra lugar y la barra sigue en una linea),
+   con su tono, celeste, como cada grupo de filtros (colores.html).
+   Escondido si la pagina no trae otros meses. */
+:root{ --cfMes:#D9ECF7; --cfMesB:#93C2DE; --cfMesT:#1F5677; }
+.xlMesT{float:right; align-items:center}
+.xlMesT[hidden]{display:none !important}
+.xlMesT > i{font-style:normal; margin-right:6px}
+.luz .xlMesT.xlModoT button{border-color:color-mix(in srgb, var(--cfMesB) 55%, #fff)}
+.luz .xlMesT.xlModoT button:hover{border-color:var(--cfMesB); color:var(--cfMesT)}
+.luz .xlMesT.xlModoT button[aria-pressed="true"]{background:var(--cfMes); border-color:var(--cfMesB); color:var(--cfMesT); font-weight:600}
+.luz .xlMesT > i{color:var(--cfMesT)}
+.hojaXl.oscuro .xlMesT > i{color:#9FD3F2}
+/* Tendencia: SETIEMBRE | JUL – SET, a la derecha del titulo */
+#v-costos .tituloV .gcMeses{display:flex; align-items:center; gap:8px; flex:0 0 auto; align-self:center}
+.gcMeses .gcT{margin:0}
+#g-universo .fbt[aria-pressed="true"]{background:var(--cfMes); border-color:var(--cfMesB); color:var(--cfMesT); font-weight:600}
+.gcMeses .gcT{color:var(--cfMesT)}
+</style>

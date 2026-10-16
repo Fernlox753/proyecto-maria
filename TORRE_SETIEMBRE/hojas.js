@@ -29,6 +29,19 @@ function hxEsT(s){ return s === 'T' || s === 'U'; }
 function hxSeccion(s){ return s === 'A' ? 'v-alquilados' : s === 'T' ? 'v-toda' : s === 'U' ? 'v-toda2' : 'v-propios'; }
 /* la flota que muestra una Flota completa: '*' las dos, PROPIO o ALQUILADO */
 function hxFlota(st){ return st.flota || '*'; }
+/* El mes de una Flota completa. Abre con setiembre (SEP, el de siempre);
+   julio y agosto vienen en SEP_MESES (juntar_meses.py) con la misma forma:
+   la fila de cada equipo de sus hojas PROP y ALQ y la validacion del mes,
+   con las reglas de las dinamicas de su propio libro. */
+var HX_MES_DEF = (typeof SEP_MESES !== 'undefined' && SEP_MESES.def) || (SEP && SEP.mes) || '';
+var HX_MES3 = { '01': 'ENE', '02': 'FEB', '03': 'MAR', '04': 'ABR', '05': 'MAY', '06': 'JUN', '07': 'JUL',
+                '08': 'AGO', '09': 'SET', '10': 'OCT', '11': 'NOV', '12': 'DIC' };
+function hxMeses(){ return typeof SEP_MESES !== 'undefined' ? SEP_MESES.meses || [] : []; }
+function hxMesDe(st){ return (st && st.mes) || HX_MES_DEF; }
+function hxEsOtroMes(st){ return hxMesDe(st) !== HX_MES_DEF; }
+function hxSep(st){ return (hxEsOtroMes(st) && SEP_MESES.sep[hxMesDe(st)]) || SEP; }
+function hxValMes(st){ return (hxEsOtroMes(st) && SEP_MESES.val[hxMesDe(st)]) || META.val || {}; }
+function hxMesNom(st){ return HX_MESES[parseInt(String(hxSep(st).mes || '').slice(5), 10) - 1] || 'el mes'; }
 function hxTcT(st, o){ return o.c[0] + o.c[1] + (st.terD && o.np ? o.c[2] : 0) + (st.terA && o.nq ? o.c[3] : 0); }
 function hxTvT(st, o){ return o.v[0] + o.v[1] + (st.terD && o.np ? o.v[2] : 0) + (st.terA && o.nq ? o.v[3] : 0); }
 function hxTacT(st, o){ return o.A.c[0] + o.A.c[1] + (st.terD && o.np ? o.A.c[2] : 0) + (st.terA && o.nq ? o.A.c[3] : 0); }
@@ -36,6 +49,8 @@ function hxTavT(st, o){ return o.A.v[0] + o.A.v[1] + (st.terD && o.np ? o.A.v[2]
 /* el tipo de flota de una fila de FLOTA COMPLETA, si es uno solo (para el TABLERO) */
 function hxTipoNodo(st, n){
   if(!hxEsT(st.s)) return st.tipo;
+  /* el TABLERO es de setiembre: en otro mes no se ofrece */
+  if(hxEsOtroMes(st)) return null;
   if(n.id && SEP.eq[n.id]) return SEP.eq[n.id].tipo;
   var o = n.o || {};
   return o.np && !o.nq ? 'PROPIO' : o.nq && !o.np ? 'ALQUILADO' : null;
@@ -49,9 +64,9 @@ var HX_FASES = { LU: 'LUBRICACIÓN', MM: 'MANTENIMIENTO MECÁNICO', LL: 'LLANTAS
                  RM: 'REPARACIÓN MAYOR', CA: 'CARRILERÍA' };
 /* debajo del equipo van sus fases y debajo de cada fase sus ordenes. Las dos
    llevan ot: 1 (solo tienen costo); la fase ademas esFase: 1 */
-function hxFases(id){
+function hxFases(id, sep){
   var por = {}, orden = [];
-  ((SEP.ots || {})[id] || []).forEach(function(r){
+  (((sep || SEP).ots || {})[id] || []).forEach(function(r){
     var f = r[1] || '';
     if(!por[f]){ por[f] = []; orden.push(f); }
     por[f].push({ k: 'o|' + r[0], lv: 6, et: r[0], sub: r[2], ot: 1, fase: f,
@@ -194,7 +209,7 @@ function hxTav(o, ter){ return o.A.v[0] + o.A.v[1] + (ter ? o.A.v[2] : 0); }
 function hxColumnas(esProp, st){
   var t = esProp ? 'Dep' : 'Alq';
   var por = function(x, h){ return h ? x / h : null; };
-  var per = (SEP.acumPeriodos || []).length;
+  var per = (hxSep(st).acumPeriodos || []).length;
   var tc = function(o){ return hxTc(o, st.ter); }, tv = function(o){ return hxTv(o, st.ter); };
   var tac = function(o){ return hxTac(o, st.ter); }, tav = function(o){ return hxTav(o, st.ter); };
   /* t3: la columna del tercer componente; se oculta cuando no se suma */
@@ -207,12 +222,12 @@ function hxColumnas(esProp, st){
       { t: '% Uso', f: 'p', v: function(o){ return o.use; } },
       { t: 'Horas real', f: 'n1', k: 1, v: function(o){ return o.hr; } },
       { t: 'HM prof', f: 'n', v: function(o){ return o.hrProf; } } ] },
-    { id: 'costo', t: 'COSTO REAL AL ' + hxCorte(), cols: [
+    { id: 'costo', t: 'COSTO REAL AL ' + hxCorte(st), cols: [
       { t: 'RyM', f: 'n', v: function(o){ return o.c[0]; } },
       { t: 'MOV', f: 'n', v: function(o){ return o.c[1]; } },
       { t: t, f: 'n', t3: 1, v: function(o){ return o.c[2]; } },
       { t: 'Total', f: 'n', k: 1, v: tc } ] },
-    { id: 'venta', t: 'VENTA INTERNA AL ' + hxCorte(), cols: [
+    { id: 'venta', t: 'VENTA INTERNA AL ' + hxCorte(st), cols: [
       { t: 'RyM', f: 'n', v: function(o){ return o.v[0]; } },
       { t: 'MOV', f: 'n', v: function(o){ return o.v[1]; } },
       { t: t, f: 'n', t3: 1, v: function(o){ return o.v[2]; } },
@@ -237,7 +252,7 @@ function hxColumnas(esProp, st){
       { t: 'MOV', f: 'n1', v: function(o){ return por(o.A.c[1], o.A.h); } },
       { t: t, f: 'n1', t3: 1, v: function(o){ return por(o.A.c[2], o.A.h); } },
       { t: 'Real acum', f: 'n1', k: 1, v: function(o){ return por(tac(o), o.A.h); } } ] },
-    { id: 'cacum', ac: 1, t: 'COSTO ACUMULADO 2026 · ' + per + ' MESES + SET', cols: [
+    { id: 'cacum', ac: 1, t: 'COSTO ACUMULADO 2026 · ' + per + ' MESES + ' + HX_MES3[String(hxSep(st).mes).slice(5)], cols: [
       { t: 'RyM', f: 'n', v: function(o){ return o.A.c[0]; } },
       { t: 'MOV', f: 'n', v: function(o){ return o.A.c[1]; } },
       { t: t, f: 'n', t3: 1, v: function(o){ return o.A.c[2]; } },
@@ -258,7 +273,7 @@ function hxColumnas(esProp, st){
 }
 function hxColumnasT(st){
   var por = function(x, h){ return h ? x / h : null; };
-  var per = (SEP.acumPeriodos || []).length;
+  var per = (hxSep(st).acumPeriodos || []).length;
   var D = function(o, x){ return o.np ? x : null; }, Q = function(o, x){ return o.nq ? x : null; };
   var tc = function(o){ return hxTcT(st, o); }, tv = function(o){ return hxTvT(st, o); };
   var tac = function(o){ return hxTacT(st, o); }, tav = function(o){ return hxTavT(st, o); };
@@ -281,9 +296,9 @@ function hxColumnasT(st){
       { t: '% Uso', f: 'p', v: function(o){ return o.use; } },
       { t: 'Horas real', f: 'n1', k: 1, v: function(o){ return o.hr; } },
       { t: 'HM prof', f: 'n', v: function(o){ return o.hrProf; } } ] },
-    { id: 'costo', t: 'COSTO REAL AL ' + hxCorte(), cols: cuatro(function(o, i){ return o.c[i]; }, 'n')
+    { id: 'costo', t: 'COSTO REAL AL ' + hxCorte(st), cols: cuatro(function(o, i){ return o.c[i]; }, 'n')
         .concat([{ t: 'Total', f: 'n', k: 1, v: tc }]) },
-    { id: 'venta', t: 'VENTA INTERNA AL ' + hxCorte(), cols: cuatro(function(o, i){ return o.v[i]; }, 'n')
+    { id: 'venta', t: 'VENTA INTERNA AL ' + hxCorte(st), cols: cuatro(function(o, i){ return o.v[i]; }, 'n')
         .concat([{ t: 'Total', f: 'n', k: 1, v: tv }]) },
     { id: 'desv', t: 'DESVIACIÓN VENTA − COSTO', cols: cuatro(function(o, i){ return o.v[i] - o.c[i]; }, 'd')
         .concat([{ t: 'Total', f: 'd', k: 1, v: function(o){ return tv(o) - tc(o); } }]) },
@@ -293,7 +308,7 @@ function hxColumnasT(st){
         .concat([{ t: 'Venta', f: 'n1', k: 1, v: function(o){ return por(tv(o), o.hr); } }]) },
     { id: 'tacum', ac: 1, t: 'TARIFA ACUMULADA US$/H', cols: cuatro(function(o, i){ return por(o.A.c[i], o.A.h); }, 'n1')
         .concat([{ t: 'Real acum', f: 'n1', k: 1, v: function(o){ return por(tac(o), o.A.h); } }]) },
-    { id: 'cacum', ac: 1, t: 'COSTO ACUMULADO 2026 · ' + per + ' MESES + SET', cols: cuatro(function(o, i){ return o.A.c[i]; }, 'n')
+    { id: 'cacum', ac: 1, t: 'COSTO ACUMULADO 2026 · ' + per + ' MESES + ' + HX_MES3[String(hxSep(st).mes).slice(5)], cols: cuatro(function(o, i){ return o.A.c[i]; }, 'n')
         .concat([{ t: 'Seg', f: 'n', v: function(o){ return o.A.c[4]; } },
                  { t: 'Costo acum', f: 'n', k: 1, v: tac },
                  { t: 'Horas acum', f: 'n1', v: function(o){ return o.A.h; } }]) },
@@ -305,7 +320,7 @@ function hxColumnasT(st){
 }
 /* la columna del total de cada hoja (para ordenar por ella) */
 function hxIdxTotal(s){ return hxEsT(s) ? 4 : 3; }
-function hxCorte(){ return ((SEP && SEP.corte) || '').replace(/\D/g, '') || '—'; }
+function hxCorte(st){ var x = hxSep(st); return ((x && x.corte) || '').replace(/\D/g, '') || '—'; }
 
 /* ---------- el arbol ---------- */
 function hxCero(){ return { c: [0, 0, 0, 0], v: [0, 0, 0, 0], hr: 0, hrProf: 0, dm: null, use: null, n: 0, np: 0, nq: 0,
@@ -328,7 +343,7 @@ function hxSuma(filas){
   return o;
 }
 function hxArbol(s){
-  var st = HX[s], q = SEP.eq, fams = {}, orden = [], id;
+  var st = HX[s], q = hxSep(st).eq, fams = {}, orden = [], id;
   /* solo los equipos de los proyectos elegidos (proyecto.js) */
   var fl = hxEsT(s) ? hxFlota(st) : st.tipo;
   for(id in q) if((fl === '*' || q[id].tipo === fl) && sedeOk(q[id].sede)){
@@ -345,7 +360,7 @@ function hxArbol(s){
                    sd: x.dm === null || x.dm === undefined ? 0 : x.dm, nd: x.dm === null || x.dm === undefined ? 0 : 1,
                    su: x.use === null || x.use === undefined ? 0 : x.use,
                    nu: x.use === null || x.use === undefined ? 0 : 1 },
-              hijos: hxFases(id) };
+              hijos: hxFases(id, hxSep(st)) };
     var ps = fams[x.sede] = fams[x.sede] || { orden: [], f: {} };
     if(!ps.f[x.fam]){ ps.f[x.fam] = {}; ps.orden.push(x.fam); }
     (ps.f[x.fam][x.mod] = ps.f[x.fam][x.mod] || []).push(e);
@@ -442,10 +457,10 @@ function hxOrTot(st, que){
               : (esProp ? 'La depreciación está fuera (botón SIN DEP); el Excel sí la suma.' : 'El alquiler no se suma, igual que en las hojas ALQ.'));
 }
 /* los proyectos de los equipos que cuelgan de una fila */
-function hxSedesDe(n){
-  var ss = [];
+function hxSedesDe(n, st){
+  var ss = [], eq = hxSep(st).eq;
   var junta = function(x){
-    var q = x.id && SEP.eq[x.id];
+    var q = x.id && eq[x.id];
     if(q && ss.indexOf(q.sede) < 0) ss.push(q.sede);
     (x.hijos || []).forEach(junta);
   };
@@ -471,9 +486,9 @@ function hxNivelOrigen(st, n){
 function hxOrigen(st, n, col){
   if(!hxEsT(st.s)) return hxOrigenPA(st, n, col);
   var p = col.split('-'), g = p[0], i = parseInt(p[1], 10);
-  if(g === 'oper') return hxOrigenPA(HX.P, n, col, true) + hxNivelOrigen(st, n);
+  if(g === 'oper') return hxOrigenPA({ s: HX.P.s, tipo: HX.P.tipo, mes: st.mes }, n, col, true) + hxNivelOrigen(st, n);
   var esDep = i === 2, esAlq = i === 3, nTot = g === 'cacum' ? 5 : 4;
-  var ps = function(x){ return { s: x, tipo: x === 'P' ? 'PROPIO' : 'ALQUILADO', ter: x === 'P' ? st.terD : st.terA, cols: HX[x].cols }; };
+  var ps = function(x){ return { s: x, tipo: x === 'P' ? 'PROPIO' : 'ALQUILADO', ter: x === 'P' ? st.terD : st.terA, cols: HX[x].cols, mes: st.mes }; };
   var mc = g + '-' + (i <= 1 ? i : i <= 3 ? 2 : i - 1);
   if(i === nTot && { costo: 1, venta: 1, cacum: 1, vacum: 1 }[g]){
     var que = { costo: 'Costo', venta: 'Venta', cacum: 'Costo acumulado', vacum: 'Venta acumulada' }[g];
@@ -489,11 +504,11 @@ function hxOrigen(st, n, col){
 }
 function hxOrigenPA(st, n, col, sinNivel){
   var esProp = st.s === 'P', p = col.split('-'), g = p[0], i = parseInt(p[1], 10);
-  var corte = hxCorte(), t3 = esProp ? 'Dep' : 'Alq', dias = SEP.diasMes || 30;
+  var corte = hxCorte(st), t3 = esProp ? 'Dep' : 'Alq', dias = hxSep(st).diasMes || 30;
   /* la hoja de reporte de la fila: la de su proyecto, o la de cada uno */
-  var ss = hxSedesDe(n), suf = esProp ? ' PROP' : ' ALQ';
+  var ss = hxSedesDe(n, st), suf = esProp ? ' PROP' : ' ALQ';
   var hoja = ss.length === 1 ? 'la hoja ' + ss[0] + suf : 'las hojas ' + ss.map(function(s){ return s + suf; }).join(', ');
-  var vs = (META.val || {}).sedes || {};
+  var vs = hxValMes(st).sedes || {};
   var regla = ss.map(function(s){
     var r = ((vs[s] || {}).reglas || {})[st.tipo] || {}, x = [];
     for(var c in r) if(c !== 'TIPO') x.push(c + ' = ' + r[c].map(function(v){ return v === '(vacío)' ? 'sin marcar' : v; }).join(' · '));
@@ -507,7 +522,7 @@ function hxOrigenPA(st, n, col, sinNivel){
   var nivel = hxNivelOrigen(st, n);
   var grupo = !n.id ? ' En un grupo es la suma de sus equipos.' : '';
   var nomC = ['RyM', 'MOV', t3, 'Total'];
-  var porDias = (esProp ? SEP.depPorDias : SEP.alqPorDias) || [];
+  var porDias = (esProp ? hxSep(st).depPorDias : hxSep(st).alqPorDias) || [];
   var o = '';
   if(g === 'costo') o = [
       base + ' Filas con RECURSO = MAT o SERV: materiales (descarga Z MAT) y servicios (Z SERV). Es la columna RYM del costo real.',
@@ -844,13 +859,14 @@ function hxClaveNota(s, n, col){
   /* los ids de documento solo admiten letras, digitos y unos pocos signos */
   var f = hxFirma(HX[s], n);
   return hxNotaS(s) + '.' + (n.esTot ? 'tot' : (n.kn || n.k).replace(/[^A-Za-z0-9-]/g, '_').slice(0, 150))
-       + (f ? '.' + f : '') + '.' + col;
+       + (f ? '.' + f : '') + (hxEsOtroMes(HX[s]) ? '.m' + hxMesDe(HX[s]).replace('-', '') : '') + '.' + col;
 }
 /* lo que estaba puesto al comentar, para la pestana Comentarios y para volver a el */
 function hxContexto(st){
   var x = { hoja: hxNotaS(st.s), flota: hxEsT(st.s) ? hxFlota(st) : st.tipo,
             sedes: todasLasSedes() ? 'TODOS' : sedeSel.join('+') };
   if(hxEsT(st.s)){ x.terD = !!st.terD; x.terA = !!st.terA; } else x.ter = !!st.ter;
+  if(hxEsOtroMes(st)) x.mes = hxMesDe(st);
   if(hxHayEleccion(st)){
     x.eleg = JSON.parse(JSON.stringify(st.eleg));
     x.elegTxt = HX_ELEG.map(function(k, i){
@@ -869,6 +885,7 @@ function hxContextoTxt(x){
   var p = [x.flota === 'PROPIO' ? 'FLOTA PROPIA' : x.flota === 'ALQUILADO' ? 'FLOTA ALQUILADA' : 'TODA LA FLOTA',
            x.sedes === 'TODOS' || !x.sedes ? 'TODOS LOS PROYECTOS' : x.sedes.replace(/\+/g, ' + ')];
   if('terD' in x) p.push((x.terD ? 'CON' : 'SIN') + ' DEP', (x.terA ? 'CON' : 'SIN') + ' ALQ');
+  if(x.mes) p.unshift(hxMeses().filter(function(m){ return m.mes === x.mes; }).map(function(m){ return m.rotulo; })[0] || x.mes);
   (x.elegTxt || []).forEach(function(e){ p.push(e); });
   (x.filtrosTxt || []).forEach(function(e){ p.push(e); });
   return p.join(' · ');
@@ -997,7 +1014,7 @@ function hxCifras(s){
              title: k[0] + ': venta − costo ' + fmt(x) };
   }));
   /* horas contra la proforma a la fecha, y la disponibilidad y el uso */
-  var corte = SEP.corteDia || 0, dias = SEP.diasMes || 30, hFecha = tot.hrProf * corte / dias;
+  var corte = hxSep(st).corteDia || 0, dias = hxSep(st).diasMes || 30, hFecha = tot.hrProf * corte / dias;
   var mxh = Math.max(h, hFecha, 1e-9);
   var oper = hxBarras([
     { n: 'Hrs', txt: hFecha ? (h / hFecha * 100).toFixed(0) + '%' : '—', w: h / mxh, t: hFecha ? hFecha / mxh : null,
@@ -1008,7 +1025,7 @@ function hxCifras(s){
       title: 'Uso: horas trabajadas sobre horas disponibles' }
   ]);
   htm('hx-cifras-' + s,
-      tarjeta('COSTO REAL AL DÍA ' + hxCorte(), 'US$ ' + fmt(tc),
+      tarjeta('COSTO REAL AL DÍA ' + hxCorte(st), 'US$ ' + fmt(tc),
               cv(tot.c, tot.v, 1) + (fuera ? gd(fuera) : ''))
     + tarjeta('VENTA INTERNA', 'US$ ' + fmt(tv), ventas + gd('tarifa de venta × horas reales'))
     + tarjeta('VENTA − COSTO', (d > 0 ? '+' : d < 0 ? '−' : '') + 'US$ ' + fmt(Math.abs(d)),
@@ -1039,7 +1056,7 @@ var HX_MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 
 function hxTarjetaAcum(st, tot, ter, esProp, comps){
   var esT = hxEsT(st.s);
   var A = tot.A, tac = esT ? hxTacT(st, tot) : hxTac(tot, ter), tav = esT ? hxTavT(st, tot) : hxTav(tot, ter), h = A.h, t3 = esProp ? 'Depreciación' : 'Alquiler';
-  var per = SEP.acumPeriodos || [];
+  var per = hxSep(st).acumPeriodos || [];
   var desde = per.length ? HX_MESES[per[0] - 1] + (per.length > 1 ? ' a ' + HX_MESES[per[per.length - 1] - 1] : '') : 'ningún mes';
   var dv = function(x){ return '<span class="' + (x < -0.5 ? 'neg' : x > 0.5 ? 'pos' : '') + '">' + (x > 0.5 ? '+' : '') + fmt(x) + '</span>'; };
   var fila = function(n, c, v, cl){
@@ -1070,7 +1087,7 @@ function hxTarjetaAcum(st, tot, ter, esProp, comps){
     + '<tr><td>Tarifa por hora</td><td colspan="3">real US$ ' + (h ? (tac / h).toFixed(1) : '—')
       + ' · venta US$ ' + (h ? (tav / h).toFixed(1) : '—') + '</td></tr>'
     + '</tbody></table>'
-    + '<p>Los bloques «Acumulado 2026» de las hojas PROP y ALQ, tal cual: el libro mayor de ' + desde + ' más setiembre al día ' + hxCorte()
+    + '<p>Los bloques «Acumulado 2026» de las hojas PROP y ALQ, tal cual: el libro mayor de ' + desde + ' más ' + hxMesNom(st) + ' al día ' + hxCorte(st)
     + '. ' + (esT ? '' : (ter ? '' : 'El ' + t3.toLowerCase() + ' no entra al total (botón ' + (esProp ? 'SIN DEP' : 'SIN ALQ') + '). '))
     + 'Seg / otros no suma al costo, como en el Excel.</p></div></details>';
 }
@@ -1138,7 +1155,7 @@ function hxTabla(s){
          cualquiera de los dos ordenes: el equipo es el nodo con id) */
       + ((n.esFam || n.esMod || (n.esFl && n.fam) || n.id) && hxTipoNodo(st, n) ? '<button type="button" class="xlIr" data-tb="' + esc(n.k)
           + '" title="Abrir el tablero de análisis de ' + (n.id ? 'este equipo' : n.esFl ? 'los ' + HX_FL_NOM[n.fl].toLowerCase() + ' de esta rama' : n.esFam ? 'esta familia' : 'este modelo') + '">TABLERO ▦</button>' : '')
-      + (n.id && byId[n.id] ? '<button type="button" class="xlIr" data-ir="' + esc(n.id)
+      + (n.id && byId[n.id] && !hxEsOtroMes(st) ? '<button type="button" class="xlIr" data-ir="' + esc(n.id)
           + '" title="Abrir este equipo en la pestaña Equipo">VER ↗</button>' : '')
       + m + '</td>' + hxCeldas(st, n, o0) + '</tr>';
   }).join('') || '<tr><td class="fija">Ningún equipo ' + (filt ? 'cumple los filtros' : 'con esa búsqueda') + '.</td><td colspan="80"></td></tr>';
@@ -1189,6 +1206,39 @@ function hxPonerFlota(s, fl){
   hxPodarEleccion(st, -1);
   hxBotones(s); hxTabla(s);
   if(typeof sedeTextos === 'function') sedeTextos();
+}
+/* JUL · AGO · SET en una Flota completa: se rearman las columnas (sus
+   titulos llevan el corte y los meses del acumulado) conservando su orden,
+   lo plegado y lo escondido, y el arbol con las filas de ese mes. Lo
+   desplegado se conserva y lo elegido que quedo fuera se suelta. */
+function hxPonerMes(s, m){
+  var st = HX[s];
+  if(!st.arbol || hxMesDe(st) === m || !(m === HX_MES_DEF || SEP_MESES.sep[m])) return;
+  st.mes = m;
+  var por = {};
+  (hxEsT(s) ? hxColumnasT(st) : hxColumnas(s === 'P', st)).forEach(function(g){ por[g.id] = g; });
+  st.cols = st.cols.map(function(g){ return por[g.id] || g; });
+  hxArbol(s);
+  st.sel = null;
+  hxPodarEleccion(st, -1);
+  hxTituloMes(s);
+  hxBotones(s); hxTabla(s);
+  if(typeof sedeTextos === 'function') sedeTextos();
+}
+/* el titulo y la barra de pantalla completa dicen el mes si no es setiembre */
+function hxTituloMes(s){
+  var st = HX[s], sec = $(hxSeccion(s));
+  if(!sec) return;
+  var otro = hxEsOtroMes(st), x = hxSep(st), rot = String(x.rotulo || '').toLowerCase();
+  var h2 = sec.querySelector('h2.d'), mb = sec.querySelector('.xlMaxBar > span');
+  if(h2){
+    if(h2.getAttribute('data-orig') === null) h2.setAttribute('data-orig', h2.innerHTML);
+    h2.innerHTML = otro ? 'Flota completa, ' + esc(rot) + ' al día ' + hxCorte(st) + '.' : h2.getAttribute('data-orig');
+  }
+  if(mb && mb.firstChild && mb.firstChild.nodeType === 3){
+    if(!mb.hasAttribute('data-orig')) mb.setAttribute('data-orig', mb.firstChild.nodeValue);
+    mb.firstChild.nodeValue = otro ? rot + ' al día ' + hxCorte(st) : mb.getAttribute('data-orig');
+  }
 }
 /* el orden de los grupos de columnas (OPERACION, COSTO REAL...): se cambia
    arrastrando su cabecera y se recuerda por hoja. Un grupo que no esta en lo
@@ -1262,6 +1312,15 @@ function hxBotones(s){
     htm('hx-flota-' + s, [['*', 'TODA'], ['PROPIO', 'PROPIOS'], ['ALQUILADO', 'ALQUILADOS']].map(function(x){
       return '<button type="button" data-fl="' + x[0] + '" aria-pressed="' + (fl === x[0]) + '" title="'
         + (x[0] === '*' ? 'Propios y alquilados juntos' : 'Sólo los ' + x[1].toLowerCase()) + '">' + x[1] + '</button>';
+    }).join(''));
+  }
+  if(hxEsT(s) && hxMeses().length > 1){
+    var mes = hxMesDe(st), mg = $('hx-mes-' + s);
+    if(mg) mg.hidden = false;
+    htm('hx-mes-' + s, '<i>MES</i>' + hxMeses().map(function(x){
+      return '<button type="button" data-mes="' + x.mes + '" aria-pressed="' + (mes === x.mes) + '" title="'
+        + esc(x.rotulo) + (x.mes === HX_MES_DEF ? ' (el de siempre)' : '') + ': las hojas PROP y ALQ de ese mes">'
+        + HX_MES3[x.mes.slice(5)] + '</button>';
     }).join(''));
   }
   if(hxEsT(s)) htm('hx-ter-' + s,
@@ -1935,6 +1994,10 @@ function hxIniciar(s){
     tbt.setAttribute('aria-pressed', !sin);
     tbt.textContent = sin ? '▾ VER TARJETAS' : '▴ OCULTAR TARJETAS';
     tbt.title = sin ? 'Volver a mostrar las tarjetas de arriba' : 'Esconder las tarjetas de arriba para ver más filas de la tabla';
+  });
+  esc_('hx-mes-' + s, 'click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('[data-mes]') : null;
+    if(b) hxPonerMes(s, b.getAttribute('data-mes'));
   });
   esc_('hx-flota-' + s, 'click', function(ev){
     var b = ev.target.closest ? ev.target.closest('[data-fl]') : null;

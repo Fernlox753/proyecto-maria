@@ -1,0 +1,17 @@
+<!-- ═══════════════════ TRANSPORTE ═══════════════════ -->
+<!-- La vista gerencial del proyecto «Control de servicios de transporte»
+     (AUTOMATIZACIONES\contorl_servicios_transporte). Es una página aparte,
+     transporte\transporte.html, que se publica al lado de esta y va en un
+     marco: su CSS y su ECharts no se mezclan con los de la torre, y para
+     poner datos nuevos basta reemplazar ese archivo. Dentro del marco la
+     página esconde su cabecera y avisa su alto (pestana_transporte.js).
+     Va antes de la gemela de Flota completa para que su pestaña sea la 08. -->
+<style>
+/* la página esconde su cabecera dentro del marco y empieza sin aire: el de arriba lo pone la sección, como en las demás hojas */
+#v-transporte{padding-bottom:40px}
+#v-transporte .marcoTr{display:block; width:100%; border:0; min-height:100vh; min-height:100dvh; background:var(--luz)}
+</style>
+<section class="vista luz" id="v-transporte" data-pes="Transporte">
+  <iframe class="marcoTr" id="marco-transporte" src="transporte.html" loading="lazy"
+          title="Transporte de equipos: a dónde se va el gasto"></iframe>
+</section>

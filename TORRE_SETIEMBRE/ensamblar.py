@@ -28,6 +28,8 @@ en un solo sitio.
   colores.html              un tono pastel por grupo de filtros (flota, proyecto, niveles...)
   inicio.html, .js          Inicio: titulo gerencial y los filtros en una barra que se despliega
   oscuro.html               Flota completa sobre azul oscuro que se mueve como agua (estilo trading)
+  pestana_transporte.html, .js   pestana 08 Transporte: la pagina transporte\transporte.html en un
+                            marco (se publica al lado de la torre; viene de AUTOMATIZACIONES)
   datos.json                la tabla de hechos de setiembre, de todos los proyectos (gen_datos.py)
   setiembre.json            la fila de cada equipo como en las hojas PROP y ALQ (gen_datos.py)
 
@@ -68,6 +70,26 @@ def entre(t, ini, fin, nuevo, donde):
 datos = lee(AQUI, "datos.json")
 sep = lee(AQUI, "setiembre.json")
 META = json.loads(datos)["meta"]
+# Las ordenes de cada equipo son las mismas de DATA.ots: viajan una sola vez y
+# cada equipo lleva oi, sus indices (meses_carga.js las vuelve a enlazar al
+# cargar). Solo si todas estan, iguales, en la lista general.
+def _ordenes_una_vez(txt):
+    d = json.loads(txt)
+    pos = {o["ot"]: j for j, o in enumerate(d.get("ots") or [])}
+    for q in d.get("equipos") or []:
+        if "ots" in q and all(o["ot"] in pos and d["ots"][pos[o["ot"]]] == o for o in q["ots"] or []):
+            q["oi"] = [pos[o["ot"]] for o in q.pop("ots") or []]
+    return json.dumps(d, ensure_ascii=False, separators=(",", ":"))
+datos = _ordenes_una_vez(datos)
+# julio y agosto (juntar_meses.py): si estan, Flota completa elige el mes y
+# Tendencia puede juntar los tres meses. Si no, la pagina queda como antes.
+_MD = os.path.join(AQUI, "meses")
+HAY_MESES = all(os.path.exists(os.path.join(_MD, f)) for f in ("tres_meses.json", "tabla_meses.json"))
+datos_meses = ("var TRES_MESES = " + lee(_MD, "tres_meses.json") + ";\nvar SEP_MESES = " + lee(_MD, "tabla_meses.json") + ";\n") \
+              if HAY_MESES else ""
+meses_carga_js = lee(AQUI, "meses_carga.js")
+meses_js = lee(AQUI, "meses.js")
+meses_html = lee(AQUI, "meses.html")
 N_EQ = "{:,}".format(META["nEq"])
 CORTE = META["val"]["corte"]
 # los meses del libro mayor que entran al acumulado, dichos en palabras
@@ -166,6 +188,8 @@ colores_html = lee(AQUI, "colores.html")
 inicio_html = lee(AQUI, "inicio.html")
 oscuro_html = lee(AQUI, "oscuro.html")
 inicio_js = lee(AQUI, "inicio.js")
+transporte_html = lee(AQUI, "pestana_transporte.html")
+transporte_js = lee(AQUI, "pestana_transporte.js")
 comentarios_js = lee(AQUI, "comentarios.js")
 # la gemela de Flota completa (hoja U), para verla dos veces en la pantalla
 # dividida: la misma seccion con sus ids cambiados; va al final, sin pestana
@@ -238,7 +262,7 @@ cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
 # siguen estando en Tendencia y en Filtros.
 cuerpo = entre(cuerpo, "<!-- ═══════════════════ FLOTA ═══════════════════ -->", "</section>",
                (hojas_html + "\n" + comentarios_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
-                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html + "\n" + colores_html + "\n" + inicio_html + "\n" + oscuro_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
+                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html + "\n" + colores_html + "\n" + inicio_html + "\n" + oscuro_html + "\n" + meses_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
 
 # ---- Tendencia
 cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo.', "</p></details>",
@@ -434,8 +458,20 @@ js_tend = cambia(js_tend, "(gMetrica === 'cph' ? '' : '/MES')", "(gMetrica === '
 js_tend = cambia(js_tend, "{ c: 'proy',    n: 'POR PROYECTO' }", "{ c: 'proy',    n: 'POR ALCANCE' }", T)
 js_tend = cambia(js_tend, "' · EL ATAJO «TODO» REABRE LOS DIECISIETE MESES'",
                  "' · EL ATAJO «TODO» REABRE TODO EL PERIODO'", T)
-js_tend = cambia(js_tend, "(gEscalaX === 'ano' ? 'año' : 'mes') + ' anterior</em>'", "'día anterior</em>'", T)
+js_tend = cambia(js_tend, "(gEscalaX === 'ano' ? 'año' : 'mes') + ' anterior</em>'", "(gEscalaX === 'ano' ? 'mes' : 'día') + ' anterior</em>'", T)
 js_tend = cambia(js_tend, ": 'DEL PRIMER AL ÚLTIMO MES');", ": 'DEL PRIMER AL ÚLTIMO DÍA');", T)
+# ---- julio, agosto y setiembre juntos (meses.js): la escala 'ano' vuelve
+#      como POR MES, solo en ese modo, y el grafico abre con ella
+js_tend = cambia(js_tend, "var gEscalaX = 'mes';", "var gEscalaX = MODO_MESES === 'tres' ? 'ano' : 'mes';", T)
+js_tend = cambia(js_tend, "var COMPARAR = [",
+                 "/* con julio y agosto sumados (meses_carga.js) el eje tambien va por mes */\n"
+                 "if(MODO_MESES === 'tres') ESCALAS_X.unshift({ c: 'ano', n: 'POR MES', t: 'Un punto por mes' });\n"
+                 "var COMPARAR = [", T)
+js_tend = cambia(js_tend, "      var a = MESES[i].slice(0, 4);", "      var a = MESES[i].slice(0, 7);", T)
+js_tend = cambia(js_tend, "    out.forEach(function(b){\n      b.largo = b.rot + ' · '",
+                 "    out.forEach(function(b){\n      b.rot = mesNombreTres(b.rot);\n      b.largo = b.rot + ' · '", T)
+js_tend = cambia(js_tend, "txt('t3-var-l', gEscalaX === 'ano' ? 'DEL PRIMER AL ÚLTIMO AÑO'",
+                 "txt('t3-var-l', gEscalaX === 'ano' ? 'DEL PRIMER AL ÚLTIMO MES'", T)
 # ---- los controles del grafico en una sola fila: rotulos cortos, y el nombre
 #      entero en el globo de ayuda de cada boton (botonera lee o.t)
 js_tend = cambia(js_tend, "+ (o.c === valor) + '\">' + esc(o.n) + '</button>';",
@@ -575,17 +611,19 @@ fondo = ('<div class="cielo" id="cielo" aria-hidden="true"></div>\n'
 _num = re.search(r'id="v-toda".*?<div class="ord"><span class="num">(\d\d)</span>', cuerpo, re.S)
 toda2_html = re.sub(r'(<div class="ord"><span class="num">)\d\d(</span>)',
                     r'\g<1>' + (_num.group(1) if _num else '01') + r'\g<2>', toda2_html, count=1)
-cuerpo = cambia(cuerpo, "</main>", toda2_html.replace("__CORTE__", str(CORTE)) + "\n</main>", C)
+# la pestana 08 Transporte va despues de Filtros y antes de la gemela (que es la ultima y sin pestana)
+cuerpo = cambia(cuerpo, "</main>", transporte_html + "\n" + toda2_html.replace("__CORTE__", str(CORTE)) + "\n</main>", C)
 if 'id="tajo"' not in cuerpo:
     cuerpo = cuerpo.replace('<header class="nav" id="nav">', fondo + '<header class="nav" id="nav">', 1)
 
 nuevo = (cabecera + css + "\n" + cuerpo + "\n<script>\n(function(){\n"
          + util + "\nvar DATA = " + datos + ";\n"
          + "var SETIEMBRE = " + sep + ";\n"
+         + datos_meses + meses_carga_js + "\n"
          + js_datos + "\n" + js_tend + "\n" + js_filt + "\n" + js_sep + "\n" + cont + tres_d
-         + "\n" + extra + "\n" + proyecto_js + "\n" + inicio_js + "\n" + hojas_js + "\n" + comentarios_js + "\n" + tablero_js + "\n" + burbuja_js
+         + "\n" + extra + "\n" + proyecto_js + "\n" + inicio_js + "\n" + transporte_js + "\n" + hojas_js + "\n" + comentarios_js + "\n" + tablero_js + "\n" + burbuja_js
          # los modelos 3D antes de la navegacion: al final de ella se elige el primer equipo
-         + "\n" + modelos3d_js + "\n" + detalle3d_js + "\n" + modelos_det_js + "\n" + tajo_js + "\n" + equipo_js + "\n" + js_nav
+         + "\n" + modelos3d_js + "\n" + detalle3d_js + "\n" + modelos_det_js + "\n" + tajo_js + "\n" + equipo_js + "\n" + js_nav + "\n" + meses_js
          # la division envuelve irA(): tiene que ir despues de nuevo_js_nav.js
          + "\n" + division_js + "\n" + movil_js + "\n})();\n</script>\n")
 
@@ -593,7 +631,7 @@ nuevo = agrandar(nuevo)
 io.open(SALIDA, "w", encoding="utf-8", newline="\n").write(nuevo)
 print("artifact.html:", len(nuevo), "bytes ->", SALIDA)
 
-for marca in ["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES", "function iniFiltros", 'id="lemaSub"', 'class="pes"',
+for marca in (["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES", "function iniFiltros", 'id="lemaSub"', 'id="v-transporte"', "function marcoTransporte", 'class="pes"',
               "function iniciarTajo", "function construirCamion", "function irA(", "var DATA = {",
               "var SETIEMBRE = {", 'id="tajo"', "TORRE DE SETIEMBRE — lo que esta copia hace distinto",
               'id="fi-cuadre"', 'id="fi-zserv"', "var proyFiltro = PROYS[0];", 'id="v-propios"', 'id="v-alquilados"', 'id="v-toda"', 'data-pes="Flota completa"', "function hxColumnasT",
@@ -601,7 +639,9 @@ for marca in ["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES
               "function tbPintar", "function hxOrigen", 'id="bz"', "function bzNumero",
               'id="divisor"', "function divAplicar", "function hxMaxi", "body.navMin",
               "function sedeCambio", 'class="sedeHueco"', "function hxSedesDe",
-              'id="v-notas"', "function cmPintar", 'id="v-toda2"', "function hxPonerFlota", "function tbTodos", 'id="divDos"']:
+              'id="v-notas"', "function cmPintar", 'id="v-toda2"', "function hxPonerFlota", "function tbTodos", 'id="divDos"',
+              "function enlazarOrdenes", "function hxPonerMes", "function mesesUniverso", 'id="hx-mes-T"', 'id="hx-mes-U"']
+             + (["var TRES_MESES = {", "var SEP_MESES = {"] if HAY_MESES else [])):
     print(("  OK      " if marca in nuevo else "  FALTA   ") + marca)
 # nada de esto debe quedar a la vista: es vocabulario de la Torre del libro mayor
 for sobra in ["libro mayor le carga", "DIECISIETE", "<b>1,291 del libro</b>", "Ojo con agosto",

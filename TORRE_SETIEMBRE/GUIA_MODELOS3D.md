@@ -78,7 +78,7 @@ Cada pieza que corresponde a un sistema lleva su código (primer argumento de `b
 y su costo. Para ver qué códigos tienen tus equipos y cuánto cuestan:
 
 ```bash
-cd TORRE_SETIEMBRE
+cd "D:/3.OneDrive/jzavaleta/OneDrive - SAN MARTIN/Documentos/JOAQUIN/COSTOS/MARIA/TORRE_SETIEMBRE"
 PYTHONIOENCODING=utf-8 python -c "
 import json,collections,sys
 d=json.load(open('datos.json',encoding='utf-8')); sd=d['sysdesc']
@@ -121,7 +121,7 @@ fuera. Las piezas sin código llevan `null`.
 ## Cómo probar
 
 ```bash
-cd TORRE_SETIEMBRE
+cd "D:/3.OneDrive/jzavaleta/OneDrive - SAN MARTIN/Documentos/JOAQUIN/COSTOS/MARIA/TORRE_SETIEMBRE"
 python prueba3d.py FC-87 --solo modelo_<tuyo>.js --base --salida "<tu scratchpad>/pruebas"
 python prueba3d.py FC-87 --solo modelo_<tuyo>.js --base --cerca --salida "<tu scratchpad>/pruebas"
 ```

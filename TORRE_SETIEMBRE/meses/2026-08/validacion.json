@@ -1,0 +1,981 @@
+{
+ "libro": "08 SHGN_RO EQUIPOS AGO26.xlsx + 08 ATOC_RO EQUIPOS AGO26.xlsx + 08 TRMA_RO EQUIPOS AGO26.xlsx + 08 TEMB_RO EQUIPOS AGO26.xlsx",
+ "hoja": "SHGN: BASE DATOS 01.09 9 · ATOC: BASE DATOS 01.09 9 · TRMA: BASE DATOS 01.09 09.00 · TEMB: BASE DATOS 01.09 09",
+ "corte": 31,
+ "diasMes": 31,
+ "mes": 8,
+ "anio": 2026,
+ "fechaMaxBase": "2026-08-31",
+ "generado": "2026-10-16 12:51",
+ "sedes": {
+  "SHGN": {
+   "sede": "SHGN",
+   "libro": "08 SHGN_RO EQUIPOS AGO26.xlsx",
+   "hoja": "BASE DATOS 01.09 9",
+   "corte": 31,
+   "corteDe": "encabezado «Costo Real al 31» de SHGN PROP",
+   "diasMes": 31,
+   "mes": 8,
+   "anio": 2026,
+   "fechaMaxBase": "2026-08-31",
+   "hojas": {
+    "PROPIO": "SHGN PROP",
+    "ALQUILADO": "SHGN ALQ"
+   },
+   "reglas": {
+    "PROPIO": {
+     "RECURSO": [
+      "MAT",
+      "SERV",
+      "MO"
+     ],
+     "Fase": [
+      "CA",
+      "ED",
+      "LL",
+      "LU",
+      "MM",
+      "(vacío)"
+     ],
+     "MODELO": [
+      "DML HP"
+     ],
+     "TIPO": [
+      "PROPIO"
+     ],
+     "CONSIDERAR": [
+      "(vacío)",
+      "OPEX"
+     ]
+    },
+    "ALQUILADO": {
+     "RECURSO": [
+      "MAT",
+      "SERV",
+      "MO"
+     ],
+     "Fase": [
+      "CA",
+      "ED",
+      "MM"
+     ],
+     "DESCRIPCION EQP": [
+      "CAMIÓN FUERA DE CARRETERA HIBRIDO"
+     ],
+     "TIPO": [
+      "ALQUILADO"
+     ]
+    }
+   },
+   "reglasFuera": {
+    "PROPIO": {
+     "RECURSO": [
+      "(vacío)"
+     ],
+     "Fase": [
+      "RM"
+     ],
+     "MODELO": [
+      "(vacío)",
+      "T-800",
+      "R9100",
+      "HD1500-7",
+      "D75KS",
+      "992K",
+      "785D",
+      "785C",
+      "777F",
+      "775F",
+      "6040FS",
+      "DR412I",
+      "P450 B6X4",
+      "MS40",
+      "D800",
+      "D75KX",
+      "DI650i",
+      "TLH 135",
+      "RTH100",
+      "620P",
+      "14M",
+      "374FL",
+      "SY750H",
+      "EC950",
+      "EX1200-7 BH",
+      "EC950EL",
+      "SY980H",
+      "ME106",
+      "R980",
+      "R 9100 G8",
+      "5600I-6x4",
+      "ACTROS 3344K",
+      "GRANITE",
+      "G 540 B8x4HZ",
+      "ACTROS 3344",
+      "RL4J",
+      "S650",
+      "P460 B6X4",
+      "HX500LT3",
+      "D8T",
+      "D155AX",
+      "R380LC-9SH",
+      "RL4",
+      "S570",
+      "SSR120C-10",
+      "",
+      "AROCS 3345K",
+      "HC 200 C",
+      "L180H",
+      "AXOR 3341",
+      "ACTROS 3345K",
+      "G500 B6X4",
+      "RL4V2",
+      "DTH145",
+      "7600 SBA 8X4",
+      "966NG",
+      "L150H",
+      "HILIGHT V5+",
+      "VTEVO K2",
+      "GLT4-M",
+      "GENERAC",
+      "LUXM11",
+      "UG3300",
+      "UG5000",
+      "UG-5000",
+      "UG-3300",
+      "140K",
+      "12M",
+      "870G LC",
+      "D8",
+      "D155AX-6",
+      "GU813E",
+      "LUX-M11",
+      "LSC",
+      "6050FS",
+      "LUX M11",
+      "BW211D-40",
+      "FH",
+      "G540 B8X4HZ",
+      "G540B8x4HZ"
+     ],
+     "TIPO": [
+      "ALQUILADO",
+      "(vacío)"
+     ],
+     "CONSIDERAR": [
+      "CAPEX",
+      "PROCESO CAPEX"
+     ]
+    },
+    "ALQUILADO": {
+     "RECURSO": [
+      "(vacío)"
+     ],
+     "Fase": [
+      "LL",
+      "LU",
+      "(vacío)",
+      "RM"
+     ],
+     "DESCRIPCION EQP": [
+      "PALA FRONTAL",
+      "CAMION FUERA DE CARRETERA",
+      "EXCAVADORA SOBRE ORUGAS",
+      "(vacío)",
+      "CARGADOR FRONTAL",
+      "PERFORADORA",
+      "CAMIÓN FUERA DE CARRETERA",
+      "CAMION VOLQUETE",
+      "CAMION PARA ANFO",
+      "TRACTOR SOBRE ORUGAS",
+      "MOTONIVELADORA",
+      "MINICARGADOR",
+      "CISTERNA DE COMBUSTIBLE",
+      "CISTERNA DE AGUA",
+      "RODILLO LISO",
+      "TRACTO",
+      "TORRE DE ILUMINACIÓN",
+      "",
+      "CAMA BAJA",
+      "MARTILLO HIDRAULICO"
+     ],
+     "TIPO": [
+      "PROPIO",
+      "(vacío)"
+     ]
+    }
+   },
+   "fuenteHoras": "C:\\Users\\mosorio\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.Outlook\\Z1DF23N0\\20260831_Base RDP.xlsx",
+   "alqPorDias": [
+    "CI-730-AL",
+    "EI-2300-AL",
+    "TV-334-AL"
+   ],
+   "depPorDias": [
+    "EP-40",
+    "EP-41"
+   ],
+   "propio": {
+    "hoja": {
+     "rym": 22112.26,
+     "mov": 55509.62,
+     "terc": 35113.74,
+     "seg": 1128.98,
+     "hr": 664.4,
+     "nEq": 3.0,
+     "venta": 63250.88,
+     "hrProf": 1044.0
+    },
+    "equipos": {
+     "rym": 22112.26,
+     "mov": 55509.62,
+     "terc": 35113.74,
+     "seg": 1128.98,
+     "hr": 664.4,
+     "nEq": 3,
+     "venta": 63250.88,
+     "hrProf": 1044.0
+    },
+    "calc": {
+     "rym": 22112.26,
+     "mov": 55509.62
+    }
+   },
+   "alquilado": {
+    "hoja": {
+     "rym": 7775.45,
+     "mov": 2378.36,
+     "terc": 458667.68,
+     "seg": 0.0,
+     "hr": 10193.53,
+     "nEq": 22.0,
+     "venta": 111924.96,
+     "hrProf": 10649.41
+    },
+    "equipos": {
+     "rym": 7775.45,
+     "mov": 2378.36,
+     "terc": 458667.68,
+     "seg": 0.0,
+     "hr": 10193.53,
+     "nEq": 22,
+     "venta": 111924.96,
+     "hrProf": 10649.41
+    },
+    "calc": {
+     "rym": 7775.45,
+     "mov": 2378.36
+    }
+   },
+   "acumPeriodos": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "fueraCorte": {},
+   "sinFecha": 0.0,
+   "sinTarifa": 0,
+   "sinHoras": 0,
+   "sinDM": 0,
+   "sinParte": 0,
+   "serviciosFueraBase": {
+    "n": 16,
+    "v": 76649.4
+   },
+   "descuadre": []
+  },
+  "ATOC": {
+   "sede": "ATOC",
+   "libro": "08 ATOC_RO EQUIPOS AGO26.xlsx",
+   "hoja": "BASE DATOS 01.09 9",
+   "corte": 31,
+   "corteDe": "encabezado «Costo Real al 31» de ATOC PROP",
+   "diasMes": 31,
+   "mes": 8,
+   "anio": 2026,
+   "fechaMaxBase": "2026-08-31",
+   "hojas": {
+    "PROPIO": "ATOC PROP",
+    "ALQUILADO": "ATOC ALQ"
+   },
+   "reglas": {
+    "PROPIO": {
+     "TIPO": [
+      "PROPIO"
+     ],
+     "CENTRO": [
+      "ATOC"
+     ]
+    },
+    "ALQUILADO": {
+     "TIPO": [
+      "ALQUILADO"
+     ]
+    }
+   },
+   "reglasFuera": {
+    "PROPIO": {
+     "TIPO": [
+      "ALQUILADO",
+      "(vacío)"
+     ],
+     "CENTRO": [
+      "",
+      "CRDC",
+      "(vacío)"
+     ]
+    },
+    "ALQUILADO": {
+     "TIPO": [
+      "PROPIO",
+      "(vacío)"
+     ]
+    }
+   },
+   "fuenteHoras": "HH OPE",
+   "alqPorDias": [],
+   "depPorDias": [
+    "MO-23",
+    "TV-22",
+    "T-50"
+   ],
+   "propio": {
+    "hoja": {
+     "rym": 47481.42,
+     "mov": 70020.0,
+     "terc": 67317.71,
+     "seg": 4270.58,
+     "hr": 6412.9,
+     "nEq": 67.0,
+     "venta": 146938.47,
+     "hrProf": 8465.0
+    },
+    "equipos": {
+     "rym": 47481.42,
+     "mov": 70020.0,
+     "terc": 67317.71,
+     "seg": 4270.58,
+     "hr": 6412.9,
+     "nEq": 67,
+     "venta": 146938.47,
+     "hrProf": 8465.0
+    },
+    "calc": {
+     "rym": 47481.42,
+     "mov": 70020.0
+    }
+   },
+   "alquilado": {
+    "hoja": {
+     "rym": 3500.76,
+     "mov": 21870.0,
+     "terc": 337577.93,
+     "seg": 91.22,
+     "hr": 10608.56,
+     "nEq": 42.0,
+     "venta": 23786.37,
+     "hrProf": 6935.0
+    },
+    "equipos": {
+     "rym": 3500.76,
+     "mov": 21870.0,
+     "terc": 337577.93,
+     "seg": 91.22,
+     "hr": 10608.56,
+     "nEq": 42,
+     "venta": 23786.37,
+     "hrProf": 6935.0
+    },
+    "calc": {
+     "rym": 3500.76,
+     "mov": 21870.0
+    }
+   },
+   "acumPeriodos": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "fueraCorte": {},
+   "sinFecha": 0.0,
+   "sinTarifa": 13,
+   "sinHoras": 26,
+   "sinDM": 23,
+   "sinParte": 84,
+   "serviciosFueraBase": null,
+   "descuadre": []
+  },
+  "TRMA": {
+   "sede": "TRMA",
+   "libro": "08 TRMA_RO EQUIPOS AGO26.xlsx",
+   "hoja": "BASE DATOS 01.09 09.00",
+   "corte": 31,
+   "corteDe": "encabezado «Costo Real al 31» de TRMA PROP",
+   "diasMes": 31,
+   "mes": 8,
+   "anio": 2026,
+   "fechaMaxBase": "2026-08-31",
+   "hojas": {
+    "PROPIO": "TRMA PROP",
+    "ALQUILADO": "TRMA ALQ"
+   },
+   "reglas": {
+    "PROPIO": {
+     "RECURSO": [
+      "MAT",
+      "SERV",
+      "MO"
+     ],
+     "Fase": [
+      "LL",
+      "LU",
+      "MM",
+      "(vacío)",
+      "ED"
+     ],
+     "TIPO": [
+      "PROPIO"
+     ],
+     "CONSIDERAR": [
+      "opex"
+     ]
+    },
+    "ALQUILADO": {
+     "TIPO": [
+      "ALQUILADO"
+     ]
+    }
+   },
+   "reglasFuera": {
+    "PROPIO": {
+     "RECURSO": [
+      "(vacío)"
+     ],
+     "Fase": [
+      "RM"
+     ],
+     "TIPO": [
+      "ALQUILADO",
+      "(vacío)"
+     ],
+     "CONSIDERAR": [
+      "(vacío)",
+      "Venta"
+     ]
+    },
+    "ALQUILADO": {
+     "TIPO": [
+      "PROPIO",
+      "(vacío)"
+     ]
+    }
+   },
+   "fuenteHoras": "EXPORT_20260903_170833.xlsx",
+   "alqPorDias": [
+    "CI-730-AL",
+    "EI-2300-AL",
+    "TV-334-AL"
+   ],
+   "depPorDias": [
+    "CI-31",
+    "EP-37",
+    "RO-08",
+    "TV-50"
+   ],
+   "propio": {
+    "hoja": {
+     "rym": 15914.14,
+     "mov": 23847.0,
+     "terc": 19511.88,
+     "seg": 1022.08,
+     "hr": 1736.4,
+     "nEq": 20.0,
+     "venta": 62015.04,
+     "hrProf": 1579.16
+    },
+    "equipos": {
+     "rym": 15914.14,
+     "mov": 23847.0,
+     "terc": 19511.88,
+     "seg": 1022.08,
+     "hr": 1736.4,
+     "nEq": 20,
+     "venta": 62015.04,
+     "hrProf": 1579.16
+    },
+    "calc": {
+     "rym": 15914.14,
+     "mov": 23847.0
+    }
+   },
+   "alquilado": {
+    "hoja": {
+     "rym": 559.16,
+     "mov": 6334.4,
+     "terc": 122382.99,
+     "seg": 0.0,
+     "hr": 4088.5,
+     "nEq": 19.0,
+     "venta": 4210.5,
+     "hrProf": 4010.0
+    },
+    "equipos": {
+     "rym": 559.16,
+     "mov": 6334.4,
+     "terc": 122382.99,
+     "seg": 0.0,
+     "hr": 4088.5,
+     "nEq": 19,
+     "venta": 4210.5,
+     "hrProf": 4010.0
+    },
+    "calc": {
+     "rym": 559.16,
+     "mov": 6334.4
+    }
+   },
+   "acumPeriodos": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "fueraCorte": {},
+   "sinFecha": 0.0,
+   "sinTarifa": 4,
+   "sinHoras": 5,
+   "sinDM": 4,
+   "sinParte": 0,
+   "serviciosFueraBase": null,
+   "descuadre": []
+  },
+  "TEMB": {
+   "sede": "TEMB",
+   "libro": "08 TEMB_RO EQUIPOS AGO26.xlsx",
+   "hoja": "BASE DATOS 01.09 09",
+   "corte": 31,
+   "corteDe": "encabezado «Costo Real al 31» de TEMB PROP",
+   "diasMes": 31,
+   "mes": 8,
+   "anio": 2026,
+   "fechaMaxBase": "2026-08-31",
+   "hojas": {
+    "PROPIO": "TEMB PROP",
+    "ALQUILADO": "TEMB ALQ"
+   },
+   "reglas": {
+    "PROPIO": {
+     "Fase": [
+      "LL",
+      "LU",
+      "MM",
+      "(vacío)",
+      "CA",
+      "ED"
+     ],
+     "TIPO": [
+      "PROPIO"
+     ],
+     "CENTRO": [
+      "TEMB"
+     ]
+    },
+    "ALQUILADO": {
+     "TIPO": [
+      "ALQUILADO"
+     ]
+    }
+   },
+   "reglasFuera": {
+    "PROPIO": {
+     "Fase": [
+      "RM"
+     ],
+     "TIPO": [
+      "ALQUILADO",
+      "(vacío)"
+     ],
+     "CENTRO": [
+      "",
+      "(vacío)"
+     ]
+    },
+    "ALQUILADO": {
+     "TIPO": [
+      "PROPIO",
+      "(vacío)"
+     ]
+    }
+   },
+   "fuenteHoras": "EXPORT_20260903_170833.xlsx",
+   "alqPorDias": [
+    "CI-730-AL",
+    "EI-2300-AL",
+    "TV-334-AL"
+   ],
+   "depPorDias": [
+    "CI-31",
+    "EP-37",
+    "RO-08",
+    "TV-50"
+   ],
+   "propio": {
+    "hoja": {
+     "rym": 35517.37,
+     "mov": 19815.6,
+     "terc": 32164.59,
+     "seg": 2410.01,
+     "hr": 1921.79,
+     "nEq": 16.0,
+     "venta": 41536.76,
+     "hrProf": 2541.01
+    },
+    "equipos": {
+     "rym": 35517.37,
+     "mov": 19815.6,
+     "terc": 32164.59,
+     "seg": 2410.01,
+     "hr": 1921.79,
+     "nEq": 16,
+     "venta": 41536.76,
+     "hrProf": 2541.01
+    },
+    "calc": {
+     "rym": 35517.37,
+     "mov": 19815.6
+    }
+   },
+   "alquilado": {
+    "hoja": {
+     "rym": 920.5,
+     "mov": 2471.2,
+     "terc": 135167.84,
+     "seg": 0.0,
+     "hr": 3306.4,
+     "nEq": 20.0,
+     "venta": 7166.4,
+     "hrProf": 3250.99
+    },
+    "equipos": {
+     "rym": 920.5,
+     "mov": 2471.2,
+     "terc": 135167.84,
+     "seg": 0.0,
+     "hr": 3306.4,
+     "nEq": 20,
+     "venta": 7166.4,
+     "hrProf": 3250.99
+    },
+    "calc": {
+     "rym": 920.5,
+     "mov": 2471.2
+    }
+   },
+   "acumPeriodos": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "fueraCorte": {},
+   "sinFecha": 0.0,
+   "sinTarifa": 2,
+   "sinHoras": 4,
+   "sinDM": 6,
+   "sinParte": 0,
+   "serviciosFueraBase": null,
+   "descuadre": []
+  }
+ },
+ "sedeNom": {
+  "SHGN": "SHOUGANG",
+  "ATOC": "ATOCONGO",
+  "TRMA": "TARMA",
+  "TEMB": "TEMBLADERA"
+ },
+ "reglas": {
+  "PROPIO": {
+   "RECURSO": [
+    "MAT",
+    "SERV",
+    "MO"
+   ],
+   "Fase": [
+    "CA",
+    "ED",
+    "LL",
+    "LU",
+    "MM",
+    "(vacío)"
+   ],
+   "MODELO": [
+    "DML HP"
+   ],
+   "TIPO": [
+    "PROPIO"
+   ],
+   "CONSIDERAR": [
+    "(vacío)",
+    "OPEX"
+   ]
+  },
+  "ALQUILADO": {
+   "RECURSO": [
+    "MAT",
+    "SERV",
+    "MO"
+   ],
+   "Fase": [
+    "CA",
+    "ED",
+    "MM"
+   ],
+   "DESCRIPCION EQP": [
+    "CAMIÓN FUERA DE CARRETERA HIBRIDO"
+   ],
+   "TIPO": [
+    "ALQUILADO"
+   ]
+  }
+ },
+ "reglasFuera": {
+  "PROPIO": {
+   "RECURSO": [
+    "(vacío)"
+   ],
+   "Fase": [
+    "RM"
+   ],
+   "MODELO": [
+    "(vacío)",
+    "T-800",
+    "R9100",
+    "HD1500-7",
+    "D75KS",
+    "992K",
+    "785D",
+    "785C",
+    "777F",
+    "775F",
+    "6040FS",
+    "DR412I",
+    "P450 B6X4",
+    "MS40",
+    "D800",
+    "D75KX",
+    "DI650i",
+    "TLH 135",
+    "RTH100",
+    "620P",
+    "14M",
+    "374FL",
+    "SY750H",
+    "EC950",
+    "EX1200-7 BH",
+    "EC950EL",
+    "SY980H",
+    "ME106",
+    "R980",
+    "R 9100 G8",
+    "5600I-6x4",
+    "ACTROS 3344K",
+    "GRANITE",
+    "G 540 B8x4HZ",
+    "ACTROS 3344",
+    "RL4J",
+    "S650",
+    "P460 B6X4",
+    "HX500LT3",
+    "D8T",
+    "D155AX",
+    "R380LC-9SH",
+    "RL4",
+    "S570",
+    "SSR120C-10",
+    "",
+    "AROCS 3345K",
+    "HC 200 C",
+    "L180H",
+    "AXOR 3341",
+    "ACTROS 3345K",
+    "G500 B6X4",
+    "RL4V2",
+    "DTH145",
+    "7600 SBA 8X4",
+    "966NG",
+    "L150H",
+    "HILIGHT V5+",
+    "VTEVO K2",
+    "GLT4-M",
+    "GENERAC",
+    "LUXM11",
+    "UG3300",
+    "UG5000",
+    "UG-5000",
+    "UG-3300",
+    "140K",
+    "12M",
+    "870G LC",
+    "D8",
+    "D155AX-6",
+    "GU813E",
+    "LUX-M11",
+    "LSC",
+    "6050FS",
+    "LUX M11",
+    "BW211D-40",
+    "FH",
+    "G540 B8X4HZ",
+    "G540B8x4HZ"
+   ],
+   "TIPO": [
+    "ALQUILADO",
+    "(vacío)"
+   ],
+   "CONSIDERAR": [
+    "CAPEX",
+    "PROCESO CAPEX"
+   ]
+  },
+  "ALQUILADO": {
+   "RECURSO": [
+    "(vacío)"
+   ],
+   "Fase": [
+    "LL",
+    "LU",
+    "(vacío)",
+    "RM"
+   ],
+   "DESCRIPCION EQP": [
+    "PALA FRONTAL",
+    "CAMION FUERA DE CARRETERA",
+    "EXCAVADORA SOBRE ORUGAS",
+    "(vacío)",
+    "CARGADOR FRONTAL",
+    "PERFORADORA",
+    "CAMIÓN FUERA DE CARRETERA",
+    "CAMION VOLQUETE",
+    "CAMION PARA ANFO",
+    "TRACTOR SOBRE ORUGAS",
+    "MOTONIVELADORA",
+    "MINICARGADOR",
+    "CISTERNA DE COMBUSTIBLE",
+    "CISTERNA DE AGUA",
+    "RODILLO LISO",
+    "TRACTO",
+    "TORRE DE ILUMINACIÓN",
+    "",
+    "CAMA BAJA",
+    "MARTILLO HIDRAULICO"
+   ],
+   "TIPO": [
+    "PROPIO",
+    "(vacío)"
+   ]
+  }
+ },
+ "fuenteHoras": "C:\\Users\\mosorio\\AppData\\Local\\Microsoft\\Windows\\INetCache\\Content.Outlook\\Z1DF23N0\\20260831_Base RDP.xlsx · EXPORT_20260903_170833.xlsx · HH OPE",
+ "alqPorDias": [
+  "CI-730-AL",
+  "EI-2300-AL",
+  "TV-334-AL",
+  "CI-730-AL",
+  "EI-2300-AL",
+  "TV-334-AL",
+  "CI-730-AL",
+  "EI-2300-AL",
+  "TV-334-AL"
+ ],
+ "depPorDias": [
+  "EP-40",
+  "EP-41",
+  "MO-23",
+  "TV-22",
+  "T-50",
+  "CI-31",
+  "EP-37",
+  "RO-08",
+  "TV-50",
+  "CI-31",
+  "EP-37",
+  "RO-08",
+  "TV-50"
+ ],
+ "propio": {
+  "hoja": {
+   "rym": 121025.19,
+   "mov": 169192.22,
+   "terc": 154107.92,
+   "seg": 8831.65,
+   "hr": 10735.49,
+   "nEq": 106.0,
+   "venta": 313741.15,
+   "hrProf": 13629.17
+  },
+  "calc": {
+   "rym": 121025.19,
+   "mov": 169192.22,
+   "terc": 154107.92,
+   "seg": 8831.65,
+   "hr": 10735.49,
+   "nEq": 106.0,
+   "venta": 313741.15,
+   "hrProf": 13629.17
+  }
+ },
+ "alquilado": {
+  "hoja": {
+   "rym": 12755.87,
+   "mov": 33053.96,
+   "terc": 1053796.44,
+   "seg": 91.22,
+   "hr": 28196.99,
+   "nEq": 103.0,
+   "venta": 147088.23,
+   "hrProf": 24845.4
+  },
+  "calc": {
+   "rym": 12755.87,
+   "mov": 33053.96,
+   "terc": 1053796.44,
+   "seg": 91.22,
+   "hr": 28196.99,
+   "nEq": 103.0,
+   "venta": 147088.23,
+   "hrProf": 24845.4
+  }
+ },
+ "acumPeriodos": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "fueraCorte": {},
+ "sinFecha": 0.0,
+ "sinTarifa": 19,
+ "sinHoras": 35,
+ "sinDM": 33,
+ "parteTarifa": 0.0,
+ "serviciosFueraBase": {
+  "n": 16,
+  "v": 76649.4
+ }
+}

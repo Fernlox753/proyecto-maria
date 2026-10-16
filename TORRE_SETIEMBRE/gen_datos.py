@@ -61,6 +61,13 @@ except ImportError:
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 CONSOLIDADO = os.path.join(os.path.dirname(AQUI), "CONSOLIDADO")
+# --salida=<carpeta>: los otros meses (julio, agosto) se leen con las mismas
+# reglas pero escriben en su carpeta, sin pisar los json de setiembre
+SALIDA = AQUI
+for _a in list(sys.argv[1:]):
+    if _a.startswith("--salida="):
+        SALIDA = os.path.abspath(_a.split("=", 1)[1])
+        sys.argv.remove(_a)
 
 # los proyectos, en el orden en que salen en la pagina
 SEDES = [("SHGN", "SHOUGANG"), ("ATOC", "ATOCONGO"), ("TRMA", "TARMA"), ("TEMB", "TEMBLADERA")]
@@ -89,7 +96,9 @@ TITULOS_VARIOS = ("HOROMETRO REAL", "TARIFAS VENTA", "PROFORMA", "DM-USAJE", "OT
 VACIO = "(vacío)"
 # campos del parte de horas, segun la version del libro: (equipo, fecha, horas)
 CAMPOS_HORAS = (("Equipo", "Fe.prest.actividad", "Cantidad"), ("Número de equipo", "Fecha de notificación", "HM"),
-                ("Codigo", "FECHA", "HORAS OPERATIVAS"))
+                ("Codigo", "FECHA", "HORAS OPERATIVAS"),
+                # el libro de agosto de Atocongo trae el parte con la unidad de reporte
+                ("Número de equipo", "Fecha de notificación", "Unidad de reporte"))
 
 NS = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
 NR = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
@@ -192,6 +201,15 @@ def bloque(filas, titulo, pedidas, fila_tit=0, fila_enc=7):
         falla("en «BASE VARIOS» no esta el bloque «%s». Titulos: %s" % (titulo, [t for _, t in tit]))
     ini = ini[0]
     sig = [i for i, _ in tit if i > ini]
+    # la fila de encabezados no esta siempre en el mismo sitio (el libro de
+    # julio de Atocongo la tiene en la 7 y no en la 8): es la primera de las
+    # 15 de arriba en la que, dentro del bloque, esta el primer nombre pedido
+    p0 = pedidas[0] if isinstance(pedidas[0], (list, tuple)) else (pedidas[0],)
+    for k in range(min(15, len(filas))):
+        fk = filas[k]
+        if any(txt(fk[i]) in p0 for i in range(ini, min(min(sig) if sig else len(fk), len(fk)))):
+            fila_enc = k
+            break
     fin = min(sig) if sig else len(filas[fila_enc])
     enc = {}
     for i in range(ini, fin):
@@ -369,7 +387,9 @@ def columnas_reporte(filas, hoja):
               col(["COSTO REAL"], ("TOTAL",))],
         "seg": col(["COSTO REAL"], ("SEG",)),
         "prof": col(["COSTO PROF", "COSTO PLAN"], ("",), False),
-        "dm": col(["%DM"], ("",)), "use": col(["UTILIZ", "%UTILIZ", "%USE", "USAJE"], ("",)),
+        # %DM y %Utiliz. no estan en todos los meses (julio de Atocongo no los trae):
+        # sin columna, el dato queda vacio en vez de detener la lectura
+        "dm": col(["%DM"], ("",), False), "use": col(["UTILIZ", "%UTILIZ", "%USE", "USAJE"], ("",), False),
         "hr": col(["HRAS REAL", "HORAS REAL", "HM REAL"], ("",)),
         "hrProf": col(["HRAS PROF", "HORAS PLAN", "HM PLAN", "HORAS PROF"], ("",)),
         "v": [col(["VENTA INTERNA"], ("RYM",)), col(["VENTA INTERNA"], ("MOV",)), col(["VENTA INTERNA"], TER),
@@ -470,7 +490,7 @@ def leer_proyecto(sede, LIBRO):
                ["Orden", "Conjunto", "Denom.conjunto", "Clase de orden", "Texto breve"], "BASE OTS") if f["Orden"]}
     fv = filas_de(wb["BASE VARIOS"])
     hb = bloque(fv, "HOROMETRO REAL", [["Número de equipo", "Equipo", "Codigo"],
-                                       ["Suma de HM", "Suma de Cantidad", "Suma de HORAS OPERATIVAS"]])
+                                       ["Suma de HM", "Suma de Cantidad", "Suma de HORAS OPERATIVAS", "Suma de Unidad de reporte"]])
     horom = {e: num(f["Suma de HM"]) for e, f in primero(hb, "Número de equipo").items() if e != "Total general"}
     periodos = set()
     try:
@@ -681,6 +701,29 @@ def leer_proyecto(sede, LIBRO):
             "filas": filas, "rep": rep, "val": val, "nlin": nlin, "periodos": periodos, "descuadre": descuadre}
 
 
+def renombrar_equipo(p, viejo, nuevo):
+    """Cambia el codigo de un equipo en todo lo leido de un proyecto."""
+    q = p["equipos"].pop(viejo)
+    q["id"] = nuevo
+    p["equipos"][nuevo] = q
+    for nom in ("H", "Hh"):
+        d = p[nom]
+        for k in [k for k in d if k[0] == viejo]:
+            d[(nuevo,) + k[1:]] += d.pop(k)
+    for o in p["ots"].values():
+        if o["eq"] == viejo: o["eq"] = nuevo
+    if viejo in p["filas"]:
+        x = p["filas"].pop(viejo)
+        x["id"] = nuevo
+        p["filas"][nuevo] = x
+    for R in p["rep"].values():
+        if viejo in R["eq"]:
+            R["eq"][nuevo] = R["eq"].pop(viejo)
+            R["orden"] = [nuevo if e == viejo else e for e in R["orden"]]
+    for k in ("depPorDias", "alqPorDias"):
+        p["val"][k] = [nuevo if e == viejo else e for e in p["val"][k]]
+
+
 # ── principal ─────────────────────────────────────────────────────────
 def main():
     libros = elegir_libros()
@@ -696,6 +739,26 @@ def main():
     dias = ["%04d-%02d-%02d" % (ANIO, MES, d) for d in range(1, CORTE + 1)]
     idia = {d: i for i, d in enumerate(dias)}
     ND = len(dias)
+
+    # ── un equipo que en el mes estuvo en dos proyectos ───────────────
+    # (julio: el T-50 paso de Tembladera a Atocongo). Cada hoja lo cuenta con
+    # su parte, y juntarlo descuadraria un proyecto contra su Excel. El
+    # proyecto donde gasto mas conserva el codigo; en el otro queda como
+    # «T-50 (TEMB)». En setiembre no pasa y nada cambia.
+    def gasto(p, e):
+        return sum(x["c"][3] for x in [p["filas"].get(e)] if x) + sum(v for k, v in p["H"].items() if k[0] == e and k[1] == RO and k[2] < 3)
+    vistos = collections.defaultdict(list)
+    for p in P:
+        for e in p["equipos"]: vistos[e].append(p)
+    repetidos = []
+    for e, ps in vistos.items():
+        if len(ps) < 2: continue
+        ps = sorted(ps, key=lambda p: -gasto(p, e))
+        for p in ps[1:]:
+            nuevo = "%s (%s)" % (e, p["sede"])
+            renombrar_equipo(p, e, nuevo)
+            repetidos.append({"eq": e, "queda": ps[0]["sede"], "en": p["sede"], "como": nuevo})
+            print("OJO: %s esta en %s y en %s este mes: en %s queda como «%s»" % (e, ps[0]["sede"], p["sede"], p["sede"], nuevo))
 
     # ── vocabularios y equipos de todos los proyectos ─────────────────
     equipos, ieq = [], {}
@@ -871,6 +934,7 @@ def main():
            "sinDM": sum(v["sinDM"] for v in vs.values()),
            "parteTarifa": round(por["proy"].get("PARTE DE LA TARIFA", 0.0), 2),
            "serviciosFueraBase": vs.get("SHGN", {}).get("serviciosFueraBase")}
+    if repetidos: val["repetidos"] = repetidos
 
     total = round(sum(F["v"]), 2)
     hm = round(sum(HM["v"]), 2)
@@ -891,9 +955,9 @@ def main():
              "sedes": sedes, "sedeNom": {s: NOM_SEDE.get(s, s) for s in sedes}}
 
     def graba(nombre, obj):
-        io.open(os.path.join(AQUI, nombre), "w", encoding="utf8").write(
+        io.open(os.path.join(SALIDA, nombre), "w", encoding="utf8").write(
             json.dumps(obj, ensure_ascii=False, separators=(",", ":")))
-        print("  ->", nombre, os.path.getsize(os.path.join(AQUI, nombre)), "bytes")
+        print("  ->", nombre, os.path.getsize(os.path.join(SALIDA, nombre)), "bytes")
 
     # ── lo que hay que mirar ───────────────────────────────────────────
     ok = True
@@ -921,7 +985,7 @@ def main():
     print("resultado operativo por proyecto:", {k: round(x) for k, x in por["sede"].items()})
     print("dias %s a %s · hechos %d · equipos %d · ordenes %d · horas %.1f" % (dias[0], dias[-1], len(F["v"]), len(equipos), len(ots), hm))
     graba("datos.json", datos); graba("setiembre.json", setiembre)
-    io.open(os.path.join(AQUI, "validacion.json"), "w", encoding="utf8").write(json.dumps(val, ensure_ascii=False, indent=1))
+    io.open(os.path.join(SALIDA, "validacion.json"), "w", encoding="utf8").write(json.dumps(val, ensure_ascii=False, indent=1))
     if not ok:
         print("\nHAY DESCUADRES: revisar antes de publicar")
         sys.exit(1)

@@ -14,6 +14,7 @@ function cmDeClave(k){
   var p = k.split('.'), x = { hoja: p[0], col: p[p.length - 1] };
   p.slice(2, -1).forEach(function(f){
     if(f === 'PRO' || f === 'ALQ' || f === 'TOD') x.flota = f === 'PRO' ? 'PROPIO' : f === 'ALQ' ? 'ALQUILADO' : '*';
+    else if(/^m\d{6}$/.test(f)) x.mes = f.slice(1, 5) + '-' + f.slice(5);
     else if(f.charAt(0) !== 'r') x.sedes = f;
   });
   return x;
@@ -25,7 +26,7 @@ function cmLista(){
     if(!x || !x.texto) continue;
     var d = cmDeClave(k);
     out.push({ k: k, x: x, estado: x.estado === 'tratado' ? 'tratado' : 'pendiente',
-               ctx: x.ctx || { hoja: d.hoja, flota: d.flota || '*', sedes: d.sedes || 'TODOS' } });
+               ctx: x.ctx || { hoja: d.hoja, flota: d.flota || '*', sedes: d.sedes || 'TODOS', mes: d.mes } });
   }
   return out.sort(function(a, b){ return String(b.x.ts || '').localeCompare(String(a.x.ts || '')); });
 }
@@ -115,6 +116,9 @@ function cmIr(k){
   var x = HX_NOTAS[k], st = HX.T;
   if(!x || !x.nodo || !st || !st.arbol) return;
   var c = x.ctx || cmDeClave(k);
+  /* el mes del comentario (sin mes: setiembre) */
+  var mes = c.mes || cmDeClave(k).mes || HX_MES_DEF;
+  if(mes !== hxMesDe(st)) hxPonerMes('T', mes);
   if(c.flota && c.flota !== hxFlota(st)){ st.flota = c.flota; hxArbol('T'); }
   if(c.sedes){
     var quiero = c.sedes === 'TODOS' ? sedesL().slice() : c.sedes.split('+');
