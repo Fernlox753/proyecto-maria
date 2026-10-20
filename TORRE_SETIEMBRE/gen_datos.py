@@ -342,19 +342,26 @@ def partes_de_horas(z):
         if not c["registros"]: continue
         ic, ifc, ih = (c["campos"].index(x) for x in trio)
         out = collections.defaultdict(collections.Counter)
-        for _, r in ET.iterparse(z.open(c["registros"][0])):
-            if r.tag != NS + "r": continue
-            v = []
-            for i, e in enumerate(r):
-                if e.tag == NS + "x": v.append(c["comp"][i][int(e.get("v"))])
-                elif e.tag == NS + "m": v.append(None)
-                else: v.append(e.get("v"))
-            r.clear()
-            cod, f, h = v[ic], v[ifc], v[ih]
-            if not cod or cod == VACIO or not f or f == VACIO or h in (None, "", VACIO): continue
-            try: h = float(h)
-            except ValueError: continue
-            out[cod.strip()][f[:10]] += h
+        try:
+            for _, r in ET.iterparse(z.open(c["registros"][0])):
+                if r.tag != NS + "r": continue
+                v = []
+                for i, e in enumerate(r):
+                    if e.tag == NS + "x": v.append(c["comp"][i][int(e.get("v"))])
+                    elif e.tag == NS + "m": v.append(None)
+                    else: v.append(e.get("v"))
+                r.clear()
+                cod, f, h = v[ic], v[ifc], v[ih]
+                if not cod or cod == VACIO or not f or f == VACIO or h in (None, "", VACIO): continue
+                try: h = float(h)
+                except ValueError: continue
+                out[cod.strip()][f[:10]] += h
+        except IndexError:
+            # un cache guardado a medias (registros que apuntan a valores que su
+            # definicion no trae; paso con TEMB el 20/10): se salta y quedan los
+            # otros partes del libro
+            print("OJO: el cache %s del parte de horas viene incompleto; no se usa" % (c["externo"] or c["hoja"] or d))
+            continue
         out_all.append((out, c["externo"] or c["hoja"] or "cache de la dinamica"))
     return out_all
 

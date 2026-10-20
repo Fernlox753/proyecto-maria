@@ -31,15 +31,47 @@ var TB_TEC = { 'MECANI-A': 'Mecánico', 'LLANTE-A': 'Llantero', 'MECLUB-A': 'Mec
 /* la clase de cada orden esta en el listado general de ordenes */
 var TB_PM = {};
 OTS.forEach(function(o){ TB_PM[o.ot] = o.pm; });
+if(typeof TRES_MESES !== 'undefined') (TRES_MESES.ots || []).forEach(function(o){ if(!(o.ot in TB_PM)) TB_PM[o.ot] = o.pm; });
+
+/* El mes del tablero (JUL · AGO · SET · OCT), como el de Flota completa:
+   setiembre abre por defecto; los otros salen de SEP_MESES (la fila de cada
+   equipo en sus hojas PROP y ALQ) y, para el paso 5, de la cola de hechos de
+   TRES_MESES. El botón TABLERO de Flota completa lo abre en el mes de la tabla. */
+function tbMes(){ return TB.mes || HX_MES_DEF; }
+function tbSep(){ return hxSep({ mes: tbMes() }); }
+function tbEsOtroMes(){ return tbMes() !== HX_MES_DEF; }
+/* recorre los hechos del resultado operativo del mes del tablero: fn(equipo, recurso, categoria, US$) */
+function tbHechos(fn){
+  var X = typeof TRES_MESES !== 'undefined' ? TRES_MESES : null, mes = tbMes(), rango = null, j;
+  if(X) (X.meses || []).forEach(function(m){ if(m.mes === mes) rango = [m.ini, m.fin]; });
+  /* setiembre solo, o los meses ya sumados a DATA: la tabla de hechos de siempre */
+  if(!tbEsOtroMes() || MODO_MESES === 'tres'){
+    for(j = 0; j < F.v.length; j++){
+      if(F.p[j] !== 0) continue;
+      if(MODO_MESES === 'tres' && rango && (F.m[j] < rango[0] || F.m[j] > rango[1])) continue;
+      fn(TODOS[F.e[j]].id, ROS[F.r[j]], CUENTAS[F.u[j]], F.v[j]);
+    }
+    return;
+  }
+  /* otro mes con la torre de setiembre: la cola de TRES_MESES, con los índices
+     de la unión (los equipos y categorías de setiembre primero, lo nuevo al final) */
+  if(!X || !rango) return;
+  var XF = X.F, nEq = TODOS.length, cats = CUENTAS.concat(X.cuentas || []);
+  for(j = 0; j < XF.v.length; j++){
+    if(XF.p[j] !== 0 || XF.m[j] < rango[0] || XF.m[j] > rango[1]) continue;
+    var ei = XF.e[j], eq = ei < nEq ? TODOS[ei] : X.eqNuevos[ei - nEq];
+    if(eq) fn(eq.id, ROS[XF.r[j]], cats[XF.u[j]], XF.v[j]);
+  }
+}
 
 /* Los equipos del tablero se arman aqui, desde SETIEMBRE.eq (los de la flota
    y los proyectos elegidos), igual que en las hojas pero sin depender de
    ellas. Con o sin Dep / Alq va con Flota completa (HX.T.terD / terA). */
 var TB_NODOS = { firma: '', lista: [] };
 function tbTodos(){
-  var firma = TB.tipo + '|' + (todasLasSedes() ? '*' : sedeSel.join('+'));
+  var firma = TB.tipo + '|' + (todasLasSedes() ? '*' : sedeSel.join('+')) + '|' + tbMes();
   if(TB_NODOS.firma === firma) return TB_NODOS.lista;
-  var q = SEP.eq, out = [], id;
+  var q = tbSep().eq, sp = tbSep(), out = [], id;
   for(id in q){
     var x = q[id];
     if(x.tipo !== TB.tipo || !sedeOk(x.sede)) continue;
@@ -49,7 +81,7 @@ function tbTodos(){
                o: { c: x.c, v: x.v, hr: x.hr || 0, hrProf: x.hrProf || 0, dm: x.dm, use: x.use, n: 1, A: x.A,
                     sd: x.dm === null || x.dm === undefined ? 0 : x.dm, nd: x.dm === null || x.dm === undefined ? 0 : 1,
                     su: x.use === null || x.use === undefined ? 0 : x.use, nu: x.use === null || x.use === undefined ? 0 : 1 },
-               hijos: hxFases(id) });
+               hijos: hxFases(id, sp) });
   }
   TB_NODOS = { firma: firma, lista: out };
   return out;
@@ -147,7 +179,7 @@ function tbPintar(){
   if(TB.paso === undefined) TB.paso = 1;
   if(!nodos.length){ cont.innerHTML = '<p class="tbComo">No hay equipos con esa selección.</p>'; return; }
   var o = hxSuma(nodos.map(function(e){ return e.o; }));
-  var corte = SEP.corteDia || 6, dias = SEP.diasMes || 30;
+  var corte = tbSep().corteDia || 6, dias = tbSep().diasMes || 30;
   /* con o sin el tercer componente, el mismo estado que la hoja de esa flota */
   var ter = tbConTer();
   var c = o.c.slice(), v = o.v.slice(), h = o.hr;
@@ -171,7 +203,7 @@ function tbPintar(){
     + '<span class="tbChip ' + chip[0] + '">' + chip[1] + '</span>'
     + '<span class="sub">' + ((TB.mods.length || TB.eqs.length) && TB.fams.length ? esc(TB.fams.join(' + ')) + ' · ' : '')
     + (TB.eqs.length && TB.mods.length ? esc(TB.mods.join(' + ')) + ' · ' : '') + (esProp ? 'FLOTA PROPIA' : 'FLOTA ALQUILADA')
-    + ' · ' + o.n + (o.n === 1 ? ' EQUIPO' : ' EQUIPOS') + ' · ' + (ter ? 'CON ' : 'SIN ') + (esProp ? 'DEPRECIACIÓN' : 'ALQUILER') + ' · AL DÍA ' + corte + ' · ' + esc(frase) + '</span></div>';
+    + ' · ' + o.n + (o.n === 1 ? ' EQUIPO' : ' EQUIPOS') + ' · ' + (ter ? 'CON ' : 'SIN ') + (esProp ? 'DEPRECIACIÓN' : 'ALQUILER') + (tbEsOtroMes() ? ' · ' + esc(tbSep().rotulo || '') : '') + ' · AL DÍA ' + corte + esc(hxCorteNota(tbSep()).toUpperCase()) + ' · ' + esc(frase) + '</span></div>';
 
   if(!esProp && ter){
     html += '<p class="tbComo" style="border-left-color:#B3261E; color:#B3261E">' + esc(hxAvisoAlq(nodos)) + '</p>';
@@ -294,15 +326,14 @@ function tbPintar(){
      (DATA.F), resultado operativo al corte, solo los equipos elegidos */
   var dRym = {}, dMov = {}, tRym = 0, tMov = 0, esta = {};
   nodos.forEach(function(e){ esta[e.id] = 1; });
-  for(var j = 0, nf = F.v.length; j < nf; j++){
-    if(F.p[j] !== 0 || !esta[TODOS[F.e[j]].id]) continue;
-    var rr = ROS[F.r[j]], cat = CUENTAS[F.u[j]], val = F.v[j];
+  tbHechos(function(id, rr, cat, val){
+    if(!esta[id]) return;
     if(rr === 'MATERIALES' || rr === 'SERVICIOS'){ dRym[cat] = (dRym[cat] || 0) + val; tRym += val; }
     else if(rr === 'MANO DE OBRA'){
       var nm = TB_TEC[cat] ? TB_TEC[cat] + ' · ' + cat : cat;
       dMov[nm] = (dMov[nm] || 0) + val; tMov += val;
     }
-  }
+  });
   var desglose = function(acc, tot, tit, sim){
     var arr = Object.keys(acc).map(function(k){ return { n: k, v: acc[k] }; })
                   .filter(function(a){ return Math.abs(a.v) >= 0.5; })
@@ -389,9 +420,10 @@ function tbPintar(){
   /* ---------- 7 · acumulado ---------- */
   var A = { c: o.A.c.slice(), v: o.A.v.slice(), h: o.A.h };
   A.c[4] = hxTac(o, ter); A.v[3] = hxTav(o, ter);
-  var dA = A.v[3] - A.c[4], per = (SEP.acumPeriodos || []).length;
+  var dA = A.v[3] - A.c[4], per = (tbSep().acumPeriodos || []).length;
   html += tbSec(7, 'Acumulado 2026', '¿Es cosa de este mes o viene de antes?',
-    'Libro mayor de los ' + per + ' meses que trae el consolidado, más setiembre al día ' + corte + '. <b>No incluye agosto</b>, porque el consolidado no lo trae. '
+    (tbEsOtroMes() ? 'Libro mayor de los ' + per + ' meses que trae el consolidado, más ' + hxMesNom({ mes: tbMes() }) + ' al día ' + corte + '. '
+                   : 'Libro mayor de los ' + per + ' meses que trae el consolidado, más setiembre al día ' + corte + '. <b>No incluye agosto</b>, porque el consolidado no lo trae. ')
     + 'Sirve para distinguir un mes malo de una tendencia: si el mes no cumple pero el año sí, puede ser una orden puntual; si ninguno cumple, la tarifa de venta o el costo del modelo están desalineados.',
     '<div class="tbCifras">'
     + tbCf('COSTO ACUMULADO', tbUS(A.c[4]), 'RyM ' + fmtK(A.c[0]) + ' · MOV ' + fmtK(A.c[1]) + (ter ? (esProp ? ' · Dep ' : ' · Alq ') + fmtK(A.c[2]) : ''))
@@ -475,6 +507,14 @@ function tbOpciones(conFam){
   txt('tb-modRot', !TB.mods.length ? 'TODOS' : TB.mods.length <= 3 ? TB.mods.join(' + ') : TB.mods.length + ' MODELOS');
   tbEqPodar(); tbEqFiltro();
   var st = $('tb-tipo'); if(st) st.value = TB.tipo;
+  var mg = $('tb-mes');
+  if(mg && hxMeses().length > 1){
+    if(mg.parentNode) mg.parentNode.hidden = false;
+    htm('tb-mes', hxMeses().map(function(x){
+      return '<button class="fbt" type="button" data-mes="' + x.mes + '" aria-pressed="' + (tbMes() === x.mes) + '" title="'
+        + esc(x.rotulo) + ': las hojas PROP y ALQ de ese mes">' + HX_MES3[x.mes.slice(5)] + '</button>';
+    }).join(''));
+  }
   var ter = tbConTer(), nom = TB.tipo === 'PROPIO' ? 'DEP' : 'ALQ';
   txt('tb-ter-t', (TB.tipo === 'PROPIO' ? 'DEPRECIACIÓN' : 'ALQUILER') + ' EN EL COSTO');
   htm('tb-ter', '<button class="fbt" type="button" data-t="1" aria-pressed="' + !!ter + '">CON ' + nom + '</button>'
@@ -548,7 +588,8 @@ function tbTer(s){
   tbOpciones(); tbPintar();
 }
 /* desde las hojas Propios y Alquilados: abre el tablero de esa familia, modelo o equipo */
-function abrirTablero(tipo, fam, mod, eq){
+function abrirTablero(tipo, fam, mod, eq, mes){
+  if(mes) TB.mes = mes;
   TB.tipo = tipo; TB.fams = fam ? [fam] : []; TB.mods = mod ? [mod] : []; TB.eqs = eq ? [eq] : []; TB.ab = {};
   tbOpciones(); tbPintar();
   irA('v-tablero');
@@ -556,6 +597,13 @@ function abrirTablero(tipo, fam, mod, eq){
 
 if($('tb-cuerpo') && SEP && SEP.eq){
   esc_('tb-tipo', 'change', function(){ TB.tipo = this.value; TB.fams = []; TB.mods = []; TB.eqs = []; TB.ab = {}; tbOpciones(); tbPintar(); });
+  /* otro mes: lo elegido se conserva si existe en ese mes (tbOpciones lo poda) */
+  esc_('tb-mes', 'click', function(ev){
+    var b = ev.target.closest ? ev.target.closest('[data-mes]') : null;
+    if(!b || b.getAttribute('data-mes') === tbMes()) return;
+    TB.mes = b.getAttribute('data-mes'); TB.ab = {};
+    tbOpciones(); tbPintar();
+  });
   /* un desplegable abierto cierra los otros dos */
   var tbCerrarOtros = function(menos){
     ['tb-famCaja', 'tb-modCaja', 'tb-eqCaja'].forEach(function(id){

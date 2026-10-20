@@ -49,9 +49,9 @@ function hxTavT(st, o){ return o.A.v[0] + o.A.v[1] + (st.terD && o.np ? o.A.v[2]
 /* el tipo de flota de una fila de FLOTA COMPLETA, si es uno solo (para el TABLERO) */
 function hxTipoNodo(st, n){
   if(!hxEsT(st.s)) return st.tipo;
-  /* el TABLERO es de setiembre: en otro mes no se ofrece */
-  if(hxEsOtroMes(st)) return null;
-  if(n.id && SEP.eq[n.id]) return SEP.eq[n.id].tipo;
+  /* el TABLERO se abre en el mes de la tabla */
+  var q = hxSep(st).eq;
+  if(n.id && q[n.id]) return q[n.id].tipo;
   var o = n.o || {};
   return o.np && !o.nq ? 'PROPIO' : o.nq && !o.np ? 'ALQUILADO' : null;
 }
@@ -557,6 +557,9 @@ function hxOrigenPA(st, n, col, sinNivel){
   var corte = hxCorte(st), t3 = esProp ? 'Dep' : 'Alq', dias = hxSep(st).diasMes || 30;
   /* la hoja de reporte de la fila: la de su proyecto, o la de cada uno */
   var ss = hxSedesDe(n, st), suf = esProp ? ' PROP' : ' ALQ';
+  /* con cortes distintos por proyecto, el de la fila si es de uno solo */
+  var cs = hxSep(st).corteSede || {};
+  if(ss.length === 1 && cs[ss[0]]) corte = String(cs[ss[0]]);
   var hoja = ss.length === 1 ? 'la hoja ' + ss[0] + suf : 'las hojas ' + ss.map(function(s){ return s + suf; }).join(', ');
   var vs = hxValMes(st).sedes || {};
   var regla = ss.map(function(s){
@@ -1323,6 +1326,14 @@ function hxPonerMes(s, m){
   hxBotones(s); hxTabla(s);
   if(typeof sedeTextos === 'function') sedeTextos();
 }
+/* Un mes armado con proyectos de lecturas distintas (juntar_sedes.py) tiene
+   cortes distintos: « (ATOC y TRMA al 11)». Vacío si todos cortan igual. */
+function hxCorteNota(sp){
+  var cs = (sp && sp.corteSede) || {}, c = sp && sp.corteDia, por = {}, k;
+  for(k in cs) if(cs[k] !== c) (por[cs[k]] = por[cs[k]] || []).push(k);
+  var txt = Object.keys(por).map(function(d){ var xs = por[d]; return (xs.length > 1 ? xs.slice(0, -1).join(', ') + ' y ' + xs[xs.length - 1] : xs[0]) + ' al ' + d; });
+  return txt.length ? ' (' + txt.join('; ') + ')' : '';
+}
 /* el titulo y la barra de pantalla completa dicen el mes si no es setiembre */
 function hxTituloMes(s){
   var st = HX[s], sec = $(hxSeccion(s));
@@ -1331,7 +1342,7 @@ function hxTituloMes(s){
   var h2 = sec.querySelector('h2.d'), mb = sec.querySelector('.xlMaxBar > span');
   if(h2){
     if(h2.getAttribute('data-orig') === null) h2.setAttribute('data-orig', h2.innerHTML);
-    h2.innerHTML = otro ? 'Flota completa, ' + esc(rot) + ' al día ' + hxCorte(st) + '.' : h2.getAttribute('data-orig');
+    h2.innerHTML = otro ? 'Flota completa, ' + esc(rot) + ' al día ' + hxCorte(st) + esc(hxCorteNota(x)) + '.' : h2.getAttribute('data-orig');
   }
   if(mb && mb.firstChild && mb.firstChild.nodeType === 3){
     if(!mb.hasAttribute('data-orig')) mb.setAttribute('data-orig', mb.firstChild.nodeValue);
@@ -1858,7 +1869,7 @@ function hxIniciar(s){
     var nodo = tr ? hxBuscarNodo(st, tr.getAttribute('data-k')) : null;
     /* la esquina de una celda comentada abre su comentario */
     if(cn && nodo){ hxAbrirNota(s, nodo, cn.getAttribute('data-cn')); return; }
-    if(tb && nodo && hxTipoNodo(st, nodo)){ abrirTablero(hxTipoNodo(st, nodo), nodo.fam, nodo.mod, nodo.id || ''); return; }
+    if(tb && nodo && hxTipoNodo(st, nodo)){ abrirTablero(hxTipoNodo(st, nodo), nodo.fam, nodo.mod, nodo.id || '', hxMesDe(st)); return; }
     /* una cifra se elige, y la barra de arriba dice de donde sale; la primera
        columna es la que despliega, como el signo + de una dinamica */
     if(td && nodo && td.cellIndex > 0){

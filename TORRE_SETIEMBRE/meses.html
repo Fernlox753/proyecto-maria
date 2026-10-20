@@ -13,6 +13,12 @@
 .luz .xlMesT.xlModoT button[aria-pressed="true"]{background:var(--cfMes); border-color:var(--cfMesB); color:var(--cfMesT); font-weight:600}
 .luz .xlMesT > i{color:var(--cfMesT)}
 .hojaXl.oscuro .xlMesT > i{color:#9FD3F2}
+/* Tablero: JUL · AGO · SET · OCT, con el mismo celeste */
+.tbMesF[hidden]{display:none}
+#tb-mes{flex-wrap:nowrap; gap:3px}
+#tb-mes .fbt{padding-left:7px; padding-right:7px}
+#tb-mes .fbt[aria-pressed="true"]{background:var(--cfMes); border-color:var(--cfMesB); color:var(--cfMesT); font-weight:600}
+.tbMesF > span{color:var(--cfMesT)}
 /* Tendencia: SETIEMBRE | JUL – SET, a la derecha del titulo */
 #v-costos .tituloV .gcMeses{display:flex; align-items:center; gap:8px; flex:0 0 auto; align-self:center}
 .gcMeses .gcT{margin:0}
