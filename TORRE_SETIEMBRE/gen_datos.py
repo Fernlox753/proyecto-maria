@@ -391,7 +391,9 @@ def columnas_reporte(filas, hoja):
         # sin columna, el dato queda vacio en vez de detener la lectura
         "dm": col(["%DM"], ("",), False), "use": col(["UTILIZ", "%UTILIZ", "%USE", "USAJE"], ("",), False),
         "hr": col(["HRAS REAL", "HORAS REAL", "HM REAL"], ("",)),
-        "hrProf": col(["HRAS PROF", "HORAS PLAN", "HM PLAN", "HORAS PROF"], ("",)),
+        # desde octubre las hojas traen «HM PROF AVANCE AL NN» (la proforma hasta el
+        # corte) y «HM PROF MENSUAL»: la torre usa la del mes entero, como antes
+        "hrProf": col(["HRAS PROF", "HORAS PLAN", "HM PLAN", "HORAS PROF", "HM PROF MENSUAL"], ("",)),
         "v": [col(["VENTA INTERNA"], ("RYM",)), col(["VENTA INTERNA"], ("MOV",)), col(["VENTA INTERNA"], TER),
               col(["VENTA INTERNA"], ("TOTAL",))],
         "t": [col(["TARIFA "], ("RYM",), False), col(["TARIFA "], ("MOV",), False), col(["TARIFA "], TER, False),
@@ -400,6 +402,12 @@ def columnas_reporte(filas, hoja):
                col(["ACUM1"], ("COSTO",))],
         "Ah": col(["ACUM1"], ("HORAS",)),
         "Av": [col(["ACUM2"], ("RYM",)), col(["ACUM2"], ("MOV",)), col(["ACUM2"], TER), col(["ACUM2"], ("VENTA",))],
+        # desde octubre: la proforma hasta el corte y la del mes, en costo, y las
+        # horas de proforma hasta el corte. Los meses anteriores no las traen
+        # (ni la hoja ATOC ALQ de octubre, que sigue con el formato viejo)
+        "pa": col(["COSTO PROFORMA AVANCE"], ("AVANCE PROY.",), False),
+        "pm": col(["COSTO PROFORMA MENSUAL"], ("PROFORMA",), False),
+        "hpa": col(["HM PROF AVANCE"], ("",), False),
     }
     return m
 
@@ -410,7 +418,10 @@ def fila_reporte(r, m):
     return {"c": [g(j) for j in m["c"]], "seg": g(m["seg"]), "prof": g(m["prof"]),
             "dm": go(m["dm"]), "use": go(m["use"]), "hr": g(m["hr"]), "hrProf": g(m["hrProf"]),
             "v": [g(j) for j in m["v"]], "t": [g(j) for j in m["t"]],
-            "Ac": [g(j) for j in m["Ac"]], "Ah": g(m["Ah"]), "Av": [g(j) for j in m["Av"]]}
+            "Ac": [g(j) for j in m["Ac"]], "Ah": g(m["Ah"]), "Av": [g(j) for j in m["Av"]],
+            # sin la columna quedan en None (no en cero): la pagina no las muestra
+            "pa": g(m["pa"]) if m["pa"] is not None else None, "pm": g(m["pm"]) if m["pm"] is not None else None,
+            "hpa": g(m["hpa"]) if m["hpa"] is not None else None}
 
 
 def leer_reporte(filas, hoja):
@@ -664,6 +675,7 @@ def leer_proyecto(sede, LIBRO):
                         "hrProf": x["hrProf"], "dm": x["dm"], "use": x["use"], "t": x["t"],
                         "A": {"c": x["Ac"], "h": x["Ah"], "v": x["Av"]},
                         "conTarifa": any(x["t"]) or any(x["v"]),
+                        "pa": x["pa"], "pm": x["pm"], "hpa": x["hpa"],
                         "porDias": e in (DEP_POR_DIAS if tipo == "PROPIO" else ALQ_POR_DIAS)}
 
     # ── cuadres de la hoja consigo misma: el Total contra sus equipos ──
@@ -884,6 +896,9 @@ def main():
                         # acumulado: c = [RyM, MOV, Dep o Alq, Seg, costo], h = horas, v = venta
                         "A": {"c": r2v(x["A"]["c"]), "h": round(x["A"]["h"], 2), "v": r2v(x["A"]["v"])}}
         if x["porDias"]: eqs[x["id"]]["porDias"] = True
+        # proforma de costo (avance y mes) y horas de proforma avance: sólo si la hoja las trae
+        for k in ("pa", "pm", "hpa"):
+            if x.get(k) is not None: eqs[x["id"]][k] = round(x[k], 2)
     periodos = sorted(set().union(*[p["periodos"] for p in P]))
     MESES = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SETIEMBRE",
              "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]

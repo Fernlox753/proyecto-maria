@@ -1,9 +1,9 @@
 /* ══════════════════════════════════════════════════════════════════
-   MESES — el interruptor de Tendencia: SETIEMBRE | JUL – SET
+   MESES — el interruptor de Tendencia: SETIEMBRE | JUL – (el último mes)
 
-   Va en la linea del titulo de Tendencia. La torre abre con setiembre, como siempre. JUL – SET recarga la pagina
+   Va en la linea del titulo de Tendencia. La torre abre con setiembre, como siempre. JUL – … recarga la pagina
    con julio y agosto sumados a DATA (meses_carga.js): toda la torre pasa a
-   los 92 dias y el periodo se elige como siempre; en Tendencia el eje abre
+   todos los dias de los meses y el periodo se elige como siempre; en Tendencia el eje abre
    POR MES. SETIEMBRE vuelve a la torre de siempre. La eleccion dura lo que
    la pestana del navegador (sessionStorage) y vuelve a Tendencia al recargar.
    Va despues de nuevo_js_nav.js: necesita irA() y la pestana armada.
@@ -24,13 +24,16 @@ function mesesUniverso(u){
   /* en la linea del titulo, a la derecha: ahi sobra lugar y la fila de
      controles del grafico sigue entera */
   var gc = document.querySelector('#v-costos .tituloV');
+  /* el rotulo del boton sale de los meses que hay: JUL – SET, JUL – OCT... */
+  var mm = TRES_MESES.meses || [], corto = function(m){ return m ? String(m.rotulo).slice(0, 3) : ''; };
+  var rotBtn = corto(mm[0]) + ' – ' + corto(mm[mm.length - 1]);
   if(gc && !$('g-universo')){
     var d = document.createElement('div');
     d.className = 'gcMeses';
     d.innerHTML = '<span class="gcT">MESES</span><div class="gcB" id="g-universo" role="group" aria-label="Meses">'
       + '<button class="fbt" type="button" data-u="set" aria-pressed="' + !tres + '" title="Sólo setiembre, la torre de siempre">SETIEMBRE</button>'
       + '<button class="fbt" type="button" data-u="tres" aria-pressed="' + tres + '" title="' + esc(MESES_ROT_TRES)
-      + ' juntos, para ver cómo se mueve entre meses (recarga la página; toda la torre pasa a los tres meses)">JUL – SET</button></div>';
+      + ' juntos, para ver cómo se mueve entre meses (recarga la página; toda la torre pasa a esos meses)">' + esc(rotBtn) + '</button></div>';
     gc.appendChild(d);
     d.addEventListener('click', function(ev){
       var b = ev.target.closest ? ev.target.closest('[data-u]') : null;

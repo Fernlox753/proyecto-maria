@@ -90,6 +90,9 @@ datos_meses = ("var TRES_MESES = " + lee(_MD, "tres_meses.json") + ";\nvar SEP_M
 meses_carga_js = lee(AQUI, "meses_carga.js")
 meses_js = lee(AQUI, "meses.js")
 meses_html = lee(AQUI, "meses.html")
+# simular cifras en Flota completa (simular.js va despues de hojas.js y comentarios.js: envuelve sus funciones)
+simular_html = lee(AQUI, "simular.html")
+simular_js = lee(AQUI, "simular.js")
 N_EQ = "{:,}".format(META["nEq"])
 CORTE = META["val"]["corte"]
 # los meses del libro mayor que entran al acumulado, dichos en palabras
@@ -262,7 +265,7 @@ cuerpo = cambia(cuerpo, "PERIODO — ELIGE UN RANGO DE MESES O UN ATAJO",
 # siguen estando en Tendencia y en Filtros.
 cuerpo = entre(cuerpo, "<!-- ═══════════════════ FLOTA ═══════════════════ -->", "</section>",
                (hojas_html + "\n" + comentarios_html + "\n" + tablero_html + "\n" + burbuja_html + "\n" + division_html
-                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html + "\n" + colores_html + "\n" + inicio_html + "\n" + oscuro_html + "\n" + meses_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
+                + "\n" + tendencia_html + "\n" + movil_html + "\n" + tajo_html + "\n" + proyecto_html + "\n" + colores_html + "\n" + inicio_html + "\n" + oscuro_html + "\n" + meses_html + "\n" + simular_html).replace("__CORTE__", str(CORTE)).replace("__PERIODOS__", PERIODOS), C)
 
 # ---- Tendencia
 cuerpo = entre(cuerpo, '<p class="lede">La misma selección de la pestaña Flota, dibujada en el tiempo.', "</p></details>",
@@ -621,7 +624,7 @@ nuevo = (cabecera + css + "\n" + cuerpo + "\n<script>\n(function(){\n"
          + "var SETIEMBRE = " + sep + ";\n"
          + datos_meses + meses_carga_js + "\n"
          + js_datos + "\n" + js_tend + "\n" + js_filt + "\n" + js_sep + "\n" + cont + tres_d
-         + "\n" + extra + "\n" + proyecto_js + "\n" + inicio_js + "\n" + transporte_js + "\n" + hojas_js + "\n" + comentarios_js + "\n" + tablero_js + "\n" + burbuja_js
+         + "\n" + extra + "\n" + proyecto_js + "\n" + inicio_js + "\n" + transporte_js + "\n" + hojas_js + "\n" + comentarios_js + "\n" + simular_js + "\n" + tablero_js + "\n" + burbuja_js
          # los modelos 3D antes de la navegacion: al final de ella se elige el primer equipo
          + "\n" + modelos3d_js + "\n" + detalle3d_js + "\n" + modelos_det_js + "\n" + tajo_js + "\n" + equipo_js + "\n" + js_nav + "\n" + meses_js
          # la division envuelve irA(): tiene que ir despues de nuevo_js_nav.js
@@ -640,7 +643,7 @@ for marca in (["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONE
               'id="divisor"', "function divAplicar", "function hxMaxi", "body.navMin",
               "function sedeCambio", 'class="sedeHueco"', "function hxSedesDe",
               'id="v-notas"', "function cmPintar", 'id="v-toda2"', "function hxPonerFlota", "function tbTodos", 'id="divDos"',
-              "function enlazarOrdenes", "function hxPonerMes", "function mesesUniverso", 'id="hx-mes-T"', 'id="hx-mes-U"']
+              "function enlazarOrdenes", "function hxPonerMes", "function mesesUniverso", "function simTrasArbol", 'id="sim-editor"', 'id="hx-mes-T"', 'id="hx-mes-U"']
              + (["var TRES_MESES = {", "var SEP_MESES = {"] if HAY_MESES else [])):
     print(("  OK      " if marca in nuevo else "  FALTA   ") + marca)
 # nada de esto debe quedar a la vista: es vocabulario de la Torre del libro mayor

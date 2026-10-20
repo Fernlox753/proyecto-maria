@@ -189,7 +189,7 @@ function hxOrdenes(e){
 
 /* simbolo de cada grupo: ▼ costo · ▲ venta · ± diferencia · ◷ horas ·
    /h por hora · Σ acumulado */
-var HX_SIM = { costo: '▼', oper: '◷', venta: '▲', desv: '±', treal: '▼/h', tventa: '▲/h',
+var HX_SIM = { costo: '▼', prof: '▽', oper: '◷', venta: '▲', desv: '±', treal: '▼/h', tventa: '▲/h',
                tacum: 'Σ/h', cacum: 'Σ▼', vacum: 'Σ▲', dacum: 'Σ±' };
 
 /* ---------- las columnas ----------
@@ -220,8 +220,11 @@ function hxColumnas(esProp, st){
       /* sem: semaforo de la celda, verde desde ese valor y rojo por debajo */
       { t: '% DM', f: 'p', sem: 85, v: function(o){ return o.dm; } },
       { t: '% Uso', f: 'p', v: function(o){ return o.use; } },
-      { t: 'Horas real', f: 'n1', k: 1, v: function(o){ return o.hr; } },
-      { t: 'HM prof', f: 'n', v: function(o){ return o.hrProf; } } ] },
+      { t: 'Horas real', f: 'n1', k: 1, semH: 1, v: function(o){ return o.hr; } },
+      { t: hxConProf(st) ? 'HM mes' : 'HM prof', f: 'n', oc: 1, v: function(o){ return o.hrProf; } } ]
+      /* desde octubre: las horas de proforma hasta el corte (va al final del
+         grupo para que las claves de columna de los otros meses no se corran) */
+      .concat(hxConProf(st) ? [{ t: 'HM avance', f: 'n', oc: 1, v: function(o){ return o.hpa; } }] : []) },
     { id: 'costo', t: 'COSTO REAL AL ' + hxCorte(st), cols: [
       { t: 'RyM', f: 'n', v: function(o){ return o.c[0]; } },
       { t: 'MOV', f: 'n', v: function(o){ return o.c[1]; } },
@@ -271,6 +274,22 @@ function hxColumnas(esProp, st){
       { t: 'Total', f: 'd', k: 1, v: function(o){ return tav(o) - tac(o); } } ] }
   ];
 }
+/* Desde octubre las hojas PROP y ALQ traen la proforma: costo hasta el corte
+   («Costo Avance Proy.»), costo del mes («Costo Proforma») y horas hasta el
+   corte («HM Prof Avance»). Sólo salen en los meses que las tienen. */
+function hxConProf(st){
+  var sp = hxSep(st);
+  if(sp._conProf === undefined){
+    sp._conProf = false;
+    for(var id in sp.eq || {}){ var x = sp.eq[id]; if(x.pa !== undefined || x.pm !== undefined || x.hpa !== undefined){ sp._conProf = true; break; } }
+  }
+  return sp._conProf;
+}
+function hxGrupoProf(st){
+  return hxConProf(st) ? [{ id: 'prof', t: 'COSTO PROFORMA', cols: [
+    { t: 'Avance al ' + hxCorte(st), f: 'n', k: 1, v: function(o){ return o.pa; } },
+    { t: 'Mensual', f: 'n', v: function(o){ return o.pm; } } ] }] : [];
+}
 function hxColumnasT(st){
   var por = function(x, h){ return h ? x / h : null; };
   var per = (hxSep(st).acumPeriodos || []).length;
@@ -294,10 +313,13 @@ function hxColumnasT(st){
     { id: 'oper', t: 'OPERACIÓN', cols: [
       { t: '% DM', f: 'p', sem: 85, v: function(o){ return o.dm; } },
       { t: '% Uso', f: 'p', v: function(o){ return o.use; } },
-      { t: 'Horas real', f: 'n1', k: 1, v: function(o){ return o.hr; } },
-      { t: 'HM prof', f: 'n', v: function(o){ return o.hrProf; } } ] },
+      { t: 'Horas real', f: 'n1', k: 1, semH: 1, v: function(o){ return o.hr; } },
+      { t: hxConProf(st) ? 'HM mes' : 'HM prof', f: 'n', oc: 1, v: function(o){ return o.hrProf; } } ]
+      /* desde octubre: las horas de proforma hasta el corte (va al final del
+         grupo para que las claves de columna de los otros meses no se corran) */
+      .concat(hxConProf(st) ? [{ t: 'HM avance', f: 'n', oc: 1, v: function(o){ return o.hpa; } }] : []) },
     { id: 'costo', t: 'COSTO REAL AL ' + hxCorte(st), cols: cuatro(function(o, i){ return o.c[i]; }, 'n')
-        .concat([{ t: 'Total', f: 'n', k: 1, v: tc }]) },
+        .concat([{ t: 'Total', f: 'n', k: 1, v: tc }]) } ].concat(hxGrupoProf(st)).concat([
     { id: 'venta', t: 'VENTA INTERNA AL ' + hxCorte(st), cols: cuatro(function(o, i){ return o.v[i]; }, 'n')
         .concat([{ t: 'Total', f: 'n', k: 1, v: tv }]) },
     { id: 'desv', t: 'DESVIACIÓN VENTA − COSTO', cols: cuatro(function(o, i){ return o.v[i] - o.c[i]; }, 'd')
@@ -316,7 +338,7 @@ function hxColumnasT(st){
         .concat([{ t: 'Venta acum', f: 'n', k: 1, v: tav }]) },
     { id: 'dacum', ac: 1, t: 'DESVIACIÓN ACUMULADA', cols: cuatro(function(o, i){ return o.A.v[i] - o.A.c[i]; }, 'd')
         .concat([{ t: 'Total', f: 'd', k: 1, v: function(o){ return tav(o) - tac(o); } }]) }
-  ];
+  ]);
 }
 /* la columna del total de cada hoja (para ordenar por ella) */
 function hxIdxTotal(s){ return hxEsT(s) ? 4 : 3; }
@@ -324,6 +346,7 @@ function hxCorte(st){ var x = hxSep(st); return ((x && x.corte) || '').replace(/
 
 /* ---------- el arbol ---------- */
 function hxCero(){ return { c: [0, 0, 0, 0], v: [0, 0, 0, 0], hr: 0, hrProf: 0, dm: null, use: null, n: 0, np: 0, nq: 0,
+                            pa: null, pm: null, hpa: null, nhpa: 0,
                             A: { c: [0, 0, 0, 0, 0], h: 0, v: [0, 0, 0, 0] } }; }
 /* varias filas en una. DM y uso son el promedio simple de los equipos que
    lo tienen, que es lo que hace el PROMEDIO.SI del Excel. */
@@ -334,6 +357,10 @@ function hxSuma(filas){
     for(i = 0; i < 5; i++) o.A.c[i] += f.A.c[i];
     o.A.h += f.A.h; o.hr += f.hr; o.hrProf += f.hrProf; o.n += f.n;
     o.np += f.np || 0; o.nq += f.nq || 0;
+    /* la proforma de octubre: suma de los que la traen (ATOC ALQ no la trae) */
+    if(f.pa !== null && f.pa !== undefined) o.pa = (o.pa || 0) + f.pa;
+    if(f.pm !== null && f.pm !== undefined) o.pm = (o.pm || 0) + f.pm;
+    if(f.hpa !== null && f.hpa !== undefined){ o.hpa = (o.hpa || 0) + f.hpa; o.nhpa += f.nhpa || 0; }
     /* se arrastran suma y cuenta: el promedio de una familia es el de sus
        equipos, no el promedio de los promedios de sus modelos */
     sd += f.sd; nd += f.nd; su += f.su; nu += f.nu;
@@ -356,6 +383,8 @@ function hxArbol(s){
     var e = { k: 'e|' + id, lv: 4, et: id, fam: x.fam, mod: x.mod, sede: x.sede, tipo: x.tipo, sub: sub, id: id,
               busca: (id + ' ' + x.mod + ' ' + x.fam + ' ' + (x.prov || '') + (hxEsT(s) ? ' ' + x.tipo : '')).toUpperCase(),
               o: { c: c4(x.c), v: c4(x.v), hr: x.hr || 0, hrProf: x.hrProf || 0, dm: x.dm, use: x.use, n: 1, A: A,
+                   pa: x.pa === undefined ? null : x.pa, pm: x.pm === undefined ? null : x.pm,
+                   hpa: x.hpa === undefined ? null : x.hpa, nhpa: x.hpa === undefined ? 0 : 1,
                    np: pr ? 1 : 0, nq: pr ? 0 : 1,
                    sd: x.dm === null || x.dm === undefined ? 0 : x.dm, nd: x.dm === null || x.dm === undefined ? 0 : 1,
                    su: x.use === null || x.use === undefined ? 0 : x.use,
@@ -404,7 +433,7 @@ function hxCelda(c, o){
   return hxN(x, c.f === 'n1' ? 1 : 0);
 }
 /* el titulo de un grupo plegado: corto, para que la columna no se ensanche */
-var HX_CORTO = { costo: 'COSTO REAL', oper: 'OPERA&shy;CIÓN', venta: 'VENTA INTERNA', desv: 'DESVIA&shy;CIÓN',
+var HX_CORTO = { costo: 'COSTO REAL', prof: 'PRO&shy;FORMA', oper: 'OPERA&shy;CIÓN', venta: 'VENTA INTERNA', desv: 'DESVIA&shy;CIÓN',
   treal: 'TARIFA REAL', tventa: 'TARIFA VENTA', tacum: 'TARIFA ACUM.', cacum: 'COSTO ACUM.',
   vacum: 'VENTA ACUM.', dacum: 'DESV. ACUM.' };
 /* las columnas de un grupo que estan a la vista */
@@ -414,8 +443,26 @@ function hxVisibles(st, g){
   return g.cols.filter(function(c){
     if(c.t3 && !st.ter) return false;       /* sin el tercer componente, su columna no se ensena */
     if(c.fuera && c.fuera()) return false;  /* Flota completa: Dep o Alq fuera del total */
+    if(c.oc && st.colOc && st.colOc[g.id + '-' + g.cols.indexOf(c)]) return false;  /* escondida con su − */
     return st.cerrado[g.id] ? c.k : true;
   });
+}
+/* La fila Total no muestra tarifas: la de toda la flota es un ponderado de
+   modelos muy distintos y se puede leer como la tarifa de alguno. Sus celdas
+   van vacías y no se eligen, comentan ni simulan. */
+var HX_TARIFAS = { treal: 1, tventa: 1, tacum: 1 };
+function hxSinTarifa(n, grupo){ return !!(n && n.esTot && HX_TARIFAS[grupo]); }
+/* Horas reales contra la proforma a la fecha (la del mes × día de corte ÷
+   días del mes, como la tarjeta HORAS MÁQUINA): el número en verde si la
+   alcanza y en rojo si no, con las clases de las desviaciones. Sin
+   proforma, sin color. */
+function hxSemHoras(st, c, o){
+  if(!c.semH || !o || o.ot === 1) return '';
+  /* desde octubre la hoja trae la proforma hasta el corte: se usa si la tienen todos los equipos de la fila */
+  if(o.hpa !== null && o.hpa !== undefined && o.nhpa === o.n && o.hpa > 0) return (o.hr || 0) >= o.hpa ? 'pos' : 'neg';
+  if(!(o.hrProf > 0)) return '';
+  var sp = hxSep(st), dias = sp.diasMes || 30, f = (sp.corteDia || dias) / dias;
+  return (o.hr || 0) >= o.hrProf * f ? 'pos' : 'neg';
 }
 /* la esquina de una celda comentada, como el triangulo rojo de Excel */
 function hxMarca(st, n, col){
@@ -429,7 +476,7 @@ function hxCeldas(st, n, o0){
   return st.cols.map(function(g){
     var vis = hxVisibles(st, g);
     /* una orden de trabajo solo tiene costo: lo demas es del equipo */
-    if(n.ot && g.id !== 'costo'){
+    if((n.ot && g.id !== 'costo') || hxSinTarifa(n, g.id)){
       return vis.map(function(c, i){ return '<td class="g-' + g.id + (i ? '' : ' ini') + '"></td>'; }).join('');
     }
     return vis.map(function(c, i){
@@ -439,6 +486,9 @@ function hxCeldas(st, n, o0){
         var vs = hxValorFiltro(c, n.o);
         if(vs !== null) h = '<span class="sem ' + (vs >= c.sem ? 'v' : 'r') + '">' + h + '</span>';
       }
+      /* horas reales contra la proforma: el numero en verde o rojo, como las desviaciones */
+      var sh = hxSemHoras(st, c, n.o);
+      if(sh) h = '<span class="' + sh + '">' + h + '</span>';
       var sel = st.sel && n.k && st.sel.k === n.k && st.sel.col === col;
       return '<td class="g-' + g.id + (i ? '' : ' ini') + (m ? ' cn' : '') + (sel ? ' sel' : '') + '">'
         + (c.k ? '<b>' + h + '</b>' : h)
@@ -537,7 +587,14 @@ function hxOrigenPA(st, n, col, sinNivel){
       de('%DM', '%DM') + (!n.id ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
       de('%Utiliz.', '%Utiliz.') + (!n.id ? ' En un grupo es el promedio simple de los equipos que tienen dato.' : ''),
       de('Hras Real al ' + corte, 'Hras Real') + ' Son las horas del horómetro de SAP hasta el día ' + corte + '.' + grupo,
-      de('Hras Prof (mes)', 'Hras Prof') + ' Son las horas proformadas para TODO el mes, no sólo hasta el día ' + corte + '.' + grupo][i];
+      (hxConProf(st) ? de('HM Prof Mensual', 'HM Prof Mensual') : de('Hras Prof (mes)', 'Hras Prof'))
+        + ' Son las horas proformadas para TODO el mes, no sólo hasta el día ' + corte + '.' + grupo,
+      de('HM Prof Avance al ' + corte, 'HM Prof Avance') + ' Son las horas proformadas hasta el día ' + corte
+        + ': contra ellas se pinta en verde o rojo Horas real.' + (!n.id ? ' En un grupo es la suma de los equipos que la traen (la hoja ATOC ALQ no la trae).' : '')][i];
+  else if(g === 'prof') o = [
+      de('Costo Proforma Avance al ' + corte, 'Avance Proy.') + ' Es el costo de la proforma hasta el día ' + corte + ': lo que se esperaba gastar a la fecha.',
+      de('Costo Proforma Mensual', 'Proforma') + ' Es el costo de la proforma de TODO el mes.'][i]
+      + (!n.id ? ' En un grupo es la suma de los equipos que la traen (la hoja ATOC ALQ, con el formato anterior, no la trae).' : '');
   else if(g === 'venta') o = i < 3 ? de('Venta Interna al ' + corte, nomC[i]) + ' En el Excel es la tarifa de venta × horas reales.'
                                      + (!esProp && i === 2 ? ' Es la misma cifra que la columna Alq del costo: las dos salen de la tarifa de venta.' : '')
                                      + (!st.ter && i === 2 ? ' No entra al total.' : '') + grupo
@@ -1031,8 +1088,8 @@ function hxCifras(s){
     + tarjeta('VENTA − COSTO', (d > 0 ? '+' : d < 0 ? '−' : '') + 'US$ ' + fmt(Math.abs(d)),
               desv + gd(d < 0 ? 'el costo supera a la venta' : 'la venta cubre el costo'), d < 0 ? 'alza' : 'bien')
     + tarjeta('HORAS MÁQUINA', fmt(h) + ' h', oper + gd('proforma del mes ' + fmt(tot.hrProf) + ' h'))
-    + tarjeta('TARIFA REAL', 'US$ ' + (h ? (tc / h).toFixed(1) : '—') + '/h',
-              (h ? cv(tot.c, tot.v, h) : '') + gd('contra US$ ' + (h ? (tv / h).toFixed(1) : '—') + '/h de venta'))
+    /* sin tarjeta de tarifa: la de toda la hoja es un promedio de modelos muy
+       distintos y no dice nada (tampoco va en la fila Total, hxSinTarifa) */
     + hxTarjetaAcum(st, tot, ter, esProp, comps));
   /* recortadas, las tarjetas llevan una raya azul: no son de toda la hoja */
   var cif = $('hx-cifras-' + s);
@@ -1084,8 +1141,6 @@ function hxTarjetaAcum(st, tot, ter, esProp, comps){
            + fila('Seg / otros', A.c[3], null))
     + fila('Total', tac, tav, 'tot')
     + '<tr><td>Horas</td><td colspan="3">' + fmt(h) + ' h</td></tr>'
-    + '<tr><td>Tarifa por hora</td><td colspan="3">real US$ ' + (h ? (tac / h).toFixed(1) : '—')
-      + ' · venta US$ ' + (h ? (tav / h).toFixed(1) : '—') + '</td></tr>'
     + '</tbody></table>'
     + '<p>Los bloques «Acumulado 2026» de las hojas PROP y ALQ, tal cual: el libro mayor de ' + desde + ' más ' + hxMesNom(st) + ' al día ' + hxCorte(st)
     + '. ' + (esT ? '' : (ter ? '' : 'El ' + t3.toLowerCase() + ' no entra al total (botón ' + (esProp ? 'SIN DEP' : 'SIN ALQ') + '). '))
@@ -1110,12 +1165,16 @@ function hxTabla(s){
       + g.id + '" aria-expanded="' + !c + '" title="' + (c ? 'Desplegar «' + esc(g.t) + '»' : 'Plegar este grupo de columnas')
       + ' · mantén presionado y arrastra para moverlo">'
       + '<i>' + (c ? '+' : '−') + '</i><span class="sim">' + HX_SIM[g.id] + '</span><span class="gt">'
-      + (c ? (HX_CORTO[g.id] || g.t.split(' ·')[0]) : g.t) + '</span></button></th>';
+      + (c ? (HX_CORTO[g.id] || g.t.split(' ·')[0]) : g.t) + '</span></button>'
+      + (hxColOcultas(st, g) ? '<button type="button" class="xlOcV" data-ocv="' + g.id + '" title="Volver a mostrar las columnas escondidas de este grupo">+' + hxColOcultas(st, g) + '</button>' : '')
+      + '</th>';
   }).join('');
   /* con algun grupo plegado la tabla se ajusta a sus columnas (ver hojas.html) */
   var plegada = st.cols.some(function(g){ return st.cerrado[g.id] && hxVisibles(st, g).length; });
   var tEl = $('hx-tabla-' + s);
   if(tEl) tEl.classList.toggle('plegada', plegada);
+  /* Flota completa lleva debajo del Total la fila de porcentajes (hojas.html la sube el alto de esa fila) */
+  if(tEl) tEl.classList.toggle('conPct', hxEsT(s));
   var marca = function(g, i){
     return st.ord.g === g && st.ord.i === i ? ' xord' + (st.ord.dir > 0 ? ' asc' : '') : '';
   };
@@ -1126,11 +1185,13 @@ function hxTabla(s){
           var col = g.id + '-' + g.cols.indexOf(c), fon = !!(st.filtros && st.filtros[col]);
           return '<th class="g-' + g.id + (i ? '' : ' ini') + (st.cerrado[g.id] ? ' cerr' : '') + (fon ? ' xf' : '') + marca(g.id, g.cols.indexOf(c)) + '" data-s="' + g.id + '|'
             + g.cols.indexOf(c) + '">' + c.t
+            + (c.oc ? '<button type="button" class="xlOc" data-oc="' + col + '" title="Esconder esta columna (vuelve con el + del grupo)" aria-label="Esconder esta columna">−</button>' : '')
             + '<button type="button" class="xlF' + (fon ? ' on' : '') + '" data-f="' + col + '" title="'
             + (fon ? 'Filtro: ' + esc(hxTextoFiltro(st, col)) : 'Filtrar por valor') + '" aria-label="Filtrar esta columna por valor">▾</button></th>';
         }).join('');
       }).join('');
-  /* con filtros, familias, modelos y total llevan debajo su cifra original */
+  /* con filtros, la cifra original va sólo debajo del Total; en familias y
+     modelos queda nada más el «N de M equipos» de la primera columna */
   var filt = hxHayRecorte(st), orig = {};
   /* la vista sin recorte, en el mismo orden, da la cifra original de cada grupo */
   if(filt){
@@ -1157,12 +1218,13 @@ function hxTabla(s){
           + '" title="Abrir el tablero de análisis de ' + (n.id ? 'este equipo' : n.esFl ? 'los ' + HX_FL_NOM[n.fl].toLowerCase() + ' de esta rama' : n.esFam ? 'esta familia' : 'este modelo') + '">TABLERO ▦</button>' : '')
       + (n.id && byId[n.id] && !hxEsOtroMes(st) ? '<button type="button" class="xlIr" data-ir="' + esc(n.id)
           + '" title="Abrir este equipo en la pestaña Equipo">VER ↗</button>' : '')
-      + m + '</td>' + hxCeldas(st, n, o0) + '</tr>';
+      + m + '</td>' + hxCeldas(st, n, null) + '</tr>';
   }).join('') || '<tr><td class="fija">Ningún equipo ' + (filt ? 'cumple los filtros' : 'con esa búsqueda') + '.</td><td colspan="80"></td></tr>';
   var tot = st.totalVista || st.total, nt = hxNodoTotal(st);
   var pie = '<tr data-k="' + esc(nt.k) + '"' + (st.sel && st.sel.k === nt.k ? ' class="filaSel"' : '') + '><td class="fija">Total · ' + fmt(tot.n) + (filt ? ' de ' + fmt(st.total.n) : '') + ' equipos'
     + (filt ? '<span class="xo">original, sin filtros</span>' : '') + hxMarca(st, nt, 'et') + '</td>'
-    + hxCeldas(st, nt, filt ? st.total : null) + '</tr>';
+    + hxCeldas(st, nt, filt ? st.total : null) + '</tr>'
+    + (hxEsT(s) ? hxFilaPct(st, tot) : '');
   hxBarraFiltros(s);
   htm('hx-tabla-' + s, '<thead><tr class="g">' + cab1 + '</tr><tr class="c">' + cab2 + '</tr></thead>'
     + '<tbody>' + cuerpo + '</tbody><tfoot>' + pie + '</tfoot>');
@@ -1171,6 +1233,29 @@ function hxTabla(s){
   /* ya, para que no se vea un cuadro sin ajustar */
   hxAjustarAncho(s);
   requestAnimationFrame(hxAjustarAlto);
+}
+/* Debajo del Total, cuánto pesa cada componente en su total (el total es el
+   100%), con lo que se ve: CON / SIN, selección y filtros. Va en costo, venta
+   y acumulados de costo y venta. Las tarifas no (la fila Total no las lleva:
+   hxSinTarifa); operación, desviaciones, Seg y horas no son partes de un
+   total y van vacías, igual que un grupo plegado (sólo queda su total). */
+var HX_PCT = { costo: 1, venta: 1, cacum: 1, vacum: 1 };
+function hxFilaPct(st, tot){
+  return '<tr class="xlPct"><td class="fija">% del total</td>' + st.cols.map(function(g){
+    var vis = hxVisibles(st, g), kc = null;
+    g.cols.forEach(function(c){ if(c.k) kc = c; });
+    var T = HX_PCT[g.id] && kc && !st.cerrado[g.id] ? kc.v(tot) : null;
+    var hay = T !== null && T !== undefined && isFinite(T) && Math.abs(T) > 1e-9;
+    return vis.map(function(c, i){
+      var ix = g.cols.indexOf(c), x = '';
+      if(hay && c === kc) x = '100%';
+      else if(hay && ix < 4){
+        var v = c.v(tot);
+        if(v !== null && v !== undefined && isFinite(v)) x = (v / T * 100).toFixed(1) + '%';
+      }
+      return '<td class="g-' + g.id + (i ? '' : ' ini') + '">' + x + '</td>';
+    }).join('');
+  }).join('') + '</tr>';
 }
 /* Con el alquiler sumado la cifra no es un costo real: el consolidado lo
    calcula con la tarifa de VENTA, asi que es la misma a los dos lados. Se
@@ -1216,8 +1301,21 @@ function hxPonerMes(s, m){
   if(!st.arbol || hxMesDe(st) === m || !(m === HX_MES_DEF || SEP_MESES.sep[m])) return;
   st.mes = m;
   var por = {};
-  (hxEsT(s) ? hxColumnasT(st) : hxColumnas(s === 'P', st)).forEach(function(g){ por[g.id] = g; });
-  st.cols = st.cols.map(function(g){ return por[g.id] || g; });
+  var nuevas = hxEsT(s) ? hxColumnasT(st) : hxColumnas(s === 'P', st), hay = {};
+  nuevas.forEach(function(g){ por[g.id] = g; });
+  /* los grupos que siguen, en el orden que tenían; los que el mes no trae se
+     van, y uno nuevo entra detrás del que lo precede en el orden normal */
+  var out = st.cols.filter(function(g){ return por[g.id]; }).map(function(g){ hay[g.id] = 1; return por[g.id]; });
+  nuevas.forEach(function(g, i){
+    if(hay[g.id]) return;
+    var pos = 0;
+    for(var j = i - 1; j >= 0; j--){
+      var k = out.map(function(x){ return x.id; }).indexOf(nuevas[j].id);
+      if(k >= 0){ pos = k + 1; break; }
+    }
+    out.splice(pos, 0, g); hay[g.id] = 1;
+  });
+  st.cols = out;
   hxArbol(s);
   st.sel = null;
   hxPodarEleccion(st, -1);
@@ -1261,6 +1359,23 @@ function hxPonerOrdenCols(s, vis){
   if(orden.join() === ids.join()) return;
   st.cols = orden.map(function(id){ return por[id]; });
   try { localStorage.setItem('torreSet.ordenCols.' + s, JSON.stringify(orden)); } catch(e){}
+  hxTabla(s);
+}
+/* Columnas que se esconden con un − chico en su cabecera (hoy las horas de
+   proforma: HM mes y HM avance). Vuelven con el +N de la cabecera de su
+   grupo. Se recuerda por hoja; la clave es la de la columna ('oper-3'). */
+function hxColOcultas(st, g){
+  var n = 0;
+  g.cols.forEach(function(c, i){ if(c.oc && st.colOc && st.colOc[g.id + '-' + i]) n++; });
+  return n;
+}
+function hxEsconderCol(s, clave, si){
+  var st = HX[s];
+  st.colOc = st.colOc || {};
+  if(si) st.colOc[clave] = 1;
+  else Object.keys(st.colOc).forEach(function(k){ if(k.split('-')[0] === clave) delete st.colOc[k]; });
+  try { localStorage.setItem('torreSet.colOc.' + s, JSON.stringify(st.colOc)); } catch(e){}
+  if(st.sel && st.colOc[st.sel.col]) st.sel = null;
   hxTabla(s);
 }
 /* abre todo hasta un nivel, como los botones 1 2 3 4 del esquema de Excel */
@@ -1393,7 +1508,7 @@ function hxBarraFiltros(s){
           + '" aria-label="Quitar este filtro" title="Quitar">×</button></span>';
       }).join('')
     + '<button type="button" class="todos" data-fx="*">QUITAR TODO</button>'
-    + '<span class="nt">Las tarjetas de arriba, las familias, los modelos y el total suman sólo esto; la cifra chica de debajo es la original, de toda la hoja.'
+    + '<span class="nt">Las tarjetas de arriba, las familias, los modelos y el total suman sólo esto; debajo del Total, en chico, la cifra original de toda la hoja.'
     + (st.eleg.ot.length || st.eleg.fa.length ? ' Con fases u órdenes elegidas, cada equipo sigue con sus cifras completas: horas, venta y depreciación no se reparten por fase ni por orden.' : '')
     + '</span>';
 }
@@ -1663,6 +1778,8 @@ function hxIniciar(s){
   st.terD = true; st.terA = false;
   st.cols = hxOrdenCols(s, hxEsT(s) ? hxColumnasT(st) : hxColumnas(s === 'P', st));
   st.cerrado = {}; st.oculto = {}; st.filtros = {}; st.busca = ''; st.ab = {};
+  st.colOc = {};
+  try { st.colOc = JSON.parse(localStorage.getItem('torreSet.colOc.' + s) || '{}') || {}; } catch(e){}
   st.modo = 'desplegar'; st.eleg = hxElegVacia();
   /* el orden de los niveles que se dejo la ultima vez en esta hoja. Uno
      guardado antes del nivel FLOTA (modelo, equipo y fase) lo recibe arriba */
@@ -1731,6 +1848,10 @@ function hxIniciar(s){
     /* el ▾ de una cabecera abre su filtro y no ordena la columna */
     var fb = q('[data-f]');
     if(fb){ ev.stopPropagation(); hxAbrirFiltro(s, fb.getAttribute('data-f'), fb); return; }
+    /* el − de una cabecera esconde su columna; el +N del grupo las devuelve */
+    var oc = q('[data-oc]'), ocv = q('[data-ocv]');
+    if(oc){ ev.stopPropagation(); hxEsconderCol(s, oc.getAttribute('data-oc'), true); return; }
+    if(ocv){ ev.stopPropagation(); hxEsconderCol(s, ocv.getAttribute('data-ocv'), false); return; }
     var g = q('[data-g]'), cn = q('[data-cn]'), ir = q('[data-ir]'), th = q('th[data-s]'), tb = q('[data-tb]');
     var tr = q('tbody tr[data-k], tfoot tr[data-k]'), td = q('tbody td, tfoot td');
     if(g){ var id = g.getAttribute('data-g'); st.cerrado[id] = !st.cerrado[id]; return repinta(); }
@@ -1742,7 +1863,7 @@ function hxIniciar(s){
        columna es la que despliega, como el signo + de una dinamica */
     if(td && nodo && td.cellIndex > 0){
       var col = st.vis[td.cellIndex - 1];
-      if(!col || (nodo.ot && col.indexOf('costo-') !== 0)) return;
+      if(!col || (nodo.ot && col.indexOf('costo-') !== 0) || hxSinTarifa(nodo, col.split('-')[0])) return;
       st.sel = { k: nodo.k, col: col };
       return repinta();
     }

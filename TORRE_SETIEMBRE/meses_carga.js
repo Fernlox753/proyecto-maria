@@ -9,7 +9,7 @@
       suman julio y agosto a DATA antes de que nada lo lea: los dias de
       setiembre se corren al final (julio, agosto, setiembre) y lo de los
       otros meses entra en la cola de cada lista. Todo lo demas de la torre
-      funciona igual, sobre los 92 dias. TRES_MESES lo arma juntar_meses.py.
+      funciona igual, sobre todos los dias de los meses. TRES_MESES lo arma juntar_meses.py.
    ══════════════════════════════════════════════════════════════════ */
 (function enlazarOrdenes(){
   (DATA.equipos || []).forEach(function(q){
@@ -25,7 +25,7 @@ var MODO_MESES = (function(){
   return m === 'tres' ? 'tres' : 'set';
 })();
 
-/* julio – setiembre 2026: el nombre de los tres meses juntos */
+/* julio – octubre 2026: el nombre de los meses juntos */
 var MESES_ROT_TRES = (function(){
   if(typeof TRES_MESES === 'undefined') return '';
   var m = TRES_MESES.meses;

@@ -210,6 +210,19 @@ table.xl thead tr.g th.g-costo{background:#4A5A78}
 table.xl thead tr.c th.g-costo{background:#E6EAF1; color:#4A5A78; box-shadow:inset 0 -3px 0 #4A5A78}
 table.xl tbody tr td.g-costo{background:#F3F5F9}
 table.xl tbody tr.n2 td.g-costo,table.xl tbody tr.n3 td.g-costo{background:#E6EAF1}
+/* la proforma de costo (desde octubre): violeta grisáceo, como un plan */
+table.xl thead tr.g th.g-prof{background:#6B6290}
+table.xl thead tr.c th.g-prof{background:#ECE9F3; color:#6B6290; box-shadow:inset 0 -3px 0 #6B6290}
+table.xl tbody tr td.g-prof{background:#F6F5FA}
+table.xl tbody tr.n2 td.g-prof,table.xl tbody tr.n3 td.g-prof{background:#ECE9F3}
+/* el − chico para esconder una columna y el +N de su grupo para devolverla */
+.xlOc{all:unset; cursor:pointer; display:inline-block; margin-left:4px; padding:0 3px; font-size:10px; line-height:12px;
+  border:1px solid currentColor; border-radius:2px; opacity:.55; vertical-align:middle}
+.xlOc:hover,.xlOc:focus-visible{opacity:1}
+.xlOc:focus-visible,.xlOcV:focus-visible{outline:2px solid var(--sm); outline-offset:1px}
+.xlOcV{all:unset; cursor:pointer; margin-left:6px; padding:0 4px; font-size:10px; line-height:13px; border:1px solid rgba(255,255,255,.7);
+  border-radius:2px; color:#fff; vertical-align:middle}
+.xlOcV:hover{background:rgba(255,255,255,.2)}
 table.xl thead tr.g th.g-oper{background:#3F6F72}
 table.xl thead tr.c th.g-oper{background:#E2EDED; color:#3F6F72; box-shadow:inset 0 -3px 0 #3F6F72}
 table.xl tbody tr td.g-oper{background:#F1F6F6}
@@ -271,6 +284,13 @@ table.xl tbody tr td.sel{background:#DCE8FA}
 table.xl tfoot td{position:sticky; bottom:0; z-index:2; background:var(--tinta); color:#fff;
                   font-weight:600; border-bottom:0}
 table.xl tfoot .fija{background:var(--tinta); color:#fff; z-index:3}
+/* la fila de porcentajes, debajo del Total: las dos van pegadas al pie, el
+   Total encima de ella (bottom = su alto, fijo) */
+table.xl.conPct tfoot tr:not(.xlPct) td{bottom:22px}
+table.xl tfoot tr.xlPct td{bottom:0; height:22px; padding-top:0; padding-bottom:0; line-height:22px; font-weight:400;
+  font-size:11px; color:rgba(255,255,255,.8); background:#2B3B57; cursor:default; border-top:1px solid rgba(255,255,255,.12)}
+table.xl tfoot tr.xlPct td.fija{font-family:"IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; font-size:10px; color:rgba(255,255,255,.7)}
+table.xl tfoot tr.xlPct td:not(.fija):hover{background:#2B3B57}
 table.xl tfoot .neg{color:#FFB199} table.xl tfoot .pos{color:#9BE3B4} table.xl tfoot .z{color:#fff}
 /* Flota completa: TODA / PROPIOS / ALQUILADOS en el renglon del rotulo, arriba de los proyectos */
 .xlFlotaT button{all:unset; cursor:pointer; padding:2px 7px; border:1px solid var(--linea); font-size:10px;
@@ -322,7 +342,7 @@ table.xl tfoot tr.filaSel > td{background-image:linear-gradient(rgba(255,214,90,
 .hojaXl .tituloV h2{font-size:clamp(1.15rem,1.9vw,1.6rem); max-width:none; margin:2px 0}
 .hojaXl .tituloV details.expl{margin:0; flex:1 1 260px}
 /* las seis tarjetas en una sola fila; en pantallas angostas pasan a dos o tres por fila */
-.hojaXl .granTotal{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); align-items:start;
+.hojaXl .granTotal{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); align-items:start;
   margin-top:6px; padding:10px 0; gap:10px clamp(12px,1.6vw,24px)}
 .hojaXl .granTotal > *{min-width:0}
 /* barritas de las tarjetas de costo y tarifa: barra = costo, raya negra = venta */

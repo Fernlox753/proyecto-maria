@@ -1,0 +1,101 @@
+<style>
+/* ══ SIMULAR (simular.js) ══
+   Azul para todo lo simulado: la celda que se cambió lleva la esquina azul
+   (la roja es la de los comentarios), las que se movieron un velo azul con
+   la cifra real debajo. El velo va en background-image, como el de la fila
+   elegida, para quedar encima del color del grupo sin pelear especificidad. */
+.xlSimBtn{all:unset; cursor:pointer; align-self:center; padding:4px 10px; border:1px solid var(--linea);
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; color:var(--tinta-2); white-space:nowrap}
+.xlSimBtn:hover{border-color:#3B6FD8; color:#3B6FD8}
+.xlSimBtn:focus-visible{outline:2px solid var(--sm); outline-offset:2px}
+.xlSimBtn[aria-pressed="true"]{background:#DCE6FB; border-color:#7FA2E8; color:#1E3F8F; font-weight:600}
+.hojaXl.oscuro .xlSimBtn:not([aria-pressed="true"]){border-color:rgba(160,195,255,.35); color:#CFE0FF}
+.hojaXl.oscuro .xlSimBtn:not([aria-pressed="true"]):hover{border-color:#8FB4FF; color:#fff}
+
+table.xl tbody tr > td.simD,.hojaXl.oscuro table.xl tbody tr:not(.filaSel) > td.simD{
+  background-image:linear-gradient(rgba(59,111,216,.16), rgba(59,111,216,.16)) !important; color:#173C8F}
+table.xl tbody tr > td.simC,.hojaXl.oscuro table.xl tbody tr:not(.filaSel) > td.simC{
+  background-image:linear-gradient(rgba(59,111,216,.30), rgba(59,111,216,.30)) !important; box-shadow:inset 0 0 0 1px #3B6FD8}
+table.xl tfoot tr > td.simD{background-image:linear-gradient(rgba(120,170,255,.28), rgba(120,170,255,.28)); color:#DCE8FF}
+table.xl tfoot tr > td.simC{box-shadow:inset 0 0 0 1px #8FB4FF}
+/* sólo en el cuerpo: las celdas del Total ya van pegadas al pie (sticky) y
+   eso basta para la esquina azul; con relative se soltaban del pie */
+table.xl tbody td.simD,table.xl tbody td.simC{position:relative}
+table.xl tbody td.fija.simD,table.xl tbody td.fija.simC{position:sticky}
+table.xl .xo.xs{color:#5B6B86; text-decoration:line-through; text-decoration-color:rgba(91,107,134,.45)}
+table.xl tfoot .xo.xs{color:rgba(220,232,255,.7)}
+.xlS{all:unset; cursor:pointer; position:absolute; top:0; left:0; width:16px; height:16px}
+.xlS::before{content:""; position:absolute; top:0; left:0; border-style:solid; border-width:8px 8px 0 0;
+  border-color:#3B6FD8 transparent transparent transparent}
+.xlS:hover::before,.xlS:focus-visible::before{border-width:12px 12px 0 0}
+.xlS:focus-visible{outline:2px solid var(--sm)}
+.simPt{font-style:normal; display:inline-block; width:1.1em; margin-right:2px; color:#3B6FD8; font-weight:700}
+.simPt.yo{color:#1E3F8F}
+table.xl tfoot .simPt{color:#9FC0FF}
+
+/* las tarjetas suman lo simulado: lo dicen */
+.granTotal.simOn{position:relative; outline:1px dashed #7FA2E8; outline-offset:6px}
+.granTotal.simOn::before{content:"✎ SIMULADO · NO SON LAS CIFRAS REALES"; position:absolute; top:-15px; left:0;
+  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.12em; color:#3B6FD8}
+.hojaXl.oscuro .granTotal.simOn::before{color:#9FC0FF}
+
+/* la barra de la simulacion, con el aspecto de la de filtros */
+.xlSimBar{border-left-color:#3B6FD8}
+.xlSimBar .t{color:#1E3F8F}
+.hojaXl.oscuro .xlSimBar{background:rgba(14,36,86,.72); border-left-color:#8FB4FF}
+.hojaXl.oscuro .xlSimBar .t{color:#CFE0FF}
+.xlSimBar .simL{flex-basis:100%; margin:2px 0 0; padding-left:22px; font-family:"IBM Plex Sans",sans-serif; font-size:12.5px}
+.xlSimBar .simL li{margin:3px 0}
+.xlSimBar .simL li.pausa{opacity:.55}
+.xlSimBar .simL .v{font-family:"IBM Plex Mono",monospace; font-size:12px}
+.xlSimBar .simL .nota{font-style:italic; color:var(--tinta-3)}
+.xlSimBar .simL button{all:unset; cursor:pointer; margin-left:6px; padding:1px 6px; border:1px solid #9CB3DE;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.06em; color:#1E3F8F; background:#fff}
+.xlSimBar .simL button:hover{background:#3B6FD8; border-color:#3B6FD8; color:#fff}
+.xlSimBar .simL button:focus-visible{outline:2px solid var(--sm)}
+.hojaXl.oscuro .xlSimBar .simL .nota{color:#AFC3E6}
+.xlSimBar .simAviso{flex-basis:100%; color:#B3261E; font-family:"IBM Plex Sans",sans-serif; font-size:12px}
+.xlSimBar .simAviso[hidden]{display:none}
+.xlOrigen .simO{color:#1E3F8F; font-weight:600}
+.hojaXl.oscuro .xlOrigen .simO{color:#9FC0FF}
+
+/* el editor: como el de comentarios, con el valor y la vista previa */
+.xlSimEd{width:min(440px, calc(100vw - 36px))}
+.xlSimEd h4{color:#1E3F8F}
+.xlSimEd .simF{font-family:"IBM Plex Sans",sans-serif; font-size:12px; color:var(--tinta-2); margin:-4px 0 10px}
+.xlSimEd .simVal{display:flex; gap:18px; font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.06em; color:var(--tinta-3); margin-bottom:8px}
+.xlSimEd .simVal b{display:block; font-size:15px; color:var(--tinta); letter-spacing:0}
+.xlSimEd label.simIn{display:block; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; color:#1E3F8F}
+.xlSimEd label.simIn input{display:block; box-sizing:border-box; width:100%; margin-top:4px; padding:8px 10px; font:inherit;
+  font-size:15px; letter-spacing:0; border:1px solid #9CB3DE; color:var(--tinta); background:#fff}
+.xlSimEd label.simIn input:focus{outline:2px solid #3B6FD8; outline-offset:1px}
+.xlSimEd .simPrev{margin:10px 0 6px}
+.xlSimEd .simPrev table{width:100%; border-collapse:collapse; font-family:"IBM Plex Mono",monospace; font-size:11.5px}
+.xlSimEd .simPrev th{text-align:right; font-weight:500; font-size:10px; letter-spacing:.08em; color:var(--tinta-3); padding:2px 4px; border-bottom:1px solid var(--linea)}
+.xlSimEd .simPrev th:first-child,.xlSimEd .simPrev td:first-child{text-align:left; font-family:"IBM Plex Sans",sans-serif}
+.xlSimEd .simPrev td{text-align:right; padding:2px 4px; color:var(--tinta-2)}
+.xlSimEd .simPrev tr.mv td{color:#1E3F8F; font-weight:600}
+.xlSimEd .simPrev .nt{font-family:"IBM Plex Sans",sans-serif; font-size:12px; color:var(--tinta-3)}
+.xlSimEd .simMueve{font-family:"IBM Plex Sans",sans-serif; font-size:12px; line-height:1.45; color:var(--tinta-2);
+  padding:7px 9px; background:#EEF3FC; border-left:3px solid #7FA2E8; margin-bottom:8px}
+.xlSimEd textarea{min-height:52px}
+.xlSimEd.soloLee label.simIn,.xlSimEd.soloLee .simPrev,.xlSimEd.soloLee textarea,.xlSimEd.soloLee #sim-ed-aplicar{display:none}
+.xlSimEd #sim-ed-quitar[hidden]{display:none}
+</style>
+<div class="xlEditor xlSimEd" id="sim-editor" hidden role="dialog" aria-label="Simular una cifra">
+  <h4>✎ SIMULAR · CAMBIAR UNA CIFRA</h4>
+  <div class="fila" id="sim-ed-fila">—</div>
+  <div class="simF" id="sim-ed-formula"></div>
+  <div class="simVal"><span>REAL<b id="sim-ed-real">—</b></span><span>AHORA<b id="sim-ed-ahora">—</b></span></div>
+  <div class="simMueve" id="sim-ed-mueve"></div>
+  <label class="simIn">NUEVO VALOR
+    <input id="sim-ed-val" autocomplete="off" spellcheck="false" inputmode="decimal" placeholder="60000 · +10% · −5% · +500 · x1.2"></label>
+  <div class="simPrev" id="sim-ed-prev"></div>
+  <textarea id="sim-ed-nota" aria-label="Por qué" placeholder="Por qué (opcional): p. ej. si los camiones trabajaran dos turnos"></textarea>
+  <div class="meta" id="sim-ed-meta"></div>
+  <div class="bot">
+    <button class="fbt" type="button" id="sim-ed-aplicar" aria-pressed="true">APLICAR</button>
+    <button class="fbt" type="button" id="sim-ed-quitar" hidden>VOLVER A LO REAL</button>
+    <button class="fbt" type="button" id="sim-ed-cerrar">CERRAR</button>
+  </div>
+</div>
