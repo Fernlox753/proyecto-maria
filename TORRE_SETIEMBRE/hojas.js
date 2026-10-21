@@ -85,17 +85,19 @@ function hxNodoFase(id, f, os){
    final.
    Un nivel que queda por debajo de la fase solo tiene costo (ot: 1): horas,
    venta y depreciacion no se reparten por fase. */
-var HX_NIV_NOM = { fl: 'FLOTA', fam: 'FAMILIA', mod: 'MODELO', eq: 'EQUIPO', fa: 'FASE' };
-var HX_NIV_LOG = { fl: 1, fam: 2, mod: 3, eq: 4, fa: 5 };      /* su indice en HX_ELEG / HX_NIVELES */
-var HX_NIV_DEF = ['fl', 'fam', 'mod', 'eq', 'fa'];
+/* ORDEN tambien se arrastra (21/10): puede ir antes de la fase o del equipo.
+   Si queda al final, como siempre, la vista se arma igual que antes */
+var HX_NIV_NOM = { fl: 'FLOTA', fam: 'FAMILIA', mod: 'MODELO', eq: 'EQUIPO', fa: 'FASE', ot: 'ORDEN' };
+var HX_NIV_LOG = { fl: 1, fam: 2, mod: 3, eq: 4, fa: 5, ot: 6 };      /* su indice en HX_ELEG / HX_NIVELES */
+var HX_NIV_DEF = ['fl', 'fam', 'mod', 'eq', 'fa', 'ot'];
 function hxOrdenNiv(st){ return (st && st.ordenNiv) || HX_NIV_DEF; }
 function hxNivelesDe(st){
-  return ['PROYECTO'].concat(hxOrdenNiv(st).map(function(k){ return HX_NIV_NOM[k]; })).concat(['ORDEN']);
+  return ['PROYECTO'].concat(hxOrdenNiv(st).map(function(k){ return HX_NIV_NOM[k]; }));
 }
 /* posicion en la tabla (0-6) de cada nivel logico (0 proyecto, 1 flota ... 6 orden) */
 function hxPosDe(st, logico){
-  if(logico <= 0 || logico >= 6) return logico;
-  return 1 + hxOrdenNiv(st).indexOf(['sede', 'fl', 'fam', 'mod', 'eq', 'fa'][logico]);
+  if(logico <= 0) return logico;
+  return 1 + hxOrdenNiv(st).indexOf(['sede', 'fl', 'fam', 'mod', 'eq', 'fa', 'ot'][logico]);
 }
 /* bajo un proyecto, los niveles en el orden pedido. recs: [{ e, fa }] con fa
    en null hasta que el nivel FASE parte cada equipo en sus fases. arr dice
@@ -103,19 +105,29 @@ function hxPosDe(st, logico){
    niveles de arriba) } */
 function hxArmar(recs, niv, lv, pk, arr){
   if(!niv.length){
+    /* con el nivel ORDEN mas arriba, la orden ya es una fila: no hay mas */
+    if(recs.length && recs[0].o) return [];
     var os = [];
     recs.forEach(function(r){ os = os.concat(r.fa ? r.fa.hijos : hxOrdenes(r.e)); });
     return os;
   }
   var k = niv[0], resto = niv.slice(1), grupos = {}, orden = [];
-  if(k === 'fa'){
+  /* FASE parte cada equipo en sus fases (si la orden ya esta arriba, su fase es una) */
+  if(k === 'fa' && !(recs.length && recs[0].o)){
     var nuevos = [];
     recs.forEach(function(r){ r.e.hijos.forEach(function(fa){ nuevos.push({ e: r.e, fa: fa }); }); });
     recs = nuevos;
   }
-  var partido = recs.length && !!recs[0].fa;
+  /* ORDEN parte en sus ordenes (las de la fase, si la fase esta arriba) */
+  if(k === 'ot'){
+    var porOt = [];
+    recs.forEach(function(r){ (r.fa ? r.fa.hijos : hxOrdenes(r.e)).forEach(function(o){ porOt.push({ e: r.e, fa: r.fa, o: o }); }); });
+    recs = porOt;
+  }
+  var partido = recs.length && !!(recs[0].fa || recs[0].o);
   recs.forEach(function(r){
-    var v = k === 'fl' ? r.e.tipo : k === 'fam' ? r.e.fam : k === 'mod' ? r.e.mod : k === 'eq' ? r.e.id : r.fa.fase;
+    var v = k === 'fl' ? r.e.tipo : k === 'fam' ? r.e.fam : k === 'mod' ? r.e.mod : k === 'eq' ? r.e.id
+          : k === 'ot' ? r.o.et : r.o ? r.o.fase : r.fa.fase;
     if(!grupos[v]){ grupos[v] = []; orden.push(v); }
     grupos[v].push(r);
   });
@@ -133,7 +145,8 @@ function hxArmar(recs, niv, lv, pk, arr){
        ~PROPIO o ~ALQUILADO (la misma familia esta en las dos); su
        comentario va con la clave de siempre (kn) y la flota en la firma */
     var fl = n.fl ? '~' + n.fl : '';
-    if(k === 'eq' && !partido) n.k = 'e|' + v;
+    if(k === 'ot') n.k = 'o|' + v;        /* la orden es una sola en todo el arbol: la clave de siempre */
+    else if(k === 'eq' && !partido) n.k = 'e|' + v;
     else if(k === 'fam' && !partido && soloArriba(['fl'])){ n.kn = 'f|' + arr.sede + '|' + v; n.k = n.kn + fl; }
     else if(k === 'mod' && !partido && arr.niv.indexOf('fam') >= 0 && soloArriba(['fl', 'fam'])){
       n.kn = 'm|' + arr.sede + '|' + arr.fam + '|' + v; n.k = n.kn + fl;
@@ -144,11 +157,13 @@ function hxArmar(recs, niv, lv, pk, arr){
     if(k === 'mod'){ n.esMod = 1; n.et = v || '(sin modelo)'; }
     if(k === 'eq'){ var e = rs[0].e; n.id = e.id; n.et = e.id; n.busca = e.busca; n.mod = e.mod; n.fam = e.fam; }
     if(k === 'fa'){ n.esFase = 1; n.fase = v; n.et = HX_FASES[v] || v || '(SIN FASE)'; }
+    if(k === 'ot'){ var o1 = rs[0].o; n.et = o1.et; n.fase = o1.fase; }
     if(partido){
       var rym = 0, mov = 0, nos = 0;
-      rs.forEach(function(r){ rym += r.fa.o.c[0]; mov += r.fa.o.c[1]; nos += r.fa.hijos.length; });
+      rs.forEach(function(r){ var x = r.o || r.fa; rym += x.o.c[0]; mov += x.o.c[1]; nos += r.o ? 1 : r.fa.hijos.length; });
       n.o = { c: [rym, mov, 0, rym + mov] }; n.ot = 1;
-      n.sub = (k === 'eq' || arr.eq) && eqs.length === 1 ? nos + (nos === 1 ? ' orden' : ' órdenes')
+      n.sub = k === 'ot' ? rs[0].o.sub
+            : (k === 'eq' || arr.eq) && eqs.length === 1 ? nos + (nos === 1 ? ' orden' : ' órdenes')
             : eqs.length + (eqs.length === 1 ? ' equipo' : ' equipos');
     } else {
       n.o = eqs.length === 1 && k === 'eq' ? eqs[0].o : hxSuma(eqs.map(function(e){ return e.o; }));
@@ -168,7 +183,8 @@ function hxVistaDe(st, lista){
     var cp = {}, k, recs = [];
     for(k in p) cp[k] = p[k];
     p.hijos.forEach(function(f){ f.hijos.forEach(function(m){ m.hijos.forEach(function(e){ recs.push({ e: e, fa: null }); }); }); });
-    cp.hijos = hxArmar(recs, niv, 1, p.k, { sede: p.sede, niv: [] });
+    var nv = niv[niv.length - 1] === 'ot' ? niv.slice(0, -1) : niv;
+    cp.hijos = hxArmar(recs, nv, 1, p.k, { sede: p.sede, niv: [] });
     return cp;
   });
 }
@@ -1415,9 +1431,9 @@ function hxBotones(s){
      equipo y fase se arrastran (data-arr) para cambiar de lugar; proyecto y
      orden quedan fijos. En SELECCIONAR cada boton sigue eligiendo su propio
      nivel (data-e). */
-  var orden = [0].concat(hxOrdenNiv(st).map(function(k){ return HX_NIV_LOG[k]; })).concat([6]);
+  var orden = [0].concat(hxOrdenNiv(st).map(function(k){ return HX_NIV_LOG[k]; }));
   htm('hx-nivel-' + s, orden.map(function(j, i){
-    var n = HX_NIVELES[j], arr = i >= 1 && i <= 5 ? ' data-arr="' + HX_NIV_DEF[j - 1] + '"' : '';
+    var n = HX_NIVELES[j], arr = i >= 1 ? ' data-arr="' + HX_NIV_DEF[j - 1] + '"' : '';
     var ayuda = arr ? ' · mantén presionado y arrastra para cambiarlo de lugar' : '';
     if(!selec) return '<button class="fbt' + (arr ? ' xlArr' : '') + '" type="button" data-n="' + i + '"' + arr
         + ' aria-pressed="' + (st.nivel === i) + '" title="Desplegar hasta ' + n.toLowerCase() + ayuda + '">'
@@ -1798,7 +1814,8 @@ function hxIniciar(s){
   try {
     var on = JSON.parse(localStorage.getItem('torreSet.ordenNiv.' + s) || 'null');
     if(on && on.length === 3 && on.slice().sort().join() === 'eq,fa,mod') on = ['fl', 'fam'].concat(on);
-    if(on && on.length === 5 && on.slice().sort().join() === 'eq,fa,fam,fl,mod') st.ordenNiv = on;
+    if(on && on.length === 5 && on.slice().sort().join() === 'eq,fa,fam,fl,mod') on = on.concat(['ot']);
+    if(on && on.length === 6 && on.slice().sort().join() === 'eq,fa,fam,fl,mod,ot') st.ordenNiv = on;
   } catch(e){}
   st.ord = { g: 'costo', i: hxIdxTotal(s), dir: -1 };
   /* el ancho de la primera columna que se dejo la ultima vez */
