@@ -553,6 +553,14 @@ def leer_proyecto(sede, LIBRO):
         ANIO, MES = fecha_max.year, fecha_max.month
         CORTE = corte_del_encabezado(fp) or fecha_max.day
         corte_de = "encabezado «Costo Real al %d» de %s" % (CORTE, H_PROP)
+        # sin filtro de fecha la dinamica suma toda la base: si la base llega mas
+        # alla de lo que dice el encabezado (TEMB, 21/10: rotulo «al 18», base al
+        # 19), el corte es el de la base, o el recalculo no cuadra con la hoja
+        if fecha_max.day > CORTE:
+            print("OJO: %s: la dinámica no filtra fecha y la base llega al %d, pero %s dice «al %d»; se toma el %d"
+                  % (sede, fecha_max.day, H_PROP, CORTE, fecha_max.day))
+            corte_de = "base hasta el %d (la dinámica no filtra fecha; el encabezado de %s dice «al %d»)" % (fecha_max.day, H_PROP, CORTE)
+            CORTE = fecha_max.day
     DIAS_MES = calendar.monthrange(ANIO, MES)[1]
     dias = ["%04d-%02d-%02d" % (ANIO, MES, d) for d in range(1, CORTE + 1)]
     idia = {d: i for i, d in enumerate(dias)}
