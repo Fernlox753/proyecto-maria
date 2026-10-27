@@ -431,6 +431,45 @@ def fila_reporte(r, m):
             "hpa": g(m["hpa"]) if m["hpa"] is not None else None}
 
 
+def campos_fila(x):
+    """(clave, indice) de cada cifra de una fila de reporte que la fila Total suma."""
+    for k in ("c", "v", "Ac", "Av"):
+        for i in range(len(x[k])): yield k, i
+    for k in ("seg", "prof", "hr", "hrProf", "Ah", "pa", "pm", "hpa"):
+        if x[k] is not None: yield k, None
+
+
+def cifra(x, k, i): return x[k] if i is None else x[k][i]
+
+
+# en una fila de OT, lo que es de la orden: RyM y MOV del mes, que el total del
+# mes y el acumulado de costo (meses anteriores + el mes) llevan sumados, como
+# (veces RyM, veces MOV). Lo demas la hoja lo busca por equipo
+DE_LA_ORDEN = {("c", 0): (1, 0), ("c", 1): (0, 1), ("c", 3): (1, 1),
+               ("Ac", 0): (1, 0), ("Ac", 1): (0, 1), ("Ac", 4): (1, 1)}
+
+
+def juntar_ordenes(xs, cod, hoja, m):
+    """Un equipo con la dinamica abierta hasta sus ordenes (una fila por OT):
+    la fila que la hoja tendria con la dinamica cerrada. RyM y MOV se suman;
+    lo que se busca por equipo (Dep, Seg, horas, venta, proforma...) se repite
+    en cada fila y va una vez."""
+    def del_equipo(y, k, i):
+        a, b = DE_LA_ORDEN.get((k, i), (0, 0))
+        return cifra(y, k, i) - a * y["c"][0] - b * y["c"][1]
+    x = {k: (list(v) if isinstance(v, list) else v) for k, v in xs[0].items()}
+    distintos = sorted({openpyxl.utils.get_column_letter((m[k] if i is None else m[k][i]) + 1)
+                        for y in xs[1:] for k, i in campos_fila(x)
+                        if abs(del_equipo(y, k, i) - del_equipo(xs[0], k, i)) >= 0.01})
+    if distintos:
+        print("OJO: en «%s» las filas de %s no traen lo mismo en %s (formulas distintas): se toma la primera"
+              % (hoja, cod, ", ".join(distintos)))
+    sr, sm = sum(y["c"][0] for y in xs), sum(y["c"][1] for y in xs)
+    for (k, i), (a, b) in DE_LA_ORDEN.items():
+        x[k][i] = del_equipo(xs[0], k, i) + a * sr + b * sm
+    return x
+
+
 def leer_reporte(filas, hoja):
     """La fila Total y la fila de cada equipo de la dinamica de una hoja de
     reporte. Arriba van los modelos (formulas sobre la dinamica), despues la
@@ -440,7 +479,8 @@ def leer_reporte(filas, hoja):
     if not tot: falla("no encuentro la fila Total en «%s»" % hoja)
     enc = [i for i, r in enumerate(filas) if len(r) > 3 and txt(r[1]) == "DESCRIPCION EQP" and i > tot[0]]
     if not enc: falla("no encuentro el encabezado de la dinamica (DESCRIPCION EQP) en «%s»" % hoja)
-    eqs, orden, vacias = {}, [], 0
+    eqs, orden, vacias, por_ot = {}, [], 0, {}
+    es_ot = lambda r: len(r) > 4 and isinstance(r[4], (int, float))
     for r in filas[enc[0] + 1:]:
         cod = txt(r[3]) if len(r) > 3 else ""
         if txt(r[1]).startswith("Total general") or cod.startswith("Total general"): break
@@ -449,14 +489,39 @@ def leer_reporte(filas, hoja):
             if orden and vacias > 8: break
             continue
         vacias = 0
-        if cod in eqs: falla("el equipo %s esta dos veces en la dinamica de «%s»" % (cod, hoja))
         x = fila_reporte(r, m)
         x["fam"], x["mod"] = txt(r[1]), txt(r[2])
+        if cod in eqs:
+            # la dinamica abierta hasta las ordenes de un equipo (TRMA PROP de
+            # octubre, EP-34): sigue una fila por OT, con su numero en la columna E
+            if not (es_ot(r) and cod in por_ot):
+                falla("el equipo %s esta dos veces en la dinamica de «%s»" % (cod, hoja))
+            por_ot[cod].append(x)
+            continue
+        if es_ot(r): por_ot[cod] = [x]
         eqs[cod] = x
         orden.append(cod)
     total = fila_reporte(filas[tot[0]], m)
     total["nEq"] = num(filas[tot[0]][3])
-    return {"eq": eqs, "orden": orden, "total": total, "filaTotal": tot[0] + 1, "filaDin": enc[0] + 1}
+    # la fila Total suma todas las filas: lo de cada equipo abierto le entra una
+    # vez por orden. Se le quita, para que siga cuadrando contra los equipos
+    abiertos = {}
+    for cod, xs in por_ot.items():
+        if len(xs) < 2: continue
+        j = juntar_ordenes(xs, cod, hoja, m)
+        de_mas = {(k, i): sum(cifra(y, k, i) for y in xs) - cifra(j, k, i) for k, i in campos_fila(j)}
+        for (k, i), d in de_mas.items():
+            if cifra(total, k, i) is None: continue
+            if i is None: total[k] -= d
+            else: total[k][i] -= d
+        total["nEq"] -= len(xs) - 1
+        eqs[cod] = j
+        abiertos[cod] = {"filas": len(xs), "deMas": {"terc": round(de_mas[("c", 2)], 2), "seg": round(de_mas[("seg", None)], 2),
+                                                     "hr": round(de_mas[("hr", None)], 2), "venta": round(de_mas[("v", 3)], 2)}}
+        print("OJO: «%s» tiene la dinamica abierta hasta las ordenes de %s (%d filas): se lee como un equipo; "
+              "su fila Total lo cuenta %d veces (de mas: %s)" % (hoja, cod, len(xs), len(xs), abiertos[cod]["deMas"]))
+    return {"eq": eqs, "orden": orden, "total": total, "filaTotal": tot[0] + 1, "filaDin": enc[0] + 1,
+            "abiertos": abiertos}
 
 
 def corte_del_encabezado(filas):
@@ -722,6 +787,8 @@ def leer_proyecto(sede, LIBRO):
            "sinHoras": sum(1 for x in filas.values() if not x["hr"]),
            "sinDM": sum(1 for x in filas.values() if x["dm"] is None),
            "sinParte": len(sin_parte), "serviciosFueraBase": zserv, "descuadre": descuadre[:40]}
+    abiertos = {t: R["abiertos"] for t, R in rep.items() if R["abiertos"]}
+    if abiertos: val["dinamicaAbierta"] = abiertos
 
     return {"sede": sede, "libro": nombre_libro, "hojaBase": hoja_base[0], "dias": dias, "anio": ANIO, "mes": MES,
             "corte": CORTE, "diasMes": DIAS_MES, "equipos": equipos, "H": H, "Hh": Hh, "ots": ot_acc,
