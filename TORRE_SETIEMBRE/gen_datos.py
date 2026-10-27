@@ -96,6 +96,8 @@ TITULOS_VARIOS = ("HOROMETRO REAL", "TARIFAS VENTA", "PROFORMA", "DM-USAJE", "OT
 VACIO = "(vacío)"
 # campos del parte de horas, segun la version del libro: (equipo, fecha, horas)
 CAMPOS_HORAS = (("Equipo", "Fe.prest.actividad", "Cantidad"), ("Número de equipo", "Fecha de notificación", "HM"),
+                # HH OPE de Atocongo desde el libro del 27/10 (la fecha con barras)
+                ("Equipo", "Fe/prest/actividad", "Cantidad"),
                 ("Codigo", "FECHA", "HORAS OPERATIVAS"),
                 # el libro de agosto de Atocongo trae el parte con la unidad de reporte
                 ("Número de equipo", "Fecha de notificación", "Unidad de reporte"))

@@ -32,6 +32,7 @@ en un solo sitio.
                             marco (se publica al lado de la torre; viene de AUTOMATIZACIONES)
   datos.json                la tabla de hechos de setiembre, de todos los proyectos (gen_datos.py)
   setiembre.json            la fila de cada equipo como en las hojas PROP y ALQ (gen_datos.py)
+  pako_inflate.min.js       pako 2.1.0 (MIT y Zlib), solo descompresion: abre los datos al cargar
 
 Cada cambio tiene que encontrar su texto. Si la Torre original cambio y uno
 ya no aparece, el ensamblado se detiene y dice cual: hay que revisarlo aqui.
@@ -39,12 +40,16 @@ ya no aparece, el ensamblado se detiene y dice cual: hay que revisarlo aqui.
     python gen_datos.py
     python ensamblar.py      # escribe artifact.html en esta carpeta
 """
-import base64, io, json, os, re, sys
+import base64, gzip, io, json, os, re, sys
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 ORIG = os.path.join(os.path.dirname(AQUI), "PROCESO")
 # TORRE_SALIDA cambia el archivo de salida (lo usa prueba3d.py para no pisar artifact.html)
 SALIDA = os.environ.get("TORRE_SALIDA") or os.path.join(AQUI, "artifact.html")
+# Los datos viajan comprimidos (gzip + base64) y la pagina los abre al cargar:
+# sin comprimir, con cuatro meses la Torre llegaba a 15.4 MB (el Artifact
+# admite 16) y cada mes sumaba ~2.7 MB. TORRE_SIN_COMPRIMIR=1 los deja en claro
+COMPRIMIR = not os.environ.get("TORRE_SIN_COMPRIMIR")
 
 
 def lee(base, *partes):
@@ -55,6 +60,25 @@ def cambia(t, viejo, nuevo, donde, todas=False):
     if viejo not in t:
         sys.exit("NO ENCONTRADO en %s:\n  %s" % (donde, viejo[:160]))
     return t.replace(viejo, nuevo) if todas else t.replace(viejo, nuevo, 1)
+
+
+def dato(nombre, txt):
+    """`var NOMBRE = …;` con el json comprimido, o tal cual sin COMPRIMIR.
+    mtime=0: el mismo dato da siempre el mismo texto (la copia de GitHub se
+    compara con la de OneDrive byte por byte)."""
+    if not COMPRIMIR: return "var %s = %s;\n" % (nombre, txt)
+    z = base64.b64encode(gzip.compress(txt.encode("utf-8"), 9, mtime=0)).decode("ascii")
+    return 'var %s = abrirDatos("%s");\n' % (nombre, z)
+
+
+# abrirDatos es sincrona (pako y no DecompressionStream, que es asincrona):
+# DATA y los demas quedan listos antes de que nada los lea, como antes
+PAKO = lee(AQUI, "pako_inflate.min.js")
+ABRIR_JS = ("function abrirDatos(b){\n"
+            "  var s = atob(b), u = new Uint8Array(s.length);\n"
+            "  for(var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);\n"
+            "  return JSON.parse(pako.ungzip(u, { to: 'string' }));\n"
+            "}\n")
 
 
 def entre(t, ini, fin, nuevo, donde):
@@ -85,7 +109,7 @@ datos = _ordenes_una_vez(datos)
 # Tendencia puede juntar los tres meses. Si no, la pagina queda como antes.
 _MD = os.path.join(AQUI, "meses")
 HAY_MESES = all(os.path.exists(os.path.join(_MD, f)) for f in ("tres_meses.json", "tabla_meses.json"))
-datos_meses = ("var TRES_MESES = " + lee(_MD, "tres_meses.json") + ";\nvar SEP_MESES = " + lee(_MD, "tabla_meses.json") + ";\n") \
+datos_meses = (dato("TRES_MESES", lee(_MD, "tres_meses.json")) + dato("SEP_MESES", lee(_MD, "tabla_meses.json"))) \
               if HAY_MESES else ""
 meses_carga_js = lee(AQUI, "meses_carga.js")
 meses_js = lee(AQUI, "meses.js")
@@ -619,9 +643,11 @@ cuerpo = cambia(cuerpo, "</main>", transporte_html + "\n" + toda2_html.replace("
 if 'id="tajo"' not in cuerpo:
     cuerpo = cuerpo.replace('<header class="nav" id="nav">', fondo + '<header class="nav" id="nav">', 1)
 
-nuevo = (cabecera + css + "\n" + cuerpo + "\n<script>\n(function(){\n"
-         + util + "\nvar DATA = " + datos + ";\n"
-         + "var SETIEMBRE = " + sep + ";\n"
+nuevo = (cabecera + css + "\n" + cuerpo
+         + ("\n<script>\n" + PAKO + "\n</script>" if COMPRIMIR else "")
+         + "\n<script>\n(function(){\n"
+         + util + "\n" + (ABRIR_JS if COMPRIMIR else "") + dato("DATA", datos)
+         + dato("SETIEMBRE", sep)
          + datos_meses + meses_carga_js + "\n"
          + js_datos + "\n" + js_tend + "\n" + js_filt + "\n" + js_sep + "\n" + cont + tres_d
          + "\n" + extra + "\n" + proyecto_js + "\n" + inicio_js + "\n" + transporte_js + "\n" + hojas_js + "\n" + comentarios_js + "\n" + simular_js + "\n" + tablero_js + "\n" + burbuja_js
@@ -634,9 +660,10 @@ nuevo = agrandar(nuevo)
 io.open(SALIDA, "w", encoding="utf-8", newline="\n").write(nuevo)
 print("artifact.html:", len(nuevo), "bytes ->", SALIDA)
 
+_abre = 'abrirDatos("H4sI' if COMPRIMIR else "{"
 for marca in (["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONES", "function iniFiltros", 'id="lemaSub"', 'id="v-transporte"', "function marcoTransporte", 'class="pes"',
-              "function iniciarTajo", "function construirCamion", "function irA(", "var DATA = {",
-              "var SETIEMBRE = {", 'id="tajo"', "TORRE DE SETIEMBRE — lo que esta copia hace distinto",
+              "function iniciarTajo", "function construirCamion", "function irA(", "var DATA = " + _abre,
+              "var SETIEMBRE = " + _abre, 'id="tajo"', "TORRE DE SETIEMBRE — lo que esta copia hace distinto",
               'id="fi-cuadre"', 'id="fi-zserv"', "var proyFiltro = PROYS[0];", 'id="v-propios"', 'id="v-alquilados"', 'id="v-toda"', 'data-pes="Flota completa"', "function hxColumnasT",
               "function hxTabla", 'id="hx-editor"', 'id="v-tablero"',
               "function tbPintar", "function hxOrigen", 'id="bz"', "function bzNumero",
@@ -644,7 +671,8 @@ for marca in (["<title>Torre de Control Setiembre</title>", "PIONEROS EN CAMIONE
               "function sedeCambio", 'class="sedeHueco"', "function hxSedesDe",
               'id="v-notas"', "function cmPintar", 'id="v-toda2"', "function hxPonerFlota", "function tbTodos", 'id="divDos"',
               "function enlazarOrdenes", "function hxPonerMes", "function mesesUniverso", "function simTrasArbol", 'id="sim-editor"', 'id="hx-mes-T"', 'id="hx-mes-U"']
-             + (["var TRES_MESES = {", "var SEP_MESES = {"] if HAY_MESES else [])):
+             + (["var TRES_MESES = " + _abre, "var SEP_MESES = " + _abre] if HAY_MESES else [])
+             + (["pako 2.1.0", "function abrirDatos("] if COMPRIMIR else [])):
     print(("  OK      " if marca in nuevo else "  FALTA   ") + marca)
 # nada de esto debe quedar a la vista: es vocabulario de la Torre del libro mayor
 for sobra in ["libro mayor le carga", "DIECISIETE", "<b>1,291 del libro</b>", "Ojo con agosto",

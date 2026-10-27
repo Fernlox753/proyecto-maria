@@ -1,12 +1,12 @@
 {
  "libro": "0 SHGN_RO EQUIPOS.xlsx + 00 ATOC_RO EQUIPOS.xlsx + 00 TRMA_RO EQUIPOS.xlsx + 00 TEMB_RO EQUIPOS.xlsx",
- "hoja": "SHGN: BASE DATOS 27.10 · ATOC: BASE DATOS 20.10 · TRMA: BASE DATOS 20.10 · TEMB: BASE DATOS 20.10",
+ "hoja": "SHGN: BASE DATOS 27.10 · ATOC: BASE DATOS 27.10 · TRMA: BASE DATOS 27.10 · TEMB: BASE DATOS 27.10",
  "corte": 25,
  "diasMes": 31,
  "mes": 10,
  "anio": 2026,
  "fechaMaxBase": "2026-10-27",
- "generado": "2026-10-27 12:31",
+ "generado": "2026-10-27 15:46",
  "sedes": {
   "SHGN": {
    "sede": "SHGN",
@@ -197,13 +197,13 @@
   "ATOC": {
    "sede": "ATOC",
    "libro": "00 ATOC_RO EQUIPOS.xlsx",
-   "hoja": "BASE DATOS 20.10",
-   "corte": 20,
+   "hoja": "BASE DATOS 27.10",
+   "corte": 25,
    "corteDe": "filtro «Fecha de Tran» de la dinámica",
    "diasMes": 31,
    "mes": 10,
    "anio": 2026,
-   "fechaMaxBase": "2026-10-20",
+   "fechaMaxBase": "2026-10-27",
    "hojas": {
     "PROPIO": "ATOC PROP",
     "ALQUILADO": "ATOC ALQ"
@@ -266,54 +266,54 @@
    ],
    "propio": {
     "hoja": {
-     "rym": 31054.94,
-     "mov": 34100.0,
-     "terc": 36400.16,
-     "seg": 2897.94,
-     "hr": 2576.3,
+     "rym": 38238.21,
+     "mov": 46940.0,
+     "terc": 49765.23,
+     "seg": 4024.92,
+     "hr": 4421.5,
      "nEq": 65.0,
-     "venta": 78699.84,
+     "venta": 109633.13,
      "hrProf": 5660.0
     },
     "equipos": {
-     "rym": 31054.94,
-     "mov": 34100.0,
-     "terc": 36400.16,
-     "seg": 2897.94,
-     "hr": 2576.3,
+     "rym": 38238.21,
+     "mov": 46940.0,
+     "terc": 49765.23,
+     "seg": 4024.92,
+     "hr": 4421.5,
      "nEq": 65,
-     "venta": 78699.84,
+     "venta": 109633.13,
      "hrProf": 5660.0
     },
     "calc": {
-     "rym": 31054.94,
-     "mov": 34100.0
+     "rym": 38238.21,
+     "mov": 46940.0
     }
    },
    "alquilado": {
     "hoja": {
-     "rym": 1623.64,
-     "mov": 20670.0,
-     "terc": 293653.26,
+     "rym": 5284.44,
+     "mov": 32930.0,
+     "terc": 493051.34,
      "seg": 0.0,
-     "hr": 7714.81,
-     "nEq": 44.0,
-     "venta": 19820.95,
+     "hr": 10553.29,
+     "nEq": 63.0,
+     "venta": 26428.09,
      "hrProf": 8720.0
     },
     "equipos": {
-     "rym": 1623.64,
-     "mov": 20590.0,
-     "terc": 293653.26,
+     "rym": 5284.44,
+     "mov": 32930.0,
+     "terc": 493051.34,
      "seg": 0.0,
-     "hr": 7714.81,
-     "nEq": 44,
-     "venta": 19820.95,
+     "hr": 10553.29,
+     "nEq": 63,
+     "venta": 26428.09,
      "hrProf": 8720.0
     },
     "calc": {
-     "rym": 1623.64,
-     "mov": 20590.0
+     "rym": 5284.44,
+     "mov": 32930.0
     }
    },
    "acumPeriodos": [
@@ -328,43 +328,26 @@
     9
    ],
    "fueraCorte": {
-    "SERV": 1176.52,
-    "MAT": 1795.68,
-    "MO": 0.0
+    "MAT": 2905.48
    },
    "sinFecha": 0.0,
-   "sinTarifa": 0,
-   "sinHoras": 19,
-   "sinDM": 31,
+   "sinTarifa": 19,
+   "sinHoras": 35,
+   "sinDM": 38,
    "sinParte": 0,
    "serviciosFueraBase": null,
-   "descuadre": [
-    [
-     "ALQUILADO",
-     "R-210-AL",
-     "no esta en la hoja",
-     0.0,
-     40.0
-    ],
-    [
-     "ALQUILADO",
-     "R-201-AL",
-     "no esta en la hoja",
-     0.0,
-     40.0
-    ]
-   ]
+   "descuadre": []
   },
   "TRMA": {
    "sede": "TRMA",
    "libro": "00 TRMA_RO EQUIPOS.xlsx",
-   "hoja": "BASE DATOS 20.10",
-   "corte": 18,
+   "hoja": "BASE DATOS 27.10",
+   "corte": 25,
    "corteDe": "filtro «Fecha de Tran» de la dinámica",
    "diasMes": 31,
    "mes": 10,
    "anio": 2026,
-   "fechaMaxBase": "2026-10-20",
+   "fechaMaxBase": "2026-10-27",
    "hojas": {
     "PROPIO": "TRMA PROP",
     "ALQUILADO": "TRMA ALQ"
@@ -380,7 +363,8 @@
       "PROPIO"
      ],
      "CONSIDERAR": [
-      "opex"
+      "opex",
+      "EN PROCESO CAPEX"
      ]
     },
     "ALQUILADO": {
@@ -402,8 +386,7 @@
       "(vacío)",
       "Venta",
       "CAPEX",
-      "DESM. UNOP",
-      "EN PROCESO CAPEX"
+      "DESM. UNOP"
      ]
     },
     "ALQUILADO": {
@@ -413,7 +396,7 @@
      ]
     }
    },
-   "fuenteHoras": "EXPORT_20261020_133536.xlsx",
+   "fuenteHoras": "EXPORT_20261027_124701.xlsx",
    "alqPorDias": [
     "XXL",
     "YY"
@@ -424,54 +407,54 @@
    ],
    "propio": {
     "hoja": {
-     "rym": 11809.81,
-     "mov": 10060.0,
-     "terc": 11372.1,
-     "seg": 615.46,
-     "hr": 1580.0,
+     "rym": 15695.41,
+     "mov": 15350.0,
+     "terc": 18012.58,
+     "seg": 854.81,
+     "hr": 2393.1,
      "nEq": 22.0,
-     "venta": 40369.39,
+     "venta": 62629.14,
      "hrProf": 2858.82
     },
     "equipos": {
-     "rym": 11809.81,
-     "mov": 10060.0,
-     "terc": 11372.1,
-     "seg": 615.46,
-     "hr": 1580.0,
+     "rym": 15695.41,
+     "mov": 15350.0,
+     "terc": 18012.58,
+     "seg": 854.81,
+     "hr": 2393.1,
      "nEq": 22,
-     "venta": 40369.39,
+     "venta": 62629.14,
      "hrProf": 2858.82
     },
     "calc": {
-     "rym": 11809.81,
-     "mov": 10060.0
+     "rym": 16275.12,
+     "mov": 15350.0
     }
    },
    "alquilado": {
     "hoja": {
-     "rym": 1546.14,
-     "mov": 1480.0,
-     "terc": 120071.73,
+     "rym": 1869.76,
+     "mov": 6050.0,
+     "terc": 156566.32,
      "seg": 0.0,
-     "hr": 3694.9,
-     "nEq": 20.0,
-     "venta": 6472.41,
+     "hr": 4882.9,
+     "nEq": 22.0,
+     "venta": 8389.16,
      "hrProf": 4811.94
     },
     "equipos": {
-     "rym": 1546.14,
-     "mov": 1480.0,
-     "terc": 120071.73,
+     "rym": 1869.76,
+     "mov": 6050.0,
+     "terc": 156566.32,
      "seg": 0.0,
-     "hr": 3694.9,
-     "nEq": 20,
-     "venta": 6472.41,
+     "hr": 4882.9,
+     "nEq": 22,
+     "venta": 8389.16,
      "hrProf": 4811.94
     },
     "calc": {
-     "rym": 1546.14,
-     "mov": 1480.0
+     "rym": 1869.76,
+     "mov": 6050.0
     }
    },
    "acumPeriodos": [
@@ -486,41 +469,36 @@
     9
    ],
    "fueraCorte": {
-    "SERV": 10064.71,
-    "MAT": 1276.82,
-    "MO": 2240.0
+    "SERV": 24962.92,
+    "MAT": 1209.81,
+    "MO": 1770.0
    },
    "sinFecha": 0.0,
-   "sinTarifa": 4,
-   "sinHoras": 7,
-   "sinDM": 7,
+   "sinTarifa": 6,
+   "sinHoras": 8,
+   "sinDM": 4,
    "sinParte": 0,
    "serviciosFueraBase": null,
-   "descuadre": [],
-   "dinamicaAbierta": {
-    "PROPIO": {
-     "EP-34": {
-      "filas": 16,
-      "deMas": {
-       "terc": 9643.82,
-       "seg": 1468.36,
-       "hr": 1726.5,
-       "venta": 89104.67
-      }
-     }
-    }
-   }
+   "descuadre": [
+    [
+     "PROPIO",
+     "RE-61",
+     "RyM",
+     1537.81,
+     2117.52
+    ]
+   ]
   },
   "TEMB": {
    "sede": "TEMB",
    "libro": "00 TEMB_RO EQUIPOS.xlsx",
-   "hoja": "BASE DATOS 20.10",
-   "corte": 19,
-   "corteDe": "base hasta el 19 (la dinámica no filtra fecha; el encabezado de TEMB PROP dice «al 18»)",
+   "hoja": "BASE DATOS 27.10",
+   "corte": 25,
+   "corteDe": "encabezado «Costo Real al 25» de TEMB PROP",
    "diasMes": 31,
    "mes": 10,
    "anio": 2026,
-   "fechaMaxBase": "2026-10-19",
+   "fechaMaxBase": "2026-10-24",
    "hojas": {
     "PROPIO": "TEMB PROP",
     "ALQUILADO": "TEMB ALQ"
@@ -981,7 +959,64 @@
       "ENGRASE PARCIAL/REV. NIVELES DE FLUIDOS",
       "LIMPIEZA DE FILTRO DE AIRE PRIMERIO",
       "AJUSTE DE ALTURA DE ASIENTO DE CABINA",
-      "AJUSTE DE ABRAZADERAS DE TUBO DE ESCAPE"
+      "AJUSTE DE ABRAZADERAS DE TUBO DE ESCAPE",
+      "PM08 MANTTO 2000 FMX 6X4R-DRH",
+      "PM08 MANTTO 2000 FMX 6X4R-DLH",
+      "PM08 MANTTO 2000 FMX 6X4R-DIFP",
+      "PM08 MANTTO 2000 FMX 6X4R-CMP",
+      "PM08 MANTTO 2000 FMX 6X4R-CDR",
+      "PM08 MANTTO 2000 FMX 6X4R-CBN",
+      "PM08 MANTTO 2000 FMX 6X4R-ENG1",
+      "PM08 MANTTO 2000 FMX 6X4R-MLH",
+      "PM08 MANTTO 2000 FMX 6X4R-MRH",
+      "PM08 MANTTO 2000 FMX 6X4R-TRM",
+      "PM08 MANTTO 2000 FMX 6X4R-SH",
+      "C./ CONECTORES PARA MANGUERA DE ABAST.",
+      "BL/. CAMB. TQ EXPANSION",
+      "MO3/RELLENO DE ACEITE ALMO 529 1/4 GLN.",
+      "RELLENO DE REFRIGERANTE/REV. NIVEL FLUID",
+      "PM02 MANTTO 500 374DL-AAC",
+      "PM02 MANTTO 500 374DL-ENG1",
+      "PM02 MANTTO 500 374DL-MRH",
+      "PM02 MANTTO 500 374DL-MLH",
+      "PM02 MANTTO 500 374DL-SEN",
+      "PM02 MANTTO 500 374DL-RG1",
+      "PM02 MANTTO 500 374DL-RG2",
+      "REP. DEPÓSITO DE AGUA LIMPIA PARABRIZAS",
+      "BL/. C. MOTOR DE LIMPIA PARABRIZAS",
+      "REPARACIÓN PROTECTOR DE FARO",
+      "EVAL. POR FALLA EN SIST. DE TRANSMISIÓN",
+      "PM08 MANTTO 2000 FMX 6X4R-SL",
+      "PM08 MANTTO 2000 FMX 6X4R-SC",
+      "PM08 MANTTO 2000 FMX 6X4R-DIFD",
+      "PM08 MANTTO 2000 FMX 6X4R-ST",
+      "REP. NEUMÁTICO POS. 05 POR INCRUS. CLAVO",
+      "INSPECCIÓN FLUIDOS/MÁSTIL/LUCES",
+      "REVISIÓN POR REPORTE DE NO ARRANQUE",
+      "INSPECC. CABLE/POLEAS/RACHET",
+      "EVA. POR REPORTE DE TORRE ELEVADA",
+      "MO3/MANTTO DE SISTEMA HYD",
+      "REPARACIÓN CILINDROS HYD - FUGA",
+      "INSTALACIÓN DE GUIADOR DE MALLA",
+      "MO3/RELLENO DE AGUA PARA LIMPIA PARABR.",
+      "INSPECC. DE CIRCULINA POR NO ENCENDIDO",
+      "LIMPIEZA FILTRO DE AIRE PRIMARIO",
+      "INSTALACIÓN ESPEJO LATERAL RH",
+      "MO3/LIMPIEZA/SOPLETEO DE FILTROS DE AIRE",
+      "MANTENIMIENTO PREVENTIVO 250 HR",
+      "AJUSTE DE ALTURA DE ASIENTO DE OPERADOR",
+      "REGULACIÓN DE ASIENTO DE OPERADOR",
+      "EVAL. RADIO COMUNICACIÓN X NO ENCENDIDO",
+      "RELLENO DE AGUA PARA LIMPIA PARABR.",
+      "COLOCACIÓN DEL DEPÓSITO DE AGUA",
+      "ENGRASE PARCIAL/RELLENO ACEITE 15W40 1 G",
+      "C. DE FARO LED",
+      "FABRICACIÓN EXTRACTORES DE PIN",
+      "C.LLANTA USADA POS. 04 X CORTE EN FLANCO",
+      "DESARMADO Y ARMADO DE NEUMÁTICOS 06 UND.",
+      "MO3/REP. DE LLANTA DE STOCK",
+      "C. DE NEUMÁTICO POS. 05",
+      "INSTALL. SEGUROS PINES INFERIORES TOLVA"
      ],
      "TIPO": [
       "PROPIO",
@@ -1003,35 +1038,35 @@
    ],
    "propio": {
     "hoja": {
-     "rym": 5814.92,
-     "mov": 9698.18,
-     "terc": 30264.48,
-     "seg": 1166.07,
+     "rym": 10196.66,
+     "mov": 15020.84,
+     "terc": 31912.25,
+     "seg": 1619.55,
      "hr": 1740.87,
      "nEq": 15.0,
-     "venta": 46767.24,
+     "venta": 48408.92,
      "hrProf": 1729.0
     },
     "equipos": {
-     "rym": 5814.92,
-     "mov": 9698.18,
-     "terc": 30264.48,
-     "seg": 1166.07,
+     "rym": 10196.66,
+     "mov": 15020.84,
+     "terc": 31912.25,
+     "seg": 1619.55,
      "hr": 1740.87,
      "nEq": 15,
-     "venta": 46767.24,
+     "venta": 48408.92,
      "hrProf": 1729.0
     },
     "calc": {
-     "rym": 5814.92,
-     "mov": 9698.18
+     "rym": 10196.66,
+     "mov": 15020.84
     }
    },
    "alquilado": {
     "hoja": {
-     "rym": 565.89,
-     "mov": 2482.16,
-     "terc": 87297.93,
+     "rym": 530.67,
+     "mov": 1527.66,
+     "terc": 88426.96,
      "seg": 0.0,
      "hr": 2604.4,
      "nEq": 14.0,
@@ -1039,9 +1074,9 @@
      "hrProf": 2734.42
     },
     "equipos": {
-     "rym": 565.89,
-     "mov": 2482.16,
-     "terc": 87297.93,
+     "rym": 530.67,
+     "mov": 1527.66,
+     "terc": 88426.96,
      "seg": 0.0,
      "hr": 2604.4,
      "nEq": 14,
@@ -1049,8 +1084,8 @@
      "hrProf": 2734.42
     },
     "calc": {
-     "rym": 565.89,
-     "mov": 2482.16
+     "rym": 530.67,
+     "mov": 1527.66
     }
    },
    "acumPeriodos": [
@@ -1154,7 +1189,7 @@
    ]
   }
  },
- "fuenteHoras": "EXPORT_20261020_133536.xlsx · EXPORT_20261027_095752.xlsx · HH OPE",
+ "fuenteHoras": "EXPORT_20261027_095752.xlsx · EXPORT_20261027_124701.xlsx · HH OPE",
  "alqPorDias": [
   "MH-91-AL",
   "MH-92-AL",
@@ -1183,45 +1218,45 @@
  ],
  "propio": {
   "hoja": {
-   "rym": 349975.52,
-   "mov": 318257.88,
-   "terc": 750028.47,
-   "seg": 19566.64,
-   "hr": 13185.06,
+   "rym": 365426.13,
+   "mov": 341710.54,
+   "terc": 771681.79,
+   "seg": 21386.45,
+   "hr": 15843.36,
    "nEq": 136.0,
-   "venta": 1162581.82,
+   "venta": 1217416.54,
    "hrProf": 19697.2
   },
   "calc": {
-   "rym": 349975.52,
-   "mov": 313257.88,
-   "terc": 750028.47,
-   "seg": 19566.64,
-   "hr": 13185.06,
+   "rym": 366005.84,
+   "mov": 336710.54,
+   "terc": 771681.79,
+   "seg": 21386.45,
+   "hr": 15843.36,
    "nEq": 136.0,
-   "venta": 1162581.82,
+   "venta": 1217416.54,
    "hrProf": 19697.2
   }
  },
  "alquilado": {
   "hoja": {
-   "rym": 652208.06,
-   "mov": 323594.11,
-   "terc": 4925687.25,
+   "rym": 656157.26,
+   "mov": 339469.61,
+   "terc": 5162708.95,
    "seg": 234550.15,
-   "hr": 103755.1,
-   "nEq": 429.0,
-   "venta": 846728.35,
+   "hr": 107781.58,
+   "nEq": 450.0,
+   "venta": 855252.24,
    "hrProf": 132127.01
   },
   "calc": {
-   "rym": 652208.06,
-   "mov": 323514.11,
-   "terc": 4925687.25,
+   "rym": 656157.26,
+   "mov": 339469.61,
+   "terc": 5162708.95,
    "seg": 234550.15,
-   "hr": 103755.1,
-   "nEq": 429.0,
-   "venta": 846728.35,
+   "hr": 107781.58,
+   "nEq": 450.0,
+   "venta": 855252.24,
    "hrProf": 132127.01
   }
  },
@@ -1237,17 +1272,103 @@
   9
  ],
  "fueraCorte": {
-  "SERV": 118859.21,
-  "MAT": 64375.13,
-  "MO": 2940.0
+  "SERV": 132580.9,
+  "MAT": 65417.92,
+  "MO": 2470.0
  },
  "sinFecha": 0.0,
- "sinTarifa": 34,
- "sinHoras": 77,
- "sinDM": 181,
+ "sinTarifa": 55,
+ "sinHoras": 94,
+ "sinDM": 185,
  "parteTarifa": 0.0,
  "serviciosFueraBase": {
   "n": 32,
   "v": 79622.05
- }
+ },
+ "repetidos": [
+  {
+   "eq": "V-2401-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2401-AL (ATOC)"
+  },
+  {
+   "eq": "V-2364-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2364-AL (ATOC)"
+  },
+  {
+   "eq": "V-2373-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2373-AL (ATOC)"
+  },
+  {
+   "eq": "V-2378-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2378-AL (ATOC)"
+  },
+  {
+   "eq": "V-2379-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2379-AL (ATOC)"
+  },
+  {
+   "eq": "V-2381-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2381-AL (ATOC)"
+  },
+  {
+   "eq": "V-2384-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2384-AL (ATOC)"
+  },
+  {
+   "eq": "V-2395-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2395-AL (ATOC)"
+  },
+  {
+   "eq": "V-2396-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2396-AL (ATOC)"
+  },
+  {
+   "eq": "V-2397-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2397-AL (ATOC)"
+  },
+  {
+   "eq": "V-2398-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2398-AL (ATOC)"
+  },
+  {
+   "eq": "V-2410-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2410-AL (ATOC)"
+  },
+  {
+   "eq": "V-2365-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2365-AL (ATOC)"
+  },
+  {
+   "eq": "V-2411-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2411-AL (ATOC)"
+  }
+ ]
 }
