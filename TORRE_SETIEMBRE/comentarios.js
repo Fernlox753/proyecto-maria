@@ -5,8 +5,12 @@
    navegador en GitHub). Cada comentario guarda su fila, su columna, el
    valor de la celda, el filtro (ctx) y su estado: pendiente o tratado.
    IR vuelve a poner ese filtro en Flota completa y abre la celda.
+   Desde el 27/10 la lista es una matriz con los apartados de cada
+   comentario (HX_APARTADOS: equipo, descripcion, monto, horometro,
+   fecha, solucion y salida); se ordena por cualquier columna y EDITAR
+   abre el mismo editor de la celda sin salir de aqui.
    ══════════════════════════════════════════════════════════════════ */
-var CM = { ver: 'pendiente', busca: '' };
+var CM = { ver: 'pendiente', busca: '', ord: null };
 
 /* lo que dice la clave de un comentario viejo, sin filtro guardado:
    hoja . nodo [. flota [. proyectos] [. huella]] . columna */
@@ -30,39 +34,83 @@ function cmLista(){
   }
   return out.sort(function(a, b){ return String(b.x.ts || '').localeCompare(String(a.x.ts || '')); });
 }
+/* las columnas de la matriz: estado, los apartados y la celda de donde salio */
+function cmCols(){
+  return [{ k: 'estado', t: 'ESTADO', l: 'Pendiente o tratado: clic en el botón para cambiarlo' }]
+    .concat(HX_APARTADOS)
+    .concat([{ k: 'celda', t: 'CELDA', l: 'Dónde se hizo, cuánto valía la celda y quién lo escribió' }]);
+}
+function cmValorOrden(c, k){
+  if(k === 'estado') return c.estado;
+  if(k === 'celda') return c.x.fila || c.k;
+  var v = c.x[k];
+  return v === null || v === undefined || v === '' ? null : v;
+}
+/* sin orden elegido, lo ultimo escrito arriba; lo vacio va siempre al final */
+function cmOrdenar(xs){
+  var o = CM.ord;
+  if(!o) return xs;
+  return xs.slice().sort(function(a, b){
+    var va = cmValorOrden(a, o.k), vb = cmValorOrden(b, o.k);
+    if(va === null || vb === null) return va === null ? (vb === null ? 0 : 1) : -1;
+    var r = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb), 'es');
+    return r * o.dir;
+  });
+}
+/* «FLOTA COMPLETA · MODELO 374FL (ATOC) · DESVIACIÓN › Total» sin lo que se repite */
+function cmDonde(f){ return String(f).replace(/^FLOTA COMPLETA · /, ''); }
 function cmPintar(){
   var tabla = $('cm-tabla');
   if(!tabla) return;
   var todos = cmLista(), np = 0, nt = 0;
   todos.forEach(function(c){ if(c.estado === 'tratado') nt++; else np++; });
-  htm('cm-cifras', '<div>PENDIENTES<b class="pend">' + np + '</b></div><div>TRATADOS<b>' + nt + '</b></div>'
-    + '<div>EN TOTAL<b>' + todos.length + '</b></div>');
   htm('cm-ver', [['pendiente', 'PENDIENTES'], ['tratado', 'TRATADOS'], ['*', 'TODOS']].map(function(o){
     return '<button class="fbt" type="button" data-cmv="' + o[0] + '" aria-pressed="' + (CM.ver === o[0]) + '">' + o[1] + '</button>';
   }).join(''));
   var q = CM.busca.trim().toUpperCase();
-  var xs = todos.filter(function(c){
+  var xs = cmOrdenar(todos.filter(function(c){
     if(CM.ver !== '*' && c.estado !== CM.ver) return false;
     if(!q) return true;
-    return (c.x.texto + ' ' + (c.x.fila || '') + ' ' + hxContextoTxt(c.ctx)).toUpperCase().indexOf(q) >= 0;
-  });
+    return (HX_APARTADOS.map(function(a){ return hxApTxt(c.x, a); }).join(' ') + ' ' + (c.x.fila || '') + ' '
+            + hxContextoTxt(c.ctx)).toUpperCase().indexOf(q) >= 0;
+  }));
+  /* los montos suman lo que esta en la lista */
+  var af = 0, ec = 0;
+  xs.forEach(function(c){ var m = c.x.monto; if(m > 0) af += m; else if(m < 0) ec += m; });
+  htm('cm-cifras', '<div>PENDIENTES<b class="pend">' + np + '</b></div><div>TRATADOS<b>' + nt + '</b></div>'
+    + '<div>EN TOTAL<b>' + todos.length + '</b></div>'
+    + '<div title="Suma de los montos a favor de los comentarios de la lista">A FAVOR · EN LA LISTA<b class="pos">'
+      + (af ? '+' + fmt(af) : '0') + '</b></div>'
+    + '<div title="Suma de los montos en contra de los comentarios de la lista">EN CONTRA · EN LA LISTA<b class="neg">'
+      + (ec ? '−' + fmt(-ec) : '0') + '</b></div>');
   if(!xs.length){
     tabla.innerHTML = '<tbody><tr><td class="cmNada">' + (todos.length ? 'Ningún comentario con eso.'
       : 'Todavía no hay comentarios. Se hacen en Flota completa: clic en una cifra y COMENTAR ESTA CELDA.') + '</td></tr></tbody>';
   } else {
-    tabla.innerHTML = '<thead><tr><th>ESTADO</th><th>DÓNDE</th><th>VALOR AL COMENTAR</th><th>FILTRO USADO</th>'
-      + '<th>COMENTARIO</th><th>QUIÉN · CUÁNDO</th><th></th></tr></thead><tbody>'
+    var hoy = hxHoy();
+    tabla.innerHTML = '<thead><tr>' + cmCols().map(function(a){
+        var o = CM.ord && CM.ord.k === a.k ? (CM.ord.dir > 0 ? ' ▲' : ' ▼') : '';
+        return '<th class="c-' + a.k + '"><button type="button" class="cmTh" data-cmo="' + a.k + '" title="' + esc(a.l)
+          + ' · clic para ordenar">' + a.t + o + '</button></th>';
+      }).join('') + '<th></th></tr></thead><tbody>'
       + xs.map(function(c){
           var x = c.x, ok = c.estado === 'tratado';
           return '<tr class="' + (ok ? 'tratado' : '') + '" data-ck="' + esc(c.k) + '">'
-            + '<td><button type="button" class="cmEst' + (ok ? ' ok' : '') + '" data-cme="1" title="'
+            + '<td class="c-estado"><button type="button" class="cmEst' + (ok ? ' ok' : '') + '" data-cme="1" title="'
               + (ok ? 'Volver a ponerlo pendiente' : 'Marcarlo como tratado') + '">' + (ok ? '✓ TRATADO' : '● PENDIENTE') + '</button></td>'
-            + '<td class="fil">' + esc(x.fila || c.k) + '</td>'
-            + '<td class="val">' + esc(x.valor || '—') + '</td>'
-            + '<td class="fil">' + esc(hxContextoTxt(c.ctx)) + '</td>'
-            + '<td class="txt">' + esc(x.texto) + '</td>'
-            + '<td class="quien"><span data-autor="' + esc(x.autor || '') + '"></span>' + esc(String(x.ts || '').slice(0, 16).replace('T', ' ')) + '</td>'
-            + '<td>' + (x.nodo ? '<button type="button" class="cmIr" data-cmi="1" title="Poner este filtro en Flota completa y abrir la celda">IR ↗</button>' : '') + '</td>'
+            + HX_APARTADOS.map(function(a){
+                var t = hxApTxt(x, a), cl = 'c-' + a.k;
+                if(a.k === 'monto' && t) cl += x.monto > 0 ? ' pos' : x.monto < 0 ? ' neg' : '';
+                /* una salida ya pasada con el comentario pendiente sale en rojo */
+                if(a.k === 'salida' && t && !ok && x.salida < hoy) cl += ' neg';
+                return '<td class="' + cl + '"' + (a.dia && t ? ' title="' + esc(String(x[a.k]).split('-').reverse().join('/')) + '"' : '')
+                  + '>' + (t ? esc(t) : '<span class="vac">—</span>') + '</td>';
+              }).join('')
+            + '<td class="c-celda" title="' + esc('Filtro: ' + hxContextoTxt(c.ctx)) + '">' + esc(cmDonde(x.fila || c.k))
+              + '<small>' + (x.valor ? 'valía ' + esc(x.valor) + ' · ' : '') + '<span data-autor="' + esc(x.autor || '') + '"></span>'
+              + esc(String(x.ts || '').slice(0, 10).split('-').reverse().join('/')) + '</small></td>'
+            + '<td class="c-acc"><button type="button" class="cmIr" data-cmd="1" title="Editar los apartados sin salir de esta lista">EDITAR</button>'
+              + (x.nodo ? '<button type="button" class="cmIr" data-cmi="1" title="Poner este filtro en Flota completa y abrir la celda">IR ↗</button>' : '') + '</td>'
             + '</tr>';
         }).join('') + '</tbody>';
   }
@@ -159,10 +207,19 @@ function cmIr(k){
   var t = null;
   esc_('cm-buscar', 'input', function(){ var v = this.value; clearTimeout(t); t = setTimeout(function(){ CM.busca = v; cmPintar(); }, 140); });
   esc_('cm-tabla', 'click', function(ev){
+    /* clic en una cabecera: ordena por ella, otra vez al reves, la tercera la suelta */
+    var th = ev.target.closest ? ev.target.closest('[data-cmo]') : null;
+    if(th){
+      var c = th.getAttribute('data-cmo'), o = CM.ord;
+      CM.ord = !o || o.k !== c ? { k: c, dir: 1 } : o.dir > 0 ? { k: c, dir: -1 } : null;
+      cmPintar();
+      return;
+    }
     var tr = ev.target.closest ? ev.target.closest('tr[data-ck]') : null;
     if(!tr) return;
     var k = tr.getAttribute('data-ck');
     if(ev.target.closest('[data-cme]')) cmEstado(k);
+    else if(ev.target.closest('[data-cmd]')) hxEditarNota(k);
     else if(ev.target.closest('[data-cmi]')) cmIr(k);
   });
   cmPintar();

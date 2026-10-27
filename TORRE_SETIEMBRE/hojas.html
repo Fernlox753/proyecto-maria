@@ -458,6 +458,29 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
                 margin-top:8px; min-height:1.2em}
 .xlEditor .meta.mal{color:#B3261E}
 .xlEditor .bot{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+/* el comentario por apartados, en cuatro columnas: equipo, horometro y fecha
+   arriba; descripcion y solucion a lo ancho; monto y salida juntos */
+.xlNotaEd{width:min(calc(100vw - 36px),640px); max-height:calc(100vh - 36px); overflow:auto; box-sizing:border-box}
+.xlNotaEd .edGrid{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:10px 14px}
+.xlNotaEd .ap{display:flex; flex-direction:column; gap:4px; min-width:0; font-family:"IBM Plex Mono",monospace;
+              font-size:10px; letter-spacing:.12em; color:var(--tinta-2)}
+.xlNotaEd .ap.dos{grid-column:span 2}
+.xlNotaEd .ap.ancho{grid-column:1 / -1}
+.xlNotaEd .apL{letter-spacing:.04em; color:var(--tinta-3)}
+.xlNotaEd textarea{min-height:64px}
+.xlNotaEd input{box-sizing:border-box; width:100%; padding:7px 9px; border:1px solid var(--tinta-3); background:#FFFBE6;
+                color:var(--tinta); font-family:"IBM Plex Sans",sans-serif; font-size:14px; letter-spacing:0}
+.xlNotaEd input:focus{outline:2px solid var(--sm); outline-offset:1px}
+.xlNotaEd .edMonto{display:flex; gap:8px; align-items:stretch}
+.xlNotaEd .edMonto input{flex:1; min-width:0}
+.xlNotaEd .edSigno{display:flex; flex:none}
+.xlNotaEd .edSigno .fbt{padding:5px 9px; font-size:10px; white-space:nowrap}
+.xlNotaEd .edSigno [data-signo="1"][aria-pressed="true"]{background:#E7F5EC; color:#0B6B3A; border-color:#0B6B3A}
+.xlNotaEd .edSigno [data-signo="-1"][aria-pressed="true"]{background:#FFF1EF; color:#B3261E; border-color:#B3261E}
+@media (max-width:560px){
+  .xlNotaEd .edGrid{grid-template-columns:1fr 1fr}
+  .xlNotaEd .ap.dos{grid-column:1 / -1}
+}
 @media (max-width:620px){
   table.xl tr.n1 .fija{padding-left:6px} table.xl tr.n2 .fija{padding-left:12px}
   table.xl tr.n3 .fija{padding-left:18px} table.xl tr.n4 .fija{padding-left:26px}
@@ -602,10 +625,23 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
   </div>
 </section>
 
-<div class="xlEditor" id="hx-editor" hidden role="dialog" aria-label="Comentario de la celda">
+<div class="xlEditor xlNotaEd" id="hx-editor" hidden role="dialog" aria-label="Comentario de la celda">
   <h4>COMENTARIO DE LA CELDA</h4>
   <div class="fila" id="hx-ed-fila">—</div>
-  <textarea id="hx-ed-txt" aria-label="Comentario" placeholder="Escribe el comentario de esta celda"></textarea>
+  <div class="edGrid">
+    <label class="ap dos"><span>EQUIPO</span><input id="hx-ed-eq" list="hx-ed-eqs" autocomplete="off" maxlength="300" placeholder="T-582-AL, EP-159-AL…"></label>
+    <label class="ap"><span>HORÓM.</span><input id="hx-ed-horom" inputmode="decimal" autocomplete="off" maxlength="20" placeholder="horas"></label>
+    <label class="ap"><span>FECHA</span><input id="hx-ed-fecha" type="date"></label>
+    <label class="ap ancho"><span>DESCRIPCIÓN</span><textarea id="hx-ed-txt" placeholder="Qué pasa con esta cifra (obligatoria)"></textarea></label>
+    <div class="ap dos"><span>MONTO US$</span>
+      <div class="edMonto">
+        <span class="edSigno" id="hx-ed-signo" role="group" aria-label="A favor o en contra"><button class="fbt" type="button" data-signo="1" aria-pressed="true" title="A favor: mejora el resultado">+ FAVOR</button><button class="fbt" type="button" data-signo="-1" aria-pressed="false" title="En contra: empeora el resultado">− CONTRA</button></span>
+        <input id="hx-ed-monto" inputmode="decimal" autocomplete="off" maxlength="20" placeholder="0" aria-label="Monto en US$">
+      </div></div>
+    <label class="ap dos"><span>SALIDA<span class="apL"> · fecha tentativa</span></span><input id="hx-ed-salida" type="date" title="Fecha tentativa de salida"></label>
+    <label class="ap ancho"><span>SOLUCIÓN<span class="apL"> · o propuesta</span></span><textarea id="hx-ed-sol" placeholder="Qué se propone o cómo se resolvió"></textarea></label>
+  </div>
+  <datalist id="hx-ed-eqs"></datalist>
   <div class="meta" id="hx-ed-meta"></div>
   <div class="bot">
     <button class="fbt" type="button" id="hx-ed-guardar" aria-pressed="true">GUARDAR</button>

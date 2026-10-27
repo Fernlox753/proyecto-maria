@@ -1655,6 +1655,29 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
                 margin-top:8px; min-height:1.2em}
 .xlEditor .meta.mal{color:#B3261E}
 .xlEditor .bot{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+/* el comentario por apartados, en cuatro columnas: equipo, horometro y fecha
+   arriba; descripcion y solucion a lo ancho; monto y salida juntos */
+.xlNotaEd{width:min(calc(100vw - 36px),640px); max-height:calc(100vh - 36px); overflow:auto; box-sizing:border-box}
+.xlNotaEd .edGrid{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:10px 14px}
+.xlNotaEd .ap{display:flex; flex-direction:column; gap:4px; min-width:0; font-family:"IBM Plex Mono",monospace;
+              font-size:12px; letter-spacing:.12em; color:var(--tinta-2)}
+.xlNotaEd .ap.dos{grid-column:span 2}
+.xlNotaEd .ap.ancho{grid-column:1 / -1}
+.xlNotaEd .apL{letter-spacing:.04em; color:var(--tinta-3)}
+.xlNotaEd textarea{min-height:64px}
+.xlNotaEd input{box-sizing:border-box; width:100%; padding:7px 9px; border:1px solid var(--tinta-3); background:#FFFBE6;
+                color:var(--tinta); font-family:"IBM Plex Sans",sans-serif; font-size:14px; letter-spacing:0}
+.xlNotaEd input:focus{outline:2px solid var(--sm); outline-offset:1px}
+.xlNotaEd .edMonto{display:flex; gap:8px; align-items:stretch}
+.xlNotaEd .edMonto input{flex:1; min-width:0}
+.xlNotaEd .edSigno{display:flex; flex:none}
+.xlNotaEd .edSigno .fbt{padding:5px 9px; font-size:12px; white-space:nowrap}
+.xlNotaEd .edSigno [data-signo="1"][aria-pressed="true"]{background:#E7F5EC; color:#0B6B3A; border-color:#0B6B3A}
+.xlNotaEd .edSigno [data-signo="-1"][aria-pressed="true"]{background:#FFF1EF; color:#B3261E; border-color:#B3261E}
+@media (max-width:560px){
+  .xlNotaEd .edGrid{grid-template-columns:1fr 1fr}
+  .xlNotaEd .ap.dos{grid-column:1 / -1}
+}
 @media (max-width:620px){
   table.xl tr.n1 .fija{padding-left:6px} table.xl tr.n2 .fija{padding-left:12px}
   table.xl tr.n3 .fija{padding-left:18px} table.xl tr.n4 .fija{padding-left:26px}
@@ -1799,10 +1822,23 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
   </div>
 </section>
 
-<div class="xlEditor" id="hx-editor" hidden role="dialog" aria-label="Comentario de la celda">
+<div class="xlEditor xlNotaEd" id="hx-editor" hidden role="dialog" aria-label="Comentario de la celda">
   <h4>COMENTARIO DE LA CELDA</h4>
   <div class="fila" id="hx-ed-fila">—</div>
-  <textarea id="hx-ed-txt" aria-label="Comentario" placeholder="Escribe el comentario de esta celda"></textarea>
+  <div class="edGrid">
+    <label class="ap dos"><span>EQUIPO</span><input id="hx-ed-eq" list="hx-ed-eqs" autocomplete="off" maxlength="300" placeholder="T-582-AL, EP-159-AL…"></label>
+    <label class="ap"><span>HORÓM.</span><input id="hx-ed-horom" inputmode="decimal" autocomplete="off" maxlength="20" placeholder="horas"></label>
+    <label class="ap"><span>FECHA</span><input id="hx-ed-fecha" type="date"></label>
+    <label class="ap ancho"><span>DESCRIPCIÓN</span><textarea id="hx-ed-txt" placeholder="Qué pasa con esta cifra (obligatoria)"></textarea></label>
+    <div class="ap dos"><span>MONTO US$</span>
+      <div class="edMonto">
+        <span class="edSigno" id="hx-ed-signo" role="group" aria-label="A favor o en contra"><button class="fbt" type="button" data-signo="1" aria-pressed="true" title="A favor: mejora el resultado">+ FAVOR</button><button class="fbt" type="button" data-signo="-1" aria-pressed="false" title="En contra: empeora el resultado">− CONTRA</button></span>
+        <input id="hx-ed-monto" inputmode="decimal" autocomplete="off" maxlength="20" placeholder="0" aria-label="Monto en US$">
+      </div></div>
+    <label class="ap dos"><span>SALIDA<span class="apL"> · fecha tentativa</span></span><input id="hx-ed-salida" type="date" title="Fecha tentativa de salida"></label>
+    <label class="ap ancho"><span>SOLUCIÓN<span class="apL"> · o propuesta</span></span><textarea id="hx-ed-sol" placeholder="Qué se propone o cómo se resolvió"></textarea></label>
+  </div>
+  <datalist id="hx-ed-eqs"></datalist>
   <div class="meta" id="hx-ed-meta"></div>
   <div class="bot">
     <button class="fbt" type="button" id="hx-ed-guardar" aria-pressed="true">GUARDAR</button>
@@ -1838,6 +1874,22 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
   letter-spacing:.08em; border:1px solid var(--sm); color:var(--sm); white-space:nowrap}
 #v-notas .cmIr:hover{background:var(--sm); color:#fff}
 #v-notas .cmNada{padding:26px 14px; color:var(--tinta-3)}
+/* la matriz de apartados (27/10): cabeceras cortas que ordenan, cifras en mono */
+#v-notas .cmCifras b.pos{color:#0B6B3A} #v-notas .cmCifras b.neg{color:#B3261E}
+#v-notas .cmTh{all:unset; cursor:pointer; white-space:nowrap}
+#v-notas .cmTh:hover{text-decoration:underline} #v-notas .cmTh:focus-visible{outline:2px solid #fff; outline-offset:2px}
+#v-notas table.cm td.c-eq{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--tinta); max-width:150px; overflow-wrap:anywhere}
+#v-notas table.cm td.c-texto{color:var(--tinta); white-space:pre-wrap; min-width:200px; max-width:340px}
+#v-notas table.cm td.c-sol{white-space:pre-wrap; min-width:170px; max-width:300px}
+#v-notas table.cm td.c-monto,#v-notas table.cm td.c-horom{font-family:"IBM Plex Mono",monospace; text-align:right; white-space:nowrap}
+#v-notas table.cm td.c-fecha,#v-notas table.cm td.c-salida{font-family:"IBM Plex Mono",monospace; white-space:nowrap}
+#v-notas table.cm th.c-monto,#v-notas table.cm th.c-horom{text-align:right}
+#v-notas table.cm td.pos{color:#0B6B3A} #v-notas table.cm td.neg{color:#B3261E}
+#v-notas table.cm td .vac{color:var(--tinta-3)}
+#v-notas table.cm td.c-celda{font-size:11.5px; max-width:250px; color:var(--tinta-2)}
+#v-notas table.cm td.c-celda small{display:block; margin-top:3px; font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--tinta-3)}
+#v-notas table.cm td.c-acc{white-space:nowrap}
+#v-notas table.cm td.c-acc .cmIr + .cmIr{margin-left:6px}
 #v-notas .cmNota{margin-top:10px; font-size:12px; color:var(--tinta-3); max-width:90ch}
 </style>
 
@@ -1848,7 +1900,13 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
       <div class="ord"><span class="num">02</span><span class="lin"></span><span class="num">LO QUE QUEDA POR TRATAR</span></div>
       <h2 class="d d-l">Comentarios, con su filtro.</h2>
       <details class="expl"><summary>CÓMO SE LEE ESTA HOJA</summary>
-      <p class="lede">Todos los comentarios de las celdas de <b>Flota completa</b>. Cada uno guarda dónde se
+      <p class="lede">Todos los comentarios de las celdas de <b>Flota completa</b>, uno por fila, con sus
+      apartados: <b>EQUIPO</b>, <b>DESCRIPCIÓN</b>, <b>MONTO</b> (+ a favor, − en contra, en US$),
+      <b>HORÓM.</b> (horómetro), <b>FECHA</b>, <b>SOLUCIÓN</b> (o propuesta) y <b>SALIDA</b> (fecha
+      tentativa de salida; en rojo si ya pasó y sigue pendiente). Clic en una cabecera ordena por ella.
+      <b>EDITAR</b> cambia los apartados sin salir de aquí. Las cifras de arriba suman los montos de la
+      lista que se ve.</p>
+      <p class="lede">Cada comentario guarda también dónde se
       hizo, cuánto valía la celda y <b>qué filtro estaba puesto</b>: la flota, los proyectos, DEP y ALQ, lo
       elegido con SELECCIONAR y los filtros por columna. El comentario de un proyecto, una familia, un modelo
       o el total sólo aparece en la tabla con ese mismo filtro, porque con otro la cifra es otra. <b>IR ↗</b>
@@ -1859,7 +1917,7 @@ body.arrNiv,body.arrNiv *{cursor:grabbing !important; user-select:none !importan
     <div class="cmBarra">
       <div><span class="gcT">MOSTRAR</span><div class="gcB" id="cm-ver"></div></div>
       <label class="fl">BUSCAR
-        <input class="entradaEq" id="cm-buscar" autocomplete="off" placeholder="texto, equipo, modelo, proyecto…"></label>
+        <input class="entradaEq" id="cm-buscar" autocomplete="off" placeholder="equipo, descripción, solución, proyecto…"></label>
     </div>
     <div class="cmEnv"><table class="cm" id="cm-tabla"></table></div>
     <p class="cmNota" id="cm-nota"></p>
@@ -8443,7 +8501,7 @@ function hxSemHoras(st, c, o){
 /* la esquina de una celda comentada, como el triangulo rojo de Excel */
 function hxMarca(st, n, col){
   if(!n.k) return '';
-  var t = (HX_NOTAS[hxClaveNota(st.s, n, col)] || {}).texto;
+  var t = hxNotaResumen(HX_NOTAS[hxClaveNota(st.s, n, col)]);
   return t ? '<button type="button" class="xlC" data-cn="' + col + '" title="' + esc(t)
            + '" aria-label="Ver el comentario de esta celda"></button>' : '';
 }
@@ -8602,7 +8660,7 @@ function hxBarraOrigen(s){
   st.cols.forEach(function(g){ if(g.id === p[0]) gr = g; });
   var cc = gr.cols[parseInt(p[1], 10)];
   var valor = hxCelda(cc, n.o).replace(/<[^>]+>/g, '');
-  var nota = (HX_NOTAS[hxClaveNota(s, n, col)] || {}).texto;
+  var nota = hxNotaResumen(HX_NOTAS[hxClaveNota(s, n, col)]);
   /* plegado, el resumen dice que celda es y cuanto vale */
   htm('hx-origenRes-' + s, '<b>' + esc(n.et) + ' · ' + esc(hxTituloCol(st, col)) + ' = ' + esc(valor) + '</b>'
     + (nota ? ' · comentada' : '') + ' · despliega para ver de dónde sale' + (nota ? '' : ' o comentarla'));
@@ -8856,6 +8914,52 @@ var HX_NOTAS = {}, hxDb = null, hxUser = null, hxUid = null, hxNotaAbierta = nul
    la base (en el artifact) no se usa. Lo que se escribe aqui se guarda en este
    navegador y manda sobre la copia; borrar uno copiado lo esconde (texto vacio). */
 var HX_NOTAS_COPIA = {"fecha": "2026-10-07", "notas": {"T.e_T-582-AL.desv-4": {"k": "T.e_T-582-AL.desv-4", "fila": "FLOTA COMPLETA · EQUIPO T-582-AL · DESVIACIÓN VENTA − COSTO › Total", "texto": "Se debe cobrar por anexo 3?", "ts": "2026-10-01T20:16:45.304Z", "nodo": "e|T-582-AL", "col": "desv-4", "valor": "", "ctx": {"hoja": "T", "flota": "ALQUILADO", "sedes": "TODOS", "terD": true, "terA": false}, "estado": "pendiente"}, "T.m_ATOC_EXCAVADORA_SOBRE_ORUGAS_374FL.ALQ.desv-4": {"k": "T.m_ATOC_EXCAVADORA_SOBRE_ORUGAS_374FL.ALQ.desv-4", "fila": "FLOTA COMPLETA · MODELO 374FL (ATOC) · DESVIACIÓN VENTA − COSTO › Total", "texto": "COSTO ASUMIDO POR ALQUILER, SUSTITUTO DE UN EQUIPO PROPIO. +4000", "ts": "2026-10-02T22:02:10.143Z", "nodo": "m|ATOC|EXCAVADORA SOBRE ORUGAS|374FL", "col": "desv-4", "valor": "", "ctx": {"hoja": "T", "flota": "ALQUILADO", "sedes": "ATOC", "terD": true, "terA": false}, "estado": "pendiente"}, "T.m_TRMA_PERFORADORA_ROCK_DRILL_T-450.ALQ.desv-4": {"k": "T.m_TRMA_PERFORADORA_ROCK_DRILL_T-450.ALQ.desv-4", "fila": "FLOTA COMPLETA · MODELO T-450 (TRMA) · DESVIACIÓN VENTA − COSTO › Total", "texto": "COSTO ASUMIDO POR ALQUILER, SUSTITUTO DE UN EQUIPO PROPIO. +2200", "ts": "2026-10-02T22:02:22.511Z", "nodo": "m|TRMA|PERFORADORA ROCK DRILL|T-450", "col": "desv-4", "valor": "", "ctx": {"hoja": "T", "flota": "ALQUILADO", "sedes": "TRMA", "terD": true, "terA": false}, "estado": "pendiente"}, "T.tot.ALQ.ATOC.desv-4": {"k": "T.tot.ALQ.ATOC.desv-4", "fila": "FLOTA COMPLETA · TOTAL DE LA TABLA · DESVIACIÓN VENTA − COSTO › Total", "texto": "Se agrega +4000, total final -10, 524", "ts": "2026-10-02T22:01:35.903Z", "nodo": "tot|ATOC", "col": "desv-4", "valor": "", "ctx": {"hoja": "T", "flota": "ALQUILADO", "sedes": "ATOC", "terD": true, "terA": false}, "estado": "pendiente"}, "T.tot.ALQ.TEMB.desv-4": {"k": "T.tot.ALQ.TEMB.desv-4", "fila": "FLOTA COMPLETA · TOTAL DE LA TABLA · DESVIACIÓN VENTA − COSTO › Total", "texto": "Se agrega +14000, total final -8,754.\nConsiderar equipos:\nRE-1264-AL\nRE-1319-AL\nEP-159-AL", "ts": "2026-10-02T22:27:13.126Z", "nodo": "tot|TEMB", "col": "desv-4", "valor": "", "ctx": {"hoja": "T", "flota": "ALQUILADO", "sedes": "TEMB", "terD": true, "terA": false}, "estado": "pendiente"}, "T.tot.ALQ.TRMA.desv-4": {"k": "T.tot.ALQ.TRMA.desv-4", "fila": "FLOTA COMPLETA · TOTAL DE LA TABLA · DESVIACIÓN VENTA − COSTO › Total", "texto": "Se agrega +2200, total final -3,943.", "ts": "2026-10-02T22:25:31.735Z", "nodo": "tot|TRMA", "col": "desv-4", "valor": "", "ctx": {"hoja": "T", "flota": "ALQUILADO", "sedes": "TRMA", "terD": true, "terA": false}, "estado": "pendiente"}, "T.f_SHGN_CAMI_N_FUERA_DE_CARRETERA.PRO.oper-2": {"k": "T.f_SHGN_CAMI_N_FUERA_DE_CARRETERA.PRO.oper-2", "fila": "FLOTA COMPLETA · FAMILIA CAMIÓN FUERA DE CARRETERA (SHGN) · OPERACIÓN › Horas real", "texto": "por que estevalor", "ts": "2026-09-30T17:12:36.931Z", "nodo": "f|SHGN|CAMIÓN FUERA DE CARRETERA", "col": "oper-2", "valor": "", "ctx": {"hoja": "T", "flota": "PROPIO", "sedes": "TODOS", "terD": true, "terA": false}, "estado": "pendiente"}, "T.m_SHGN_CAMI_N_FUERA_DE_CARRETERA_785C.PRO.costo-2": {"k": "T.m_SHGN_CAMI_N_FUERA_DE_CARRETERA_785C.PRO.costo-2", "fila": "FLOTA COMPLETA · MODELO 785C (SHGN) · COSTO REAL › Dep", "texto": "hola", "ts": "2026-09-30T19:47:54.149Z", "nodo": "m|SHGN|CAMIÓN FUERA DE CARRETERA|785C", "col": "costo-2", "valor": "", "ctx": {"hoja": "T", "flota": "PROPIO", "sedes": "TODOS", "terD": true, "terA": false}, "estado": "pendiente"}}};
+/* Los apartados de un comentario (27/10): el nombre corto va en la ficha y en
+   la matriz de la pestana Comentarios, el largo en su title. La descripcion
+   sigue en «texto»: los comentarios de antes se leen igual, sin los demas */
+var HX_APARTADOS = [
+  { k: 'eq',     t: 'EQUIPO',      l: 'Equipo o equipos' },
+  { k: 'texto',  t: 'DESCRIPCIÓN', l: 'Descripción' },
+  { k: 'monto',  t: 'MONTO',       l: 'Monto a favor (+) o en contra (−), US$', num: 1 },
+  { k: 'horom',  t: 'HORÓM.',      l: 'Horómetro', num: 1 },
+  { k: 'fecha',  t: 'FECHA',       l: 'Fecha', dia: 1 },
+  { k: 'sol',    t: 'SOLUCIÓN',    l: 'Solución o propuesta' },
+  { k: 'salida', t: 'SALIDA',      l: 'Fecha tentativa de salida', dia: 1 }
+];
+/* una cifra escrita a mano: 4000 · 4,000 · US$ 4 000 · −4000 */
+function hxCifraEscrita(v){
+  var t = String(v || '').replace(/US\$|\$|\s/g, '').replace(/[−–]/g, '-').replace(/,/g, '');
+  if(!t) return null;
+  return /^[-+]?\d*\.?\d+$/.test(t) ? parseFloat(t) : NaN;
+}
+function hxHoy(){
+  var d = new Date();
+  return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+}
+/* 2026-10-27 -> 27/10/26 */
+function hxDia(d){ return d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) + '/' + String(d).slice(2, 4) : ''; }
+/* un apartado como se lee: el monto con su signo, las fechas cortas */
+function hxApTxt(x, a){
+  var v = x[a.k];
+  if(v === null || v === undefined || v === '') return '';
+  if(a.k === 'monto') return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toLocaleString('es-PE', { maximumFractionDigits: 2 });
+  if(a.num) return Number(v).toLocaleString('es-PE', { maximumFractionDigits: 1 });
+  if(a.dia) return hxDia(v);
+  return String(v);
+}
+/* el comentario en una linea, para el title de la celda y la barra de origen */
+function hxNotaResumen(x){
+  if(!x || !x.texto) return '';
+  return [x.texto].concat(HX_APARTADOS.map(function(a){
+    var t = a.k === 'texto' ? '' : hxApTxt(x, a);
+    return t ? a.t + ' ' + t : '';
+  })).filter(Boolean).join(' · ');
+}
+function hxMismaNota(a, b){
+  var v = function(x, k){ return x[k] === null || x[k] === undefined ? '' : String(x[k]); };
+  return (a.estado || 'pendiente') === (b.estado || 'pendiente')
+    && HX_APARTADOS.every(function(x){ return v(a, x.k) === v(b, x.k); });
+}
 function hxNotasSinBase(){
   var m = {}, k, loc = hxNotasLocal();
   for(k in HX_NOTAS_COPIA.notas) m[k] = HX_NOTAS_COPIA.notas[k];
@@ -8865,7 +8969,7 @@ function hxNotasSinBase(){
 /* a este navegador va solo lo que difiere de la copia */
 function hxGuardarLocal(){
   var out = {}, k, c = HX_NOTAS_COPIA.notas;
-  for(k in HX_NOTAS) if(!c[k] || c[k].texto !== HX_NOTAS[k].texto || (c[k].estado || 'pendiente') !== (HX_NOTAS[k].estado || 'pendiente')) out[k] = HX_NOTAS[k];
+  for(k in HX_NOTAS) if(!c[k] || !hxMismaNota(c[k], HX_NOTAS[k])) out[k] = HX_NOTAS[k];
   for(k in c) if(!HX_NOTAS[k]) out[k] = { texto: '', ts: new Date().toISOString() };
   try { localStorage.setItem('torreSet.notas', JSON.stringify(out)); } catch(e){}
 }
@@ -8969,34 +9073,106 @@ function hxAbrirNota(s, n, col){
                           + (n.esTot ? 'TOTAL DE LA TABLA' : hxNivelesDe(st)[n.lv] + ' ' + n.et
                              + (n.sede && !n.esSede ? ' (' + n.sede + (n.fl && !n.esFl && !n.id ? ' · ' + HX_FL_NOM[n.fl] : '') + ')' : ''))
                           + ' · ' + hxTituloCol(st, col) };
+  var ids = hxEqsFila(st, n);
+  /* uno nuevo trae el equipo de la fila, si es uno solo, y la fecha de hoy */
+  hxAbrirEditor(nota.texto ? nota : { eq: ids.length === 1 ? ids[0] : '', fecha: hxHoy() }, ids, nota.ctx || ctx);
+}
+/* desde la pestana Comentarios: el mismo editor, sin ir a la celda */
+function hxEditarNota(k){
+  var nota = HX_NOTAS[k];
+  if(!nota) return;
+  hxNotaAbierta = { k: k, nodo: nota.nodo, col: nota.col, estado: nota.estado || 'pendiente', ctx: nota.ctx,
+                    valor: nota.valor || '', fila: nota.fila || k };
+  hxAbrirEditor(nota, [], nota.ctx);
+}
+/* los equipos de una fila: si es uno, el apartado EQUIPO va escrito; si son
+   varios, quedan de sugerencia */
+function hxEqsFila(st, n){
+  var ids = [], visto = {};
+  var pon = function(id){ if(id && !visto[id]){ visto[id] = 1; ids.push(id); } };
+  var baja = function(lista){ lista.forEach(function(x){ if(x.id) pon(x.id); else baja(x.hijos || []); }); };
+  if(n.id) pon(n.id);
+  else baja(n.esTot ? (st.vista || st.arbol) : (n.hijos || []));
+  /* una fase o una orden sin equipos debajo: el de su clave, o el que tiene esa orden */
+  if(!ids.length && n.esFase) pon(String(n.k).split('|')[1]);
+  if(!ids.length && n.ot){
+    var ots = hxSep(st).ots || {}, id;
+    for(id in ots) if(ots[id].some(function(r){ return String(r[0]) === String(n.et); })) pon(id);
+  }
+  return ids;
+}
+function hxAbrirEditor(nota, ids, ctx){
+  var k = hxNotaAbierta.k, nada = function(v){ return v === null || v === undefined || v === ''; };
   txt('hx-ed-fila', hxNotaAbierta.fila);
-  var ta = $('hx-ed-txt'); ta.value = nota.texto || '';
+  $('hx-ed-eq').value = nota.eq || '';
+  $('hx-ed-txt').value = nota.texto || '';
+  $('hx-ed-monto').value = nada(nota.monto) ? '' : String(Math.abs(nota.monto));
+  hxPonerSigno(nota.monto < 0 ? -1 : 1);
+  $('hx-ed-horom').value = nada(nota.horom) ? '' : String(nota.horom);
+  $('hx-ed-fecha').value = nota.fecha || '';
+  $('hx-ed-sol').value = nota.sol || '';
+  $('hx-ed-salida').value = nota.salida || '';
+  htm('hx-ed-eqs', ids.map(function(id){ return '<option value="' + esc(id) + '">'; }).join(''));
   var meta = $('hx-ed-meta'); meta.className = 'meta';
-  meta.textContent = 'Filtro: ' + hxContextoTxt(nota.ctx || ctx)
-    + (nota.texto ? ' · ' + (hxNotaAbierta.estado === 'tratado' ? 'TRATADO' : 'PENDIENTE') : '')
-    + (nota.ts ? ' · Último cambio: ' + String(nota.ts).slice(0, 16).replace('T', ' ') : '');
+  meta.textContent = 'Filtro: ' + hxContextoTxt(ctx)
+    + (nota.ts ? ' · ' + (hxNotaAbierta.estado === 'tratado' ? 'TRATADO' : 'PENDIENTE')
+               + ' · Último cambio: ' + String(nota.ts).slice(0, 16).replace('T', ' ') : '');
+  hxNotaAbierta.metaTxt = meta.textContent;
   if(nota.autor && hxUser){
     hxUser.profiles([nota.autor]).then(function(ps){
       if(hxNotaAbierta && hxNotaAbierta.k === k && ps[nota.autor] && ps[nota.autor].name)
-        meta.textContent += ' · ' + ps[nota.autor].name;
+        hxNotaAbierta.metaTxt += ' · ' + ps[nota.autor].name;
+      if(hxNotaAbierta && meta.className === 'meta') meta.textContent = hxNotaAbierta.metaTxt;
     });
   }
   $('hx-editor').hidden = false;
-  ta.focus();
+  $('hx-ed-txt').focus();
+}
+function hxPonerSigno(sg){
+  Array.prototype.forEach.call(document.querySelectorAll('#hx-ed-signo [data-signo]'), function(b){
+    b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-signo')) === sg));
+  });
+}
+/* los apartados escritos; los vacios no se guardan */
+function hxLeerEditor(){
+  var x = { texto: $('hx-ed-txt').value.trim().slice(0, 4000) };
+  var eq = $('hx-ed-eq').value.trim().toUpperCase().slice(0, 300), sol = $('hx-ed-sol').value.trim().slice(0, 4000);
+  var m = hxCifraEscrita($('hx-ed-monto').value), h = hxCifraEscrita($('hx-ed-horom').value);
+  if(m !== m) return { error: 'MONTO: escribe sólo la cifra (4000 o 4,000); el signo va con A FAVOR / EN CONTRA.' };
+  if(h !== h) return { error: 'HORÓM.: escribe sólo la cifra del horómetro.' };
+  var b = document.querySelector('#hx-ed-signo [aria-pressed="true"]');
+  if(eq) x.eq = eq;
+  if(m !== null) x.monto = (b && b.getAttribute('data-signo') === '-1' ? -1 : 1) * Math.abs(m);
+  if(h !== null) x.horom = h;
+  ['fecha', 'salida'].forEach(function(c){ var v = $('hx-ed-' + c).value; if(/^\d{4}-\d{2}-\d{2}$/.test(v)) x[c] = v; });
+  if(sol) x.sol = sol;
+  return x;
 }
 function hxCerrarNota(){ $('hx-editor').hidden = true; hxNotaAbierta = null; }
-function hxGuardarNota(texto){
+/* campos: lo de hxLeerEditor; null es borrar */
+function hxGuardarNota(campos){
   if(!hxNotaAbierta) return;
   var k = hxNotaAbierta.k, meta = $('hx-ed-meta');
   var A = hxNotaAbierta;
-  var reg = { k: k, fila: A.fila, texto: texto, autor: hxUid || null, ts: new Date().toISOString(),
-              nodo: A.nodo, col: A.col, valor: A.valor, ctx: A.ctx, estado: A.estado || 'pendiente' };
+  if(campos && campos.error){ meta.className = 'meta mal'; meta.textContent = campos.error; return; }
+  /* sin descripcion no hay comentario: es lo que se ve en la celda y en la lista */
+  if(campos && !campos.texto){
+    meta.className = 'meta mal'; meta.textContent = 'Falta la DESCRIPCIÓN: es lo que se ve en la celda y en la lista.';
+    $('hx-ed-txt').focus();
+    return;
+  }
+  var reg = null, c;
+  if(campos){
+    reg = { k: k, fila: A.fila, autor: hxUid || null, ts: new Date().toISOString(),
+            nodo: A.nodo, col: A.col, valor: A.valor, ctx: A.ctx, estado: A.estado || 'pendiente' };
+    for(c in campos) reg[c] = campos[c];
+  }
   var listo = function(){ hxCerrarNota(); hxPintarTodo(); };
   if(hxDb){
     meta.className = 'meta'; meta.textContent = 'Guardando…';
     var ref = hxDb.collection('notas').doc(k);
-    (texto ? ref.set(reg) : ref.delete()).then(function(){
-      if(texto) HX_NOTAS[k] = reg; else delete HX_NOTAS[k];
+    (reg ? ref.set(reg) : ref.delete()).then(function(){
+      if(reg) HX_NOTAS[k] = reg; else delete HX_NOTAS[k];
       listo();
     }, function(e){
       meta.className = 'meta mal';
@@ -9006,7 +9182,7 @@ function hxGuardarNota(texto){
     });
     return;
   }
-  if(texto) HX_NOTAS[k] = reg; else delete HX_NOTAS[k];
+  if(reg) HX_NOTAS[k] = reg; else delete HX_NOTAS[k];
   hxGuardarLocal();
   listo();
 }
@@ -10171,11 +10347,25 @@ function hxTarjNav(){
 })();
 
 esc_('hx-ed-cerrar', 'click', hxCerrarNota);
-esc_('hx-ed-guardar', 'click', function(){ hxGuardarNota($('hx-ed-txt').value.trim().slice(0, 4000)); });
-esc_('hx-ed-borrar', 'click', function(){ hxGuardarNota(''); });
-esc_('hx-ed-txt', 'keydown', function(ev){
+esc_('hx-ed-guardar', 'click', function(){ hxGuardarNota(hxLeerEditor()); });
+esc_('hx-ed-borrar', 'click', function(){ hxGuardarNota(null); });
+esc_('hx-editor', 'keydown', function(ev){
   if(ev.key === 'Escape') hxCerrarNota();
-  if(ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) hxGuardarNota(this.value.trim().slice(0, 4000));
+  if(ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) hxGuardarNota(hxLeerEditor());
+});
+esc_('hx-ed-signo', 'click', function(ev){
+  var b = ev.target.closest ? ev.target.closest('[data-signo]') : null;
+  if(b) hxPonerSigno(Number(b.getAttribute('data-signo')));
+});
+/* al seguir escribiendo, el aviso de lo que falta vuelve a ser el filtro */
+esc_('hx-editor', 'input', function(){
+  var meta = $('hx-ed-meta');
+  if(hxNotaAbierta && meta.className === 'meta mal'){ meta.className = 'meta'; meta.textContent = hxNotaAbierta.metaTxt || ''; }
+});
+/* un signo escrito en el monto mueve el boton y se quita del numero */
+esc_('hx-ed-monto', 'input', function(){
+  var m = /^\s*([-−–+])/.exec(this.value);
+  if(m){ hxPonerSigno(m[1] === '+' ? 1 : -1); this.value = this.value.replace(/^\s*[-−–+]\s*/, ''); }
 });
 
 /* Con la pagina publicada los comentarios van al almacen compartido del
@@ -10242,8 +10432,12 @@ function verFlota(n){
    navegador en GitHub). Cada comentario guarda su fila, su columna, el
    valor de la celda, el filtro (ctx) y su estado: pendiente o tratado.
    IR vuelve a poner ese filtro en Flota completa y abre la celda.
+   Desde el 27/10 la lista es una matriz con los apartados de cada
+   comentario (HX_APARTADOS: equipo, descripcion, monto, horometro,
+   fecha, solucion y salida); se ordena por cualquier columna y EDITAR
+   abre el mismo editor de la celda sin salir de aqui.
    ══════════════════════════════════════════════════════════════════ */
-var CM = { ver: 'pendiente', busca: '' };
+var CM = { ver: 'pendiente', busca: '', ord: null };
 
 /* lo que dice la clave de un comentario viejo, sin filtro guardado:
    hoja . nodo [. flota [. proyectos] [. huella]] . columna */
@@ -10267,39 +10461,83 @@ function cmLista(){
   }
   return out.sort(function(a, b){ return String(b.x.ts || '').localeCompare(String(a.x.ts || '')); });
 }
+/* las columnas de la matriz: estado, los apartados y la celda de donde salio */
+function cmCols(){
+  return [{ k: 'estado', t: 'ESTADO', l: 'Pendiente o tratado: clic en el botón para cambiarlo' }]
+    .concat(HX_APARTADOS)
+    .concat([{ k: 'celda', t: 'CELDA', l: 'Dónde se hizo, cuánto valía la celda y quién lo escribió' }]);
+}
+function cmValorOrden(c, k){
+  if(k === 'estado') return c.estado;
+  if(k === 'celda') return c.x.fila || c.k;
+  var v = c.x[k];
+  return v === null || v === undefined || v === '' ? null : v;
+}
+/* sin orden elegido, lo ultimo escrito arriba; lo vacio va siempre al final */
+function cmOrdenar(xs){
+  var o = CM.ord;
+  if(!o) return xs;
+  return xs.slice().sort(function(a, b){
+    var va = cmValorOrden(a, o.k), vb = cmValorOrden(b, o.k);
+    if(va === null || vb === null) return va === null ? (vb === null ? 0 : 1) : -1;
+    var r = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb), 'es');
+    return r * o.dir;
+  });
+}
+/* «FLOTA COMPLETA · MODELO 374FL (ATOC) · DESVIACIÓN › Total» sin lo que se repite */
+function cmDonde(f){ return String(f).replace(/^FLOTA COMPLETA · /, ''); }
 function cmPintar(){
   var tabla = $('cm-tabla');
   if(!tabla) return;
   var todos = cmLista(), np = 0, nt = 0;
   todos.forEach(function(c){ if(c.estado === 'tratado') nt++; else np++; });
-  htm('cm-cifras', '<div>PENDIENTES<b class="pend">' + np + '</b></div><div>TRATADOS<b>' + nt + '</b></div>'
-    + '<div>EN TOTAL<b>' + todos.length + '</b></div>');
   htm('cm-ver', [['pendiente', 'PENDIENTES'], ['tratado', 'TRATADOS'], ['*', 'TODOS']].map(function(o){
     return '<button class="fbt" type="button" data-cmv="' + o[0] + '" aria-pressed="' + (CM.ver === o[0]) + '">' + o[1] + '</button>';
   }).join(''));
   var q = CM.busca.trim().toUpperCase();
-  var xs = todos.filter(function(c){
+  var xs = cmOrdenar(todos.filter(function(c){
     if(CM.ver !== '*' && c.estado !== CM.ver) return false;
     if(!q) return true;
-    return (c.x.texto + ' ' + (c.x.fila || '') + ' ' + hxContextoTxt(c.ctx)).toUpperCase().indexOf(q) >= 0;
-  });
+    return (HX_APARTADOS.map(function(a){ return hxApTxt(c.x, a); }).join(' ') + ' ' + (c.x.fila || '') + ' '
+            + hxContextoTxt(c.ctx)).toUpperCase().indexOf(q) >= 0;
+  }));
+  /* los montos suman lo que esta en la lista */
+  var af = 0, ec = 0;
+  xs.forEach(function(c){ var m = c.x.monto; if(m > 0) af += m; else if(m < 0) ec += m; });
+  htm('cm-cifras', '<div>PENDIENTES<b class="pend">' + np + '</b></div><div>TRATADOS<b>' + nt + '</b></div>'
+    + '<div>EN TOTAL<b>' + todos.length + '</b></div>'
+    + '<div title="Suma de los montos a favor de los comentarios de la lista">A FAVOR · EN LA LISTA<b class="pos">'
+      + (af ? '+' + fmt(af) : '0') + '</b></div>'
+    + '<div title="Suma de los montos en contra de los comentarios de la lista">EN CONTRA · EN LA LISTA<b class="neg">'
+      + (ec ? '−' + fmt(-ec) : '0') + '</b></div>');
   if(!xs.length){
     tabla.innerHTML = '<tbody><tr><td class="cmNada">' + (todos.length ? 'Ningún comentario con eso.'
       : 'Todavía no hay comentarios. Se hacen en Flota completa: clic en una cifra y COMENTAR ESTA CELDA.') + '</td></tr></tbody>';
   } else {
-    tabla.innerHTML = '<thead><tr><th>ESTADO</th><th>DÓNDE</th><th>VALOR AL COMENTAR</th><th>FILTRO USADO</th>'
-      + '<th>COMENTARIO</th><th>QUIÉN · CUÁNDO</th><th></th></tr></thead><tbody>'
+    var hoy = hxHoy();
+    tabla.innerHTML = '<thead><tr>' + cmCols().map(function(a){
+        var o = CM.ord && CM.ord.k === a.k ? (CM.ord.dir > 0 ? ' ▲' : ' ▼') : '';
+        return '<th class="c-' + a.k + '"><button type="button" class="cmTh" data-cmo="' + a.k + '" title="' + esc(a.l)
+          + ' · clic para ordenar">' + a.t + o + '</button></th>';
+      }).join('') + '<th></th></tr></thead><tbody>'
       + xs.map(function(c){
           var x = c.x, ok = c.estado === 'tratado';
           return '<tr class="' + (ok ? 'tratado' : '') + '" data-ck="' + esc(c.k) + '">'
-            + '<td><button type="button" class="cmEst' + (ok ? ' ok' : '') + '" data-cme="1" title="'
+            + '<td class="c-estado"><button type="button" class="cmEst' + (ok ? ' ok' : '') + '" data-cme="1" title="'
               + (ok ? 'Volver a ponerlo pendiente' : 'Marcarlo como tratado') + '">' + (ok ? '✓ TRATADO' : '● PENDIENTE') + '</button></td>'
-            + '<td class="fil">' + esc(x.fila || c.k) + '</td>'
-            + '<td class="val">' + esc(x.valor || '—') + '</td>'
-            + '<td class="fil">' + esc(hxContextoTxt(c.ctx)) + '</td>'
-            + '<td class="txt">' + esc(x.texto) + '</td>'
-            + '<td class="quien"><span data-autor="' + esc(x.autor || '') + '"></span>' + esc(String(x.ts || '').slice(0, 16).replace('T', ' ')) + '</td>'
-            + '<td>' + (x.nodo ? '<button type="button" class="cmIr" data-cmi="1" title="Poner este filtro en Flota completa y abrir la celda">IR ↗</button>' : '') + '</td>'
+            + HX_APARTADOS.map(function(a){
+                var t = hxApTxt(x, a), cl = 'c-' + a.k;
+                if(a.k === 'monto' && t) cl += x.monto > 0 ? ' pos' : x.monto < 0 ? ' neg' : '';
+                /* una salida ya pasada con el comentario pendiente sale en rojo */
+                if(a.k === 'salida' && t && !ok && x.salida < hoy) cl += ' neg';
+                return '<td class="' + cl + '"' + (a.dia && t ? ' title="' + esc(String(x[a.k]).split('-').reverse().join('/')) + '"' : '')
+                  + '>' + (t ? esc(t) : '<span class="vac">—</span>') + '</td>';
+              }).join('')
+            + '<td class="c-celda" title="' + esc('Filtro: ' + hxContextoTxt(c.ctx)) + '">' + esc(cmDonde(x.fila || c.k))
+              + '<small>' + (x.valor ? 'valía ' + esc(x.valor) + ' · ' : '') + '<span data-autor="' + esc(x.autor || '') + '"></span>'
+              + esc(String(x.ts || '').slice(0, 10).split('-').reverse().join('/')) + '</small></td>'
+            + '<td class="c-acc"><button type="button" class="cmIr" data-cmd="1" title="Editar los apartados sin salir de esta lista">EDITAR</button>'
+              + (x.nodo ? '<button type="button" class="cmIr" data-cmi="1" title="Poner este filtro en Flota completa y abrir la celda">IR ↗</button>' : '') + '</td>'
             + '</tr>';
         }).join('') + '</tbody>';
   }
@@ -10396,10 +10634,19 @@ function cmIr(k){
   var t = null;
   esc_('cm-buscar', 'input', function(){ var v = this.value; clearTimeout(t); t = setTimeout(function(){ CM.busca = v; cmPintar(); }, 140); });
   esc_('cm-tabla', 'click', function(ev){
+    /* clic en una cabecera: ordena por ella, otra vez al reves, la tercera la suelta */
+    var th = ev.target.closest ? ev.target.closest('[data-cmo]') : null;
+    if(th){
+      var c = th.getAttribute('data-cmo'), o = CM.ord;
+      CM.ord = !o || o.k !== c ? { k: c, dir: 1 } : o.dir > 0 ? { k: c, dir: -1 } : null;
+      cmPintar();
+      return;
+    }
     var tr = ev.target.closest ? ev.target.closest('tr[data-ck]') : null;
     if(!tr) return;
     var k = tr.getAttribute('data-ck');
     if(ev.target.closest('[data-cme]')) cmEstado(k);
+    else if(ev.target.closest('[data-cmd]')) hxEditarNota(k);
     else if(ev.target.closest('[data-cmi]')) cmIr(k);
   });
   cmPintar();

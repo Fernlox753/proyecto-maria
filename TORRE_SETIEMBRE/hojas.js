@@ -483,7 +483,7 @@ function hxSemHoras(st, c, o){
 /* la esquina de una celda comentada, como el triangulo rojo de Excel */
 function hxMarca(st, n, col){
   if(!n.k) return '';
-  var t = (HX_NOTAS[hxClaveNota(st.s, n, col)] || {}).texto;
+  var t = hxNotaResumen(HX_NOTAS[hxClaveNota(st.s, n, col)]);
   return t ? '<button type="button" class="xlC" data-cn="' + col + '" title="' + esc(t)
            + '" aria-label="Ver el comentario de esta celda"></button>' : '';
 }
@@ -642,7 +642,7 @@ function hxBarraOrigen(s){
   st.cols.forEach(function(g){ if(g.id === p[0]) gr = g; });
   var cc = gr.cols[parseInt(p[1], 10)];
   var valor = hxCelda(cc, n.o).replace(/<[^>]+>/g, '');
-  var nota = (HX_NOTAS[hxClaveNota(s, n, col)] || {}).texto;
+  var nota = hxNotaResumen(HX_NOTAS[hxClaveNota(s, n, col)]);
   /* plegado, el resumen dice que celda es y cuanto vale */
   htm('hx-origenRes-' + s, '<b>' + esc(n.et) + ' · ' + esc(hxTituloCol(st, col)) + ' = ' + esc(valor) + '</b>'
     + (nota ? ' · comentada' : '') + ' · despliega para ver de dónde sale' + (nota ? '' : ' o comentarla'));
@@ -896,6 +896,52 @@ var HX_NOTAS = {}, hxDb = null, hxUser = null, hxUid = null, hxNotaAbierta = nul
    la base (en el artifact) no se usa. Lo que se escribe aqui se guarda en este
    navegador y manda sobre la copia; borrar uno copiado lo esconde (texto vacio). */
 var HX_NOTAS_COPIA = { fecha: '', notas: {} };
+/* Los apartados de un comentario (27/10): el nombre corto va en la ficha y en
+   la matriz de la pestana Comentarios, el largo en su title. La descripcion
+   sigue en «texto»: los comentarios de antes se leen igual, sin los demas */
+var HX_APARTADOS = [
+  { k: 'eq',     t: 'EQUIPO',      l: 'Equipo o equipos' },
+  { k: 'texto',  t: 'DESCRIPCIÓN', l: 'Descripción' },
+  { k: 'monto',  t: 'MONTO',       l: 'Monto a favor (+) o en contra (−), US$', num: 1 },
+  { k: 'horom',  t: 'HORÓM.',      l: 'Horómetro', num: 1 },
+  { k: 'fecha',  t: 'FECHA',       l: 'Fecha', dia: 1 },
+  { k: 'sol',    t: 'SOLUCIÓN',    l: 'Solución o propuesta' },
+  { k: 'salida', t: 'SALIDA',      l: 'Fecha tentativa de salida', dia: 1 }
+];
+/* una cifra escrita a mano: 4000 · 4,000 · US$ 4 000 · −4000 */
+function hxCifraEscrita(v){
+  var t = String(v || '').replace(/US\$|\$|\s/g, '').replace(/[−–]/g, '-').replace(/,/g, '');
+  if(!t) return null;
+  return /^[-+]?\d*\.?\d+$/.test(t) ? parseFloat(t) : NaN;
+}
+function hxHoy(){
+  var d = new Date();
+  return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+}
+/* 2026-10-27 -> 27/10/26 */
+function hxDia(d){ return d ? String(d).slice(8, 10) + '/' + String(d).slice(5, 7) + '/' + String(d).slice(2, 4) : ''; }
+/* un apartado como se lee: el monto con su signo, las fechas cortas */
+function hxApTxt(x, a){
+  var v = x[a.k];
+  if(v === null || v === undefined || v === '') return '';
+  if(a.k === 'monto') return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toLocaleString('es-PE', { maximumFractionDigits: 2 });
+  if(a.num) return Number(v).toLocaleString('es-PE', { maximumFractionDigits: 1 });
+  if(a.dia) return hxDia(v);
+  return String(v);
+}
+/* el comentario en una linea, para el title de la celda y la barra de origen */
+function hxNotaResumen(x){
+  if(!x || !x.texto) return '';
+  return [x.texto].concat(HX_APARTADOS.map(function(a){
+    var t = a.k === 'texto' ? '' : hxApTxt(x, a);
+    return t ? a.t + ' ' + t : '';
+  })).filter(Boolean).join(' · ');
+}
+function hxMismaNota(a, b){
+  var v = function(x, k){ return x[k] === null || x[k] === undefined ? '' : String(x[k]); };
+  return (a.estado || 'pendiente') === (b.estado || 'pendiente')
+    && HX_APARTADOS.every(function(x){ return v(a, x.k) === v(b, x.k); });
+}
 function hxNotasSinBase(){
   var m = {}, k, loc = hxNotasLocal();
   for(k in HX_NOTAS_COPIA.notas) m[k] = HX_NOTAS_COPIA.notas[k];
@@ -905,7 +951,7 @@ function hxNotasSinBase(){
 /* a este navegador va solo lo que difiere de la copia */
 function hxGuardarLocal(){
   var out = {}, k, c = HX_NOTAS_COPIA.notas;
-  for(k in HX_NOTAS) if(!c[k] || c[k].texto !== HX_NOTAS[k].texto || (c[k].estado || 'pendiente') !== (HX_NOTAS[k].estado || 'pendiente')) out[k] = HX_NOTAS[k];
+  for(k in HX_NOTAS) if(!c[k] || !hxMismaNota(c[k], HX_NOTAS[k])) out[k] = HX_NOTAS[k];
   for(k in c) if(!HX_NOTAS[k]) out[k] = { texto: '', ts: new Date().toISOString() };
   try { localStorage.setItem('torreSet.notas', JSON.stringify(out)); } catch(e){}
 }
@@ -1009,34 +1055,106 @@ function hxAbrirNota(s, n, col){
                           + (n.esTot ? 'TOTAL DE LA TABLA' : hxNivelesDe(st)[n.lv] + ' ' + n.et
                              + (n.sede && !n.esSede ? ' (' + n.sede + (n.fl && !n.esFl && !n.id ? ' · ' + HX_FL_NOM[n.fl] : '') + ')' : ''))
                           + ' · ' + hxTituloCol(st, col) };
+  var ids = hxEqsFila(st, n);
+  /* uno nuevo trae el equipo de la fila, si es uno solo, y la fecha de hoy */
+  hxAbrirEditor(nota.texto ? nota : { eq: ids.length === 1 ? ids[0] : '', fecha: hxHoy() }, ids, nota.ctx || ctx);
+}
+/* desde la pestana Comentarios: el mismo editor, sin ir a la celda */
+function hxEditarNota(k){
+  var nota = HX_NOTAS[k];
+  if(!nota) return;
+  hxNotaAbierta = { k: k, nodo: nota.nodo, col: nota.col, estado: nota.estado || 'pendiente', ctx: nota.ctx,
+                    valor: nota.valor || '', fila: nota.fila || k };
+  hxAbrirEditor(nota, [], nota.ctx);
+}
+/* los equipos de una fila: si es uno, el apartado EQUIPO va escrito; si son
+   varios, quedan de sugerencia */
+function hxEqsFila(st, n){
+  var ids = [], visto = {};
+  var pon = function(id){ if(id && !visto[id]){ visto[id] = 1; ids.push(id); } };
+  var baja = function(lista){ lista.forEach(function(x){ if(x.id) pon(x.id); else baja(x.hijos || []); }); };
+  if(n.id) pon(n.id);
+  else baja(n.esTot ? (st.vista || st.arbol) : (n.hijos || []));
+  /* una fase o una orden sin equipos debajo: el de su clave, o el que tiene esa orden */
+  if(!ids.length && n.esFase) pon(String(n.k).split('|')[1]);
+  if(!ids.length && n.ot){
+    var ots = hxSep(st).ots || {}, id;
+    for(id in ots) if(ots[id].some(function(r){ return String(r[0]) === String(n.et); })) pon(id);
+  }
+  return ids;
+}
+function hxAbrirEditor(nota, ids, ctx){
+  var k = hxNotaAbierta.k, nada = function(v){ return v === null || v === undefined || v === ''; };
   txt('hx-ed-fila', hxNotaAbierta.fila);
-  var ta = $('hx-ed-txt'); ta.value = nota.texto || '';
+  $('hx-ed-eq').value = nota.eq || '';
+  $('hx-ed-txt').value = nota.texto || '';
+  $('hx-ed-monto').value = nada(nota.monto) ? '' : String(Math.abs(nota.monto));
+  hxPonerSigno(nota.monto < 0 ? -1 : 1);
+  $('hx-ed-horom').value = nada(nota.horom) ? '' : String(nota.horom);
+  $('hx-ed-fecha').value = nota.fecha || '';
+  $('hx-ed-sol').value = nota.sol || '';
+  $('hx-ed-salida').value = nota.salida || '';
+  htm('hx-ed-eqs', ids.map(function(id){ return '<option value="' + esc(id) + '">'; }).join(''));
   var meta = $('hx-ed-meta'); meta.className = 'meta';
-  meta.textContent = 'Filtro: ' + hxContextoTxt(nota.ctx || ctx)
-    + (nota.texto ? ' · ' + (hxNotaAbierta.estado === 'tratado' ? 'TRATADO' : 'PENDIENTE') : '')
-    + (nota.ts ? ' · Último cambio: ' + String(nota.ts).slice(0, 16).replace('T', ' ') : '');
+  meta.textContent = 'Filtro: ' + hxContextoTxt(ctx)
+    + (nota.ts ? ' · ' + (hxNotaAbierta.estado === 'tratado' ? 'TRATADO' : 'PENDIENTE')
+               + ' · Último cambio: ' + String(nota.ts).slice(0, 16).replace('T', ' ') : '');
+  hxNotaAbierta.metaTxt = meta.textContent;
   if(nota.autor && hxUser){
     hxUser.profiles([nota.autor]).then(function(ps){
       if(hxNotaAbierta && hxNotaAbierta.k === k && ps[nota.autor] && ps[nota.autor].name)
-        meta.textContent += ' · ' + ps[nota.autor].name;
+        hxNotaAbierta.metaTxt += ' · ' + ps[nota.autor].name;
+      if(hxNotaAbierta && meta.className === 'meta') meta.textContent = hxNotaAbierta.metaTxt;
     });
   }
   $('hx-editor').hidden = false;
-  ta.focus();
+  $('hx-ed-txt').focus();
+}
+function hxPonerSigno(sg){
+  Array.prototype.forEach.call(document.querySelectorAll('#hx-ed-signo [data-signo]'), function(b){
+    b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-signo')) === sg));
+  });
+}
+/* los apartados escritos; los vacios no se guardan */
+function hxLeerEditor(){
+  var x = { texto: $('hx-ed-txt').value.trim().slice(0, 4000) };
+  var eq = $('hx-ed-eq').value.trim().toUpperCase().slice(0, 300), sol = $('hx-ed-sol').value.trim().slice(0, 4000);
+  var m = hxCifraEscrita($('hx-ed-monto').value), h = hxCifraEscrita($('hx-ed-horom').value);
+  if(m !== m) return { error: 'MONTO: escribe sólo la cifra (4000 o 4,000); el signo va con A FAVOR / EN CONTRA.' };
+  if(h !== h) return { error: 'HORÓM.: escribe sólo la cifra del horómetro.' };
+  var b = document.querySelector('#hx-ed-signo [aria-pressed="true"]');
+  if(eq) x.eq = eq;
+  if(m !== null) x.monto = (b && b.getAttribute('data-signo') === '-1' ? -1 : 1) * Math.abs(m);
+  if(h !== null) x.horom = h;
+  ['fecha', 'salida'].forEach(function(c){ var v = $('hx-ed-' + c).value; if(/^\d{4}-\d{2}-\d{2}$/.test(v)) x[c] = v; });
+  if(sol) x.sol = sol;
+  return x;
 }
 function hxCerrarNota(){ $('hx-editor').hidden = true; hxNotaAbierta = null; }
-function hxGuardarNota(texto){
+/* campos: lo de hxLeerEditor; null es borrar */
+function hxGuardarNota(campos){
   if(!hxNotaAbierta) return;
   var k = hxNotaAbierta.k, meta = $('hx-ed-meta');
   var A = hxNotaAbierta;
-  var reg = { k: k, fila: A.fila, texto: texto, autor: hxUid || null, ts: new Date().toISOString(),
-              nodo: A.nodo, col: A.col, valor: A.valor, ctx: A.ctx, estado: A.estado || 'pendiente' };
+  if(campos && campos.error){ meta.className = 'meta mal'; meta.textContent = campos.error; return; }
+  /* sin descripcion no hay comentario: es lo que se ve en la celda y en la lista */
+  if(campos && !campos.texto){
+    meta.className = 'meta mal'; meta.textContent = 'Falta la DESCRIPCIÓN: es lo que se ve en la celda y en la lista.';
+    $('hx-ed-txt').focus();
+    return;
+  }
+  var reg = null, c;
+  if(campos){
+    reg = { k: k, fila: A.fila, autor: hxUid || null, ts: new Date().toISOString(),
+            nodo: A.nodo, col: A.col, valor: A.valor, ctx: A.ctx, estado: A.estado || 'pendiente' };
+    for(c in campos) reg[c] = campos[c];
+  }
   var listo = function(){ hxCerrarNota(); hxPintarTodo(); };
   if(hxDb){
     meta.className = 'meta'; meta.textContent = 'Guardando…';
     var ref = hxDb.collection('notas').doc(k);
-    (texto ? ref.set(reg) : ref.delete()).then(function(){
-      if(texto) HX_NOTAS[k] = reg; else delete HX_NOTAS[k];
+    (reg ? ref.set(reg) : ref.delete()).then(function(){
+      if(reg) HX_NOTAS[k] = reg; else delete HX_NOTAS[k];
       listo();
     }, function(e){
       meta.className = 'meta mal';
@@ -1046,7 +1164,7 @@ function hxGuardarNota(texto){
     });
     return;
   }
-  if(texto) HX_NOTAS[k] = reg; else delete HX_NOTAS[k];
+  if(reg) HX_NOTAS[k] = reg; else delete HX_NOTAS[k];
   hxGuardarLocal();
   listo();
 }
@@ -2211,11 +2329,25 @@ function hxTarjNav(){
 })();
 
 esc_('hx-ed-cerrar', 'click', hxCerrarNota);
-esc_('hx-ed-guardar', 'click', function(){ hxGuardarNota($('hx-ed-txt').value.trim().slice(0, 4000)); });
-esc_('hx-ed-borrar', 'click', function(){ hxGuardarNota(''); });
-esc_('hx-ed-txt', 'keydown', function(ev){
+esc_('hx-ed-guardar', 'click', function(){ hxGuardarNota(hxLeerEditor()); });
+esc_('hx-ed-borrar', 'click', function(){ hxGuardarNota(null); });
+esc_('hx-editor', 'keydown', function(ev){
   if(ev.key === 'Escape') hxCerrarNota();
-  if(ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) hxGuardarNota(this.value.trim().slice(0, 4000));
+  if(ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) hxGuardarNota(hxLeerEditor());
+});
+esc_('hx-ed-signo', 'click', function(ev){
+  var b = ev.target.closest ? ev.target.closest('[data-signo]') : null;
+  if(b) hxPonerSigno(Number(b.getAttribute('data-signo')));
+});
+/* al seguir escribiendo, el aviso de lo que falta vuelve a ser el filtro */
+esc_('hx-editor', 'input', function(){
+  var meta = $('hx-ed-meta');
+  if(hxNotaAbierta && meta.className === 'meta mal'){ meta.className = 'meta'; meta.textContent = hxNotaAbierta.metaTxt || ''; }
+});
+/* un signo escrito en el monto mueve el boton y se quita del numero */
+esc_('hx-ed-monto', 'input', function(){
+  var m = /^\s*([-−–+])/.exec(this.value);
+  if(m){ hxPonerSigno(m[1] === '+' ? 1 : -1); this.value = this.value.replace(/^\s*[-−–+]\s*/, ''); }
 });
 
 /* Con la pagina publicada los comentarios van al almacen compartido del
