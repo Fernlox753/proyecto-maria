@@ -6,7 +6,7 @@
  "mes": 10,
  "anio": 2026,
  "fechaMaxBase": "2026-10-27",
- "generado": "2026-10-27 17:05",
+ "generado": "2026-10-28 08:48",
  "sedes": {
   "SHGN": {
    "sede": "SHGN",
@@ -48,9 +48,7 @@
      ],
      "CONSIDERAR": [
       "OPEX",
-      "PASAR A VENTA",
-      "Desmov. Equipo",
-      "Desmov. a ATOC"
+      "PASAR A VENTA"
      ]
     }
    },
@@ -92,6 +90,8 @@
       "SEGURO",
       "NO USAR",
       "Parte de la Tarifa de ALQ",
+      "Desmov. Equipo",
+      "Desmov. a ATOC",
       "ES OPEX"
      ]
     }
@@ -136,7 +136,7 @@
    "alquilado": {
     "hoja": {
      "rym": 648472.39,
-     "mov": 298961.95,
+     "mov": 297596.95,
      "terc": 4424664.33,
      "seg": 234550.15,
      "hr": 89740.99,
@@ -146,7 +146,7 @@
     },
     "equipos": {
      "rym": 648472.39,
-     "mov": 298961.95,
+     "mov": 297596.95,
      "terc": 4424664.33,
      "seg": 234550.15,
      "hr": 89740.99,
@@ -156,7 +156,7 @@
     },
     "calc": {
      "rym": 648472.39,
-     "mov": 298961.95
+     "mov": 297596.95
     }
    },
    "acumPeriodos": [
@@ -1141,9 +1141,7 @@
    ],
    "CONSIDERAR": [
     "OPEX",
-    "PASAR A VENTA",
-    "Desmov. Equipo",
-    "Desmov. a ATOC"
+    "PASAR A VENTA"
    ]
   }
  },
@@ -1185,6 +1183,8 @@
     "SEGURO",
     "NO USAR",
     "Parte de la Tarifa de ALQ",
+    "Desmov. Equipo",
+    "Desmov. a ATOC",
     "ES OPEX"
    ]
   }
@@ -1241,7 +1241,7 @@
  "alquilado": {
   "hoja": {
    "rym": 656157.26,
-   "mov": 339469.61,
+   "mov": 338104.61,
    "terc": 5162708.95,
    "seg": 234550.15,
    "hr": 107781.58,
@@ -1251,7 +1251,7 @@
   },
   "calc": {
    "rym": 656157.26,
-   "mov": 339469.61,
+   "mov": 338104.61,
    "terc": 5162708.95,
    "seg": 234550.15,
    "hr": 107781.58,
