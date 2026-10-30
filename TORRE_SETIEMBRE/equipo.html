@@ -32,6 +32,209 @@
   .selEq .ficha{flex-basis:100%; flex-wrap:wrap; white-space:normal}
 }
 @media (max-width:620px){ .selEq .eqFil .fl, .selEq .eqFil .fl select{max-width:100%; width:100%} }
+
+/* ── aspecto ejecutivo de la hoja (30/10) ──
+   Fondo gris azulado frío y paneles blancos: las cifras, el modelo con sus
+   conjuntos y las órdenes son tres objetos separados. Sólo en esta hoja. */
+#v-equipo{--eqFondo:#ECF0F4; --eqPanel:#FFFFFF; --eqBorde:#D9E1EA;
+  --eqSombra:0 1px 2px rgba(8,25,42,.05), 0 8px 24px rgba(8,25,42,.05);
+  --eqEase:cubic-bezier(.23,1,.32,1); background:var(--eqFondo)}
+#v-equipo .selEq{border-bottom-color:var(--linea)}
+#v-equipo .eqPanel{background:var(--eqPanel); border:1px solid var(--eqBorde); border-radius:12px; box-shadow:var(--eqSombra)}
+
+/* las dos filas de cifras */
+#v-equipo .eqKpis{padding:0 22px 2px; margin-bottom:14px}
+#v-equipo .eqFila{display:flex; align-items:baseline; gap:4px 14px; flex-wrap:wrap; padding-top:7px;
+  font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em; color:var(--tinta-3)}
+#v-equipo .eqFila b{color:var(--sm); font-weight:600}
+#v-equipo .eqFila span{letter-spacing:.03em; font-family:"IBM Plex Sans",Arial,sans-serif; font-size:12px}
+#v-equipo .eqKpis .eqCifras{border-top:0; margin-bottom:0}
+#v-equipo .eqKpis .eqCifras + .eqFila{border-top:1px solid var(--linea-2); margin-top:2px}
+/* tarjetas bajas: rótulo, cifra y una sola línea de detalle */
+#v-equipo .eqKpis .eqCifras > div{padding:2px 16px 7px 0}
+@media (min-width:860px){ #v-equipo .eqKpis .eqCifras > div + div{padding-left:18px} }
+#v-equipo .eqKpis .eqCifras .l{margin-bottom:2px}
+#v-equipo .eqKpis .eqCifras .v{font-variant-numeric:tabular-nums; font-size:clamp(1.1rem,1.35vw,1.38rem)}
+#v-equipo .eqKpis .eqCifras .d{margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#v-equipo .eqSin{grid-column:1/-1; margin:8px 0 16px}
+
+/* el modelo y sus conjuntos: el visor más apaisado para que el camión entre
+   en la primera pantalla junto con las cifras */
+#v-equipo .maq{padding:14px 18px 18px}
+@media (min-width:1080px){ #v-equipo .estudio{aspect-ratio:2/1} }
+
+/* el bloque del camión sin huecos (30/10): arriba el modelo y la lista de
+   conjuntos con la misma altura (la lista se desliza dentro); abajo la escala
+   y las llantas a la izquierda, el detalle y el aviso de cobertura a la
+   derecha. Las dos columnas de origen pasan a display:contents para que sus
+   piezas se ubiquen en una sola grilla. La nota del «modelo genérico» ya no
+   corresponde: cada equipo tiene su modelo. */
+@media (min-width:1080px){
+  #v-equipo .maq{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); column-gap:28px; row-gap:0;
+    grid-template-rows:auto minmax(0,1fr) auto auto auto;
+    grid-template-areas:"visor snota" "visor lista" "escala detalle" "llantas detalle" "llantas aviso"}
+  #v-equipo .maq > div{display:contents}
+  #v-equipo .maq .visor{grid-area:visor}
+  #v-equipo .maq #sis-nota{grid-area:snota; margin-bottom:10px!important}
+  /* contain:size: la lista no estira la fila; toma la altura del modelo y se desliza */
+  #v-equipo .maq .sistemas{grid-area:lista; max-height:none; min-height:0; contain:size; overflow:auto}
+  #v-equipo .maq .escala{grid-area:escala; align-self:start}
+  #v-equipo .maq .llantasMapa{grid-area:llantas; align-self:start}
+  #v-equipo .maq .detalle{grid-area:detalle; margin-top:14px!important; align-self:start}
+  #v-equipo .maq #sis-cobertura{grid-area:aviso; align-self:start; margin-top:12px}
+}
+#v-equipo .maq > div > .nota:not(#sis-nota){display:none}
+#v-equipo .detalle .dp{margin-top:8px}
+#v-equipo .verOts{all:unset; box-sizing:border-box; display:inline-flex; align-items:center; gap:8px; margin-top:12px; cursor:pointer;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.12em; color:var(--sm);
+  padding:8px 14px; border:1px solid var(--eqBorde); border-radius:999px;
+  transition:background-color .16s ease, border-color .16s ease, transform .14s var(--eqEase)}
+@media (hover:hover) and (pointer:fine){ #v-equipo .verOts:hover{background:var(--luz); border-color:var(--sm)} }
+#v-equipo .verOts:active{transform:scale(.97)}
+#v-equipo .verOts:focus-visible{outline:2px solid var(--sm); outline-offset:2px}
+
+/* cabecera compacta: título en una línea y «cómo se lee» al lado */
+#v-equipo.vista{padding-top:clamp(12px,2vh,22px)}
+#v-equipo .tituloV{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 22px; margin-bottom:10px}
+/* la marca «05 · LA MÁQUINA» sobra aquí: la pestaña ya lo dice y la línea se gana para el camión */
+#v-equipo .tituloV .ord{display:none}
+#v-equipo .tituloV h2{font-size:clamp(1.35rem,1.9vw,1.85rem); line-height:1.1; max-width:none}
+#v-equipo .tituloV .expl{margin-top:0}
+#v-equipo .selEq{padding-bottom:12px; margin-bottom:14px}
+
+/* filtros: cada rótulo en una línea (no se encogen: si no caben, pasan a otra
+   fila en vez de montarse), y el periodo (desde – hasta) */
+#v-equipo .selEq .eqFil{flex:1 1 auto; flex-wrap:wrap}
+#v-equipo .eqFil .fl{white-space:nowrap; flex:0 0 auto}
+#v-equipo .eqFil .fl select{width:auto; min-width:118px}
+#v-equipo .eqFil .flPer .perSel{display:flex; align-items:center; gap:5px; color:var(--tinta-3)}
+#v-equipo .eqFil .flPer select{min-width:88px}
+
+/* sin título (30/10): la hoja arranca en una sola fila con los filtros, el
+   buscador, el equipo y «?» (equipo.js, equipoEnFiltros) */
+#v-equipo .tituloV{display:none}
+#v-equipo .selEq{flex-wrap:nowrap; align-items:flex-end; gap:10px 12px}
+#v-equipo .selEq .eqFil{flex:0 1 auto; flex-wrap:nowrap; gap:8px 10px}
+#v-equipo .eqFil .fl select{min-width:100px}
+#v-equipo .eqFil .flPer select{min-width:76px}
+#v-equipo .eqFil .fbt{padding:6px 8px}
+#v-equipo .eqElige{margin-left:auto; display:flex; align-items:flex-end; gap:10px 12px;
+  flex:1 1 0; min-width:0; flex-wrap:nowrap; justify-content:flex-end}
+#v-equipo .eqElige .buscaEq{flex:0 1 170px; min-width:120px}
+#v-equipo .eqElige .buscaEq > span{display:none}
+#v-equipo .eqElige .buscaEq input{padding:6px 8px; font-size:.85rem; border-radius:6px}
+#v-equipo .eqElige select{font-family:"IBM Plex Mono",monospace; font-size:.9rem; font-weight:600; color:var(--tinta);
+  background-color:transparent; border:0; border-bottom:1.5px solid var(--tinta); padding:6px 24px 6px 2px;
+  appearance:none; cursor:pointer; min-width:150px; max-width:100%; flex:0 1 210px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--tinta) 50%),linear-gradient(135deg,var(--tinta) 50%,transparent 50%);
+  background-position:calc(100% - 11px) 56%, calc(100% - 6px) 56%; background-size:5px 5px,5px 5px; background-repeat:no-repeat}
+#v-equipo .eqElige select:focus-visible{outline:2px solid var(--sm); outline-offset:3px}
+#v-equipo .eqElige .ficha{display:block; font-family:"IBM Plex Mono",monospace; font-size:.74rem; letter-spacing:.05em; color:var(--tinta-2);
+  flex:0 1 auto; min-width:0; max-width:280px; margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#v-equipo .eqElige .ficha b{color:var(--tinta); font-weight:600}
+#v-equipo .eqElige .sinMov{font-family:"IBM Plex Mono",monospace; font-size:.72rem; letter-spacing:.06em; color:#8A5A00;
+  background:#FFF3D1; padding:3px 8px; margin-bottom:6px; white-space:nowrap}
+#v-equipo .eqElige .sinMov[hidden]{display:none}
+/* «?»: la explicación de la hoja, como globo bajo el botón */
+#v-equipo .eqElige .expl{position:relative; margin:0 0 3px; flex:0 0 auto; max-width:none}
+#v-equipo .eqElige .expl>summary{width:28px; height:28px; padding:0; justify-content:center; border-radius:50%;
+  border:1px solid var(--linea); background:#fff; font-size:0; letter-spacing:0; color:var(--sm);
+  transition:border-color .16s ease, transform .14s var(--eqEase)}
+#v-equipo .eqElige .expl>summary::before{display:none}
+#v-equipo .eqElige .expl>summary::after{content:"?"; font:600 13px/1 "IBM Plex Sans",Arial,sans-serif}
+#v-equipo .eqElige .expl>summary:active{transform:scale(.95)}
+@media (hover:hover) and (pointer:fine){ #v-equipo .eqElige .expl>summary:hover{border-color:var(--sm)} }
+#v-equipo .eqElige .expl[open]>summary{border-color:var(--sm); background:var(--luz)}
+#v-equipo .eqElige .expl .lede{position:absolute; right:0; top:calc(100% + 8px); z-index:30; margin:0;
+  width:min(500px,80vw); max-width:none; padding:14px 16px; font-size:.9rem; line-height:1.55;
+  background:#fff; border:1px solid var(--eqBorde); border-radius:10px; box-shadow:var(--eqSombra);
+  transform-origin:top right; animation:eqGlobo .16s var(--eqEase)}
+@keyframes eqGlobo{from{opacity:0; transform:scale(.97) translateY(-4px)} to{opacity:1; transform:none}}
+/* anchos fijos: con «auto» cada desplegable tomaba el ancho de su opción más
+   larga (los proveedores) y la fila no entraba. El contador de equipos ya está
+   en los grupos del desplegable de equipos («CON COSTO EN EL PERIODO (N)»). */
+#v-equipo .eqFil .fl select{width:100%; min-width:0; max-width:none}
+#v-equipo .eqFil .fl:not(.sedeF):not(.flPer){width:112px}
+#v-equipo .eqFil .fl:has(#fTipoP5){width:144px}
+#v-equipo .eqFil .fl:has(#fFam5){width:124px}
+#v-equipo .selEq .eqFil{gap:8px}
+/* la ficha sólo cuando entra entera; si no, el modelo ya se lee en el desplegable */
+@media (max-width:1960px){ #v-equipo .eqElige .ficha{display:none} }
+#v-equipo .eqFil .flPer select{width:80px; min-width:0}
+#v-equipo #eqFilNota{display:none}
+#v-equipo .eqElige{gap:10px}
+#v-equipo .eqElige .buscaEq{flex:0 1 170px; min-width:100px}
+#v-equipo .eqElige select{flex:0 0 180px; width:180px; min-width:0}
+/* si falta lugar, la ficha cede primero: el buscador se lee entero */
+#v-equipo .eqElige .ficha{flex-shrink:100}
+@media (max-width:1180px){
+  #v-equipo .selEq, #v-equipo .selEq .eqFil{flex-wrap:wrap}
+  #v-equipo .eqElige{margin-left:0; flex:1 1 100%; flex-wrap:wrap; justify-content:flex-start}
+}
+
+/* las órdenes y el costo por conjunto lado a lado (30/10), cada uno en la mitad;
+   a media página los títulos van más chicos y la tabla deja que «Trabajo» pase
+   a dos líneas en vez de deslizarse de costado */
+#v-equipo .eqDos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; align-items:start;
+  margin-top:clamp(18px,2.6vh,28px)}
+#v-equipo .eqDos > .otsEq{margin-top:0}
+#v-equipo .eqDos .d-m{font-size:clamp(1.15rem,1.45vw,1.5rem)}
+#v-equipo .eqDos .otsCab{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px 16px}
+#v-equipo .eqDos .otsCab .otsVer{grid-column:2; grid-row:1}
+#v-equipo .eqDos .otsRes{grid-column:1 / -1; flex:none}
+#v-equipo .eqDos table.eq{min-width:0; font-size:.82rem}
+#v-equipo .eqDos table.eq tbody td{padding:9px 10px}
+#v-equipo .eqDos table.eq thead th{padding:10px 10px 8px}
+#v-equipo .eqDos table.eq td.d{white-space:normal; min-width:180px; font-size:.78rem; line-height:1.4}
+@media (min-width:680px){
+  #v-equipo .eqDos .fase{grid-template-columns:minmax(150px,1.3fr) minmax(0,1.2fr) 64px 176px; gap:14px}
+  #v-equipo .eqDos .fase .pc{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+}
+#v-equipo .eqDos .fase .nm{font-size:.86rem; line-height:1.3}
+@media (max-width:1080px){ #v-equipo .eqDos{grid-template-columns:minmax(0,1fr)} }
+
+/* las órdenes: cabecera que despliega, y el costo por conjunto aparte */
+#v-equipo .otsEq{margin-top:clamp(18px,2.6vh,28px)}
+#v-equipo .otsEq:not(#otsEq){padding:22px 24px 24px}
+#v-equipo #otsEq{overflow:hidden}
+.otsCab{all:unset; box-sizing:border-box; width:100%; display:flex; align-items:center; gap:8px 22px; flex-wrap:wrap;
+  padding:18px 24px; cursor:pointer}
+.otsCab:focus-visible{outline:2px solid var(--sm); outline-offset:-3px; border-radius:12px}
+.otsCab .otsTit{margin:0}
+.otsRes{flex:1 1 260px; min-width:0; font-size:13.5px; color:var(--tinta-2)}
+.otsRes b{color:var(--tinta); font-weight:600; font-variant-numeric:tabular-nums}
+.otsRes span{color:var(--tinta-3)}
+.otsVer{display:inline-flex; align-items:center; gap:9px; flex:0 0 auto; font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+  letter-spacing:.12em; color:var(--sm); padding:8px 14px; border:1px solid var(--eqBorde); border-radius:999px;
+  transition:background-color .16s ease, border-color .16s ease, transform .16s var(--eqEase)}
+@media (hover:hover) and (pointer:fine){ .otsCab:hover .otsVer{background:var(--luz); border-color:var(--sm)} }
+.otsCab:active .otsVer{transform:scale(.97)}
+.otsVer i{width:7px; height:7px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor;
+  transform:translateY(-2px) rotate(45deg); transition:transform .24s var(--eqEase)}
+#otsEq.abierto .otsVer i{transform:translateY(2px) rotate(-135deg)}
+/* se abre por la altura de la fila de la grilla (0fr a 1fr): el contenido no se recalcula */
+.otsDesp{display:grid; grid-template-rows:0fr; transition:grid-template-rows .3s var(--eqEase)}
+#otsEq.abierto .otsDesp{grid-template-rows:1fr}
+.otsIn{min-height:0; overflow:hidden; padding:0 24px; opacity:0; transition:opacity .18s ease}
+#otsEq.abierto .otsIn{opacity:1; box-shadow:inset 0 1px 0 var(--linea-2); transition:opacity .24s ease .06s}
+.otsIn > .nota{max-width:none; padding-top:14px}
+.otsIn > .tablaEnv{max-height:min(540px,62vh); overflow:auto; margin-bottom:20px; border:1px solid var(--linea-2); border-radius:8px}
+#v-equipo table.eq thead th{background:#F7F9FB}
+#v-equipo table.eq tbody tr:hover td{background:#F4F7FA}
+
+/* botones de la hoja: responden al presionar */
+#v-equipo .vb, #v-equipo .fbt{transition:background-color .16s ease, color .16s ease, transform .14s var(--eqEase)}
+#v-equipo .vb:active, #v-equipo .fbt:active{transform:scale(.97)}
+
+/* al abrir la hoja, los paneles entran de a uno, rápido y corto */
+@keyframes eqEntra{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+@media (prefers-reduced-motion:no-preference){
+  #v-equipo.on .eqPanel{animation:eqEntra .26s var(--eqEase) both}
+  #v-equipo.on .maq{animation-delay:.05s}
+  #v-equipo.on #otsEq{animation-delay:.1s}
+  #v-equipo.on .otsEq:not(#otsEq){animation-delay:.14s}
+}
+@media (prefers-reduced-motion:reduce){ .otsDesp, .otsIn, .otsVer i{transition:none} }
 </style>
       <div class="panelF eqFil" id="filtrosEq5"></div>
       <label class="buscaEq"><span>BUSCAR</span>

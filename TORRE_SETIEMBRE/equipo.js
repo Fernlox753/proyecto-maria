@@ -50,6 +50,7 @@ function textoEq(e){ return e.id + ' — ' + (e.mod || e.fam); }
 function llenarSelectorEq(){
   /* los filtros de flota de esta hoja (sufijo 5, como los de Tendencia '3') */
   construirFiltros('5');
+  periodoEq();
   var nota = $('eqFilNota');
   if(!nota && $('filtrosEq5')){
     nota = document.createElement('p'); nota.className = 'nota'; nota.id = 'eqFilNota';
@@ -106,3 +107,128 @@ function buscarEquipo(q){
   var sel = $('selector');
   if(sel) sel.addEventListener('change', function(){ inp.value = ''; inp.classList.remove('mal'); });
 })();
+
+/* ── las órdenes en un bloque desplegable (30/10) ──
+   Cerrado al entrar: la cabecera dice cuántas órdenes son, cuántas correctivas
+   (PM01) y cuánto suman, con la misma lista de la tabla (otsDelEquipo). Al
+   cambiar de equipo queda abierto o cerrado como se dejó. Cerrado, su
+   contenido es inert: el tabulador no entra a una tabla que no se ve. */
+function otsResumen(lista){
+  var r = $('otsRes');
+  if(!r) return;
+  var tot = 0, corr = 0;
+  lista.forEach(function(o){ tot += o.v || 0; if(o.pm === 'PM01') corr++; });
+  r.innerHTML = lista.length
+    ? '<b>' + fmt(lista.length) + '</b> órdenes · <b>' + fmt(corr) + '</b> correctivas · <b>US$ ' + fmt(tot) + '</b>'
+      + (lista.length > 60 ? ' <span>· la tabla muestra las 60 de mayor costo</span>' : '')
+    : 'Sin órdenes en ' + esc(rotuloRango());
+}
+(function otsDesplegable(){
+  var b = $('otsCab'), caja = $('otsEq'), dentro = $('otsIn');
+  if(!b || !caja) return;
+  b.addEventListener('click', function(){
+    var abre = b.getAttribute('aria-expanded') !== 'true';
+    b.setAttribute('aria-expanded', abre ? 'true' : 'false');
+    caja.classList.toggle('abierto', abre);
+    if(dentro) dentro.inert = !abre;
+    txt('otsVerTxt', abre ? 'OCULTAR' : 'VER LISTA');
+  });
+})();
+
+/* ── al cambiar de equipo, las cifras de arriba se renuevan con un fundido corto ──
+   Sin él, diez números cambian de golpe y no se nota que cambiaron. Sólo con la
+   hoja a la vista y sin «reducir movimiento». */
+elegirEquipo = (function(base){
+  return function(id){
+    var antes = eqActual;
+    base.apply(this, arguments);
+    if(id === antes || !estudioVisible || !document.body.animate) return;
+    if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    Array.prototype.forEach.call(document.querySelectorAll('#v-equipo .eqCifras .v'), function(v, i){
+      v.animate([{ opacity: 0.2, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }],
+                { duration: 240, delay: (i % 5) * 18, easing: 'cubic-bezier(.23,1,.32,1)', fill: 'backwards' });
+    });
+  };
+})(elegirEquipo);
+
+/* ── el periodo en la fila de filtros (30/10) ──
+   El mismo DESDE – HASTA de Tendencia y Filtros (construirPanelMeses, sufijo 5;
+   ponerRango lo mantiene al día): como ellos, manda en toda la torre. Va justo
+   después del proyecto. */
+function periodoEq(){
+  var cont = $('filtrosEq5');
+  if(!cont || $('mesDesde5')) return;
+  var g = document.createElement('div');
+  g.className = 'fl flPer';
+  g.innerHTML = 'PERIODO<span class="perSel"><select id="mesDesde5" aria-label="Periodo desde"></select>'
+    + '<span aria-hidden="true">–</span><select id="mesHasta5" aria-label="Periodo hasta"></select></span>';
+  var sede = cont.querySelector('.sedeF');
+  cont.insertBefore(g, sede ? sede.nextSibling : cont.firstChild);
+  construirPanelMeses('5');
+}
+
+/* ── buscador, equipo y ayuda en la misma fila de los filtros (30/10) ──
+   La hoja no lleva título: arranca en una sola fila con proyecto, periodo,
+   filtros, buscador, el equipo elegido y su ficha, y al final «?» con la
+   explicación de la hoja (el mismo <details> de siempre, abierto como globo).
+   Así el camión entra en la primera pantalla. Se mueven los mismos nodos,
+   con sus id y sus eventos. */
+(function equipoEnFiltros(){
+  var fila = document.querySelector('#v-equipo .selEq'), b = $('buscaEq');
+  if(!fila || !b) return;
+  var caja = document.createElement('div');
+  caja.className = 'eqElige';
+  b.placeholder = 'Buscar';
+  [b.closest('label'), $('selector'), $('sinMovEq'), $('ficha')].forEach(function(n){ if(n) caja.appendChild(n); });
+  var ayuda = document.querySelector('#v-equipo .tituloV .expl');
+  if(ayuda){
+    var sm = ayuda.querySelector('summary');
+    if(sm){ sm.title = 'Cómo se lee esta hoja'; sm.setAttribute('aria-label', 'Cómo se lee esta hoja'); }
+    caja.appendChild(ayuda);
+  }
+  fila.appendChild(caja);
+})();
+
+/* ── el detalle del costado, sin órdenes (30/10) ──
+   Las órdenes ya están en el panel desplegable de abajo, que marca las del
+   conjunto elegido: aquí queda la ficha del equipo o del conjunto y un botón
+   que abre ese panel en sus órdenes. Reemplaza a la pintarDetalle de
+   nuevo_js_nav.js (ensamblar.py le cambia el nombre a pintarDetalleTorre). */
+function pintarDetalle(e){
+  var el = $('detalle');
+  if(!el) return;
+  var s = null;
+  sysRango(e).forEach(function(x){ if(x.c === sysActual) s = x; });
+  if(!s){
+    el.innerHTML = '<div class="dt">' + esc(e.id) + '</div>'
+      + '<div class="dm">' + esc([e.fam, e.mod].filter(Boolean).join(' · ')) + '</div>'
+      + '<p class="dp">Acumula US$ ' + fmt(eqR(e).v) + ' en ' + fmt(eqR(e).hm) + ' horas máquina. '
+      + 'Elige una pieza del modelo o un conjunto de la lista para ver su detalle.</p>';
+    return;
+  }
+  var rel = (e.ots || []).filter(function(o){
+    return o.sis === s.c && (o.mi === undefined || (o.mi >= rangoA && o.mi <= rangoB)); });
+  el.innerHTML = '<div class="dt">' + esc(s.n) + '</div>'
+    + '<div class="dm">' + esc(s.c) + ' · ' + esc(e.id) + ' · ' + esc(e.mod || '') + '</div>'
+    + '<div class="dstats">'
+    +   '<div><div class="l">COSTO</div><div class="v">' + fmt(s.v) + '</div></div>'
+    +   '<div><div class="l">% DEL EQUIPO</div><div class="v">' + (s.v / e.v * 100).toFixed(1) + '%</div></div>'
+    +   '<div><div class="l">ÓRDENES</div><div class="v">' + (rel.length || '—') + '</div></div>'
+    + '</div>'
+    + (rel.length
+       ? '<button type="button" class="verOts" id="verOts">VER SUS ' + rel.length + ' ÓRDENES <i aria-hidden="true">↓</i></button>'
+       : '<p class="dp">El consumo de este sistema llegó por salidas de almacén sin una orden entre las de mayor costo.</p>');
+}
+/* abre el panel de órdenes (si está cerrado) y lleva la vista a la primera del conjunto */
+document.addEventListener('click', function(ev){
+  if(!ev.target.closest || !ev.target.closest('#verOts')) return;
+  var cab = $('otsCab'), panel = $('otsEq');
+  if(!cab || !panel) return;
+  var abierto = cab.getAttribute('aria-expanded') === 'true';
+  if(!abierto) cab.click();
+  setTimeout(function(){
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var fila = document.querySelector('#q-ots tr.sel'), caja = fila && fila.closest('.tablaEnv');
+    if(fila && caja) caja.scrollTop = Math.max(0, fila.offsetTop - 44);
+  }, abierto ? 0 : 320);
+});

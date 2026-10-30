@@ -3050,6 +3050,209 @@ table.xl tfoot .simPt{color:#9FC0FF}
   .selEq .ficha{flex-basis:100%; flex-wrap:wrap; white-space:normal}
 }
 @media (max-width:620px){ .selEq .eqFil .fl, .selEq .eqFil .fl select{max-width:100%; width:100%} }
+
+/* ── aspecto ejecutivo de la hoja (30/10) ──
+   Fondo gris azulado frío y paneles blancos: las cifras, el modelo con sus
+   conjuntos y las órdenes son tres objetos separados. Sólo en esta hoja. */
+#v-equipo{--eqFondo:#ECF0F4; --eqPanel:#FFFFFF; --eqBorde:#D9E1EA;
+  --eqSombra:0 1px 2px rgba(8,25,42,.05), 0 8px 24px rgba(8,25,42,.05);
+  --eqEase:cubic-bezier(.23,1,.32,1); background:var(--eqFondo)}
+#v-equipo .selEq{border-bottom-color:var(--linea)}
+#v-equipo .eqPanel{background:var(--eqPanel); border:1px solid var(--eqBorde); border-radius:12px; box-shadow:var(--eqSombra)}
+
+/* las dos filas de cifras */
+#v-equipo .eqKpis{padding:0 22px 2px; margin-bottom:14px}
+#v-equipo .eqFila{display:flex; align-items:baseline; gap:4px 14px; flex-wrap:wrap; padding-top:7px;
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px; letter-spacing:.14em; color:var(--tinta-3)}
+#v-equipo .eqFila b{color:var(--sm); font-weight:600}
+#v-equipo .eqFila span{letter-spacing:.03em; font-family:"IBM Plex Sans",Arial,sans-serif; font-size:12px}
+#v-equipo .eqKpis .eqCifras{border-top:0; margin-bottom:0}
+#v-equipo .eqKpis .eqCifras + .eqFila{border-top:1px solid var(--linea-2); margin-top:2px}
+/* tarjetas bajas: rótulo, cifra y una sola línea de detalle */
+#v-equipo .eqKpis .eqCifras > div{padding:2px 16px 7px 0}
+@media (min-width:860px){ #v-equipo .eqKpis .eqCifras > div + div{padding-left:18px} }
+#v-equipo .eqKpis .eqCifras .l{margin-bottom:2px}
+#v-equipo .eqKpis .eqCifras .v{font-variant-numeric:tabular-nums; font-size:clamp(1.1rem,1.35vw,1.38rem)}
+#v-equipo .eqKpis .eqCifras .d{margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#v-equipo .eqSin{grid-column:1/-1; margin:8px 0 16px}
+
+/* el modelo y sus conjuntos: el visor más apaisado para que el camión entre
+   en la primera pantalla junto con las cifras */
+#v-equipo .maq{padding:14px 18px 18px}
+@media (min-width:1080px){ #v-equipo .estudio{aspect-ratio:2/1} }
+
+/* el bloque del camión sin huecos (30/10): arriba el modelo y la lista de
+   conjuntos con la misma altura (la lista se desliza dentro); abajo la escala
+   y las llantas a la izquierda, el detalle y el aviso de cobertura a la
+   derecha. Las dos columnas de origen pasan a display:contents para que sus
+   piezas se ubiquen en una sola grilla. La nota del «modelo genérico» ya no
+   corresponde: cada equipo tiene su modelo. */
+@media (min-width:1080px){
+  #v-equipo .maq{grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); column-gap:28px; row-gap:0;
+    grid-template-rows:auto minmax(0,1fr) auto auto auto;
+    grid-template-areas:"visor snota" "visor lista" "escala detalle" "llantas detalle" "llantas aviso"}
+  #v-equipo .maq > div{display:contents}
+  #v-equipo .maq .visor{grid-area:visor}
+  #v-equipo .maq #sis-nota{grid-area:snota; margin-bottom:10px!important}
+  /* contain:size: la lista no estira la fila; toma la altura del modelo y se desliza */
+  #v-equipo .maq .sistemas{grid-area:lista; max-height:none; min-height:0; contain:size; overflow:auto}
+  #v-equipo .maq .escala{grid-area:escala; align-self:start}
+  #v-equipo .maq .llantasMapa{grid-area:llantas; align-self:start}
+  #v-equipo .maq .detalle{grid-area:detalle; margin-top:14px!important; align-self:start}
+  #v-equipo .maq #sis-cobertura{grid-area:aviso; align-self:start; margin-top:12px}
+}
+#v-equipo .maq > div > .nota:not(#sis-nota){display:none}
+#v-equipo .detalle .dp{margin-top:8px}
+#v-equipo .verOts{all:unset; box-sizing:border-box; display:inline-flex; align-items:center; gap:8px; margin-top:12px; cursor:pointer;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.12em; color:var(--sm);
+  padding:8px 14px; border:1px solid var(--eqBorde); border-radius:999px;
+  transition:background-color .16s ease, border-color .16s ease, transform .14s var(--eqEase)}
+@media (hover:hover) and (pointer:fine){ #v-equipo .verOts:hover{background:var(--luz); border-color:var(--sm)} }
+#v-equipo .verOts:active{transform:scale(.97)}
+#v-equipo .verOts:focus-visible{outline:2px solid var(--sm); outline-offset:2px}
+
+/* cabecera compacta: título en una línea y «cómo se lee» al lado */
+#v-equipo.vista{padding-top:clamp(12px,2vh,22px)}
+#v-equipo .tituloV{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 22px; margin-bottom:10px}
+/* la marca «05 · LA MÁQUINA» sobra aquí: la pestaña ya lo dice y la línea se gana para el camión */
+#v-equipo .tituloV .ord{display:none}
+#v-equipo .tituloV h2{font-size:clamp(1.35rem,1.9vw,1.85rem); line-height:1.1; max-width:none}
+#v-equipo .tituloV .expl{margin-top:0}
+#v-equipo .selEq{padding-bottom:12px; margin-bottom:14px}
+
+/* filtros: cada rótulo en una línea (no se encogen: si no caben, pasan a otra
+   fila en vez de montarse), y el periodo (desde – hasta) */
+#v-equipo .selEq .eqFil{flex:1 1 auto; flex-wrap:wrap}
+#v-equipo .eqFil .fl{white-space:nowrap; flex:0 0 auto}
+#v-equipo .eqFil .fl select{width:auto; min-width:118px}
+#v-equipo .eqFil .flPer .perSel{display:flex; align-items:center; gap:5px; color:var(--tinta-3)}
+#v-equipo .eqFil .flPer select{min-width:88px}
+
+/* sin título (30/10): la hoja arranca en una sola fila con los filtros, el
+   buscador, el equipo y «?» (equipo.js, equipoEnFiltros) */
+#v-equipo .tituloV{display:none}
+#v-equipo .selEq{flex-wrap:nowrap; align-items:flex-end; gap:10px 12px}
+#v-equipo .selEq .eqFil{flex:0 1 auto; flex-wrap:nowrap; gap:8px 10px}
+#v-equipo .eqFil .fl select{min-width:100px}
+#v-equipo .eqFil .flPer select{min-width:76px}
+#v-equipo .eqFil .fbt{padding:6px 8px}
+#v-equipo .eqElige{margin-left:auto; display:flex; align-items:flex-end; gap:10px 12px;
+  flex:1 1 0; min-width:0; flex-wrap:nowrap; justify-content:flex-end}
+#v-equipo .eqElige .buscaEq{flex:0 1 170px; min-width:120px}
+#v-equipo .eqElige .buscaEq > span{display:none}
+#v-equipo .eqElige .buscaEq input{padding:6px 8px; font-size:.85rem; border-radius:6px}
+#v-equipo .eqElige select{font-family:"IBM Plex Mono",monospace; font-size:.9rem; font-weight:600; color:var(--tinta);
+  background-color:transparent; border:0; border-bottom:1.5px solid var(--tinta); padding:6px 24px 6px 2px;
+  appearance:none; cursor:pointer; min-width:150px; max-width:100%; flex:0 1 210px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--tinta) 50%),linear-gradient(135deg,var(--tinta) 50%,transparent 50%);
+  background-position:calc(100% - 11px) 56%, calc(100% - 6px) 56%; background-size:5px 5px,5px 5px; background-repeat:no-repeat}
+#v-equipo .eqElige select:focus-visible{outline:2px solid var(--sm); outline-offset:3px}
+#v-equipo .eqElige .ficha{display:block; font-family:"IBM Plex Mono",monospace; font-size:.74rem; letter-spacing:.05em; color:var(--tinta-2);
+  flex:0 1 auto; min-width:0; max-width:280px; margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#v-equipo .eqElige .ficha b{color:var(--tinta); font-weight:600}
+#v-equipo .eqElige .sinMov{font-family:"IBM Plex Mono",monospace; font-size:.72rem; letter-spacing:.06em; color:#8A5A00;
+  background:#FFF3D1; padding:3px 8px; margin-bottom:6px; white-space:nowrap}
+#v-equipo .eqElige .sinMov[hidden]{display:none}
+/* «?»: la explicación de la hoja, como globo bajo el botón */
+#v-equipo .eqElige .expl{position:relative; margin:0 0 3px; flex:0 0 auto; max-width:none}
+#v-equipo .eqElige .expl>summary{width:28px; height:28px; padding:0; justify-content:center; border-radius:50%;
+  border:1px solid var(--linea); background:#fff; font-size:0; letter-spacing:0; color:var(--sm);
+  transition:border-color .16s ease, transform .14s var(--eqEase)}
+#v-equipo .eqElige .expl>summary::before{display:none}
+#v-equipo .eqElige .expl>summary::after{content:"?"; font:600 13px/1 "IBM Plex Sans",Arial,sans-serif}
+#v-equipo .eqElige .expl>summary:active{transform:scale(.95)}
+@media (hover:hover) and (pointer:fine){ #v-equipo .eqElige .expl>summary:hover{border-color:var(--sm)} }
+#v-equipo .eqElige .expl[open]>summary{border-color:var(--sm); background:var(--luz)}
+#v-equipo .eqElige .expl .lede{position:absolute; right:0; top:calc(100% + 8px); z-index:30; margin:0;
+  width:min(500px,80vw); max-width:none; padding:14px 16px; font-size:.9rem; line-height:1.55;
+  background:#fff; border:1px solid var(--eqBorde); border-radius:10px; box-shadow:var(--eqSombra);
+  transform-origin:top right; animation:eqGlobo .16s var(--eqEase)}
+@keyframes eqGlobo{from{opacity:0; transform:scale(.97) translateY(-4px)} to{opacity:1; transform:none}}
+/* anchos fijos: con «auto» cada desplegable tomaba el ancho de su opción más
+   larga (los proveedores) y la fila no entraba. El contador de equipos ya está
+   en los grupos del desplegable de equipos («CON COSTO EN EL PERIODO (N)»). */
+#v-equipo .eqFil .fl select{width:100%; min-width:0; max-width:none}
+#v-equipo .eqFil .fl:not(.sedeF):not(.flPer){width:112px}
+#v-equipo .eqFil .fl:has(#fTipoP5){width:144px}
+#v-equipo .eqFil .fl:has(#fFam5){width:124px}
+#v-equipo .selEq .eqFil{gap:8px}
+/* la ficha sólo cuando entra entera; si no, el modelo ya se lee en el desplegable */
+@media (max-width:1960px){ #v-equipo .eqElige .ficha{display:none} }
+#v-equipo .eqFil .flPer select{width:80px; min-width:0}
+#v-equipo #eqFilNota{display:none}
+#v-equipo .eqElige{gap:10px}
+#v-equipo .eqElige .buscaEq{flex:0 1 170px; min-width:100px}
+#v-equipo .eqElige select{flex:0 0 180px; width:180px; min-width:0}
+/* si falta lugar, la ficha cede primero: el buscador se lee entero */
+#v-equipo .eqElige .ficha{flex-shrink:100}
+@media (max-width:1180px){
+  #v-equipo .selEq, #v-equipo .selEq .eqFil{flex-wrap:wrap}
+  #v-equipo .eqElige{margin-left:0; flex:1 1 100%; flex-wrap:wrap; justify-content:flex-start}
+}
+
+/* las órdenes y el costo por conjunto lado a lado (30/10), cada uno en la mitad;
+   a media página los títulos van más chicos y la tabla deja que «Trabajo» pase
+   a dos líneas en vez de deslizarse de costado */
+#v-equipo .eqDos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; align-items:start;
+  margin-top:clamp(18px,2.6vh,28px)}
+#v-equipo .eqDos > .otsEq{margin-top:0}
+#v-equipo .eqDos .d-m{font-size:clamp(1.15rem,1.45vw,1.5rem)}
+#v-equipo .eqDos .otsCab{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px 16px}
+#v-equipo .eqDos .otsCab .otsVer{grid-column:2; grid-row:1}
+#v-equipo .eqDos .otsRes{grid-column:1 / -1; flex:none}
+#v-equipo .eqDos table.eq{min-width:0; font-size:.82rem}
+#v-equipo .eqDos table.eq tbody td{padding:9px 10px}
+#v-equipo .eqDos table.eq thead th{padding:10px 10px 8px}
+#v-equipo .eqDos table.eq td.d{white-space:normal; min-width:180px; font-size:.78rem; line-height:1.4}
+@media (min-width:680px){
+  #v-equipo .eqDos .fase{grid-template-columns:minmax(150px,1.3fr) minmax(0,1.2fr) 64px 176px; gap:14px}
+  #v-equipo .eqDos .fase .pc{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+}
+#v-equipo .eqDos .fase .nm{font-size:.86rem; line-height:1.3}
+@media (max-width:1080px){ #v-equipo .eqDos{grid-template-columns:minmax(0,1fr)} }
+
+/* las órdenes: cabecera que despliega, y el costo por conjunto aparte */
+#v-equipo .otsEq{margin-top:clamp(18px,2.6vh,28px)}
+#v-equipo .otsEq:not(#otsEq){padding:22px 24px 24px}
+#v-equipo #otsEq{overflow:hidden}
+.otsCab{all:unset; box-sizing:border-box; width:100%; display:flex; align-items:center; gap:8px 22px; flex-wrap:wrap;
+  padding:18px 24px; cursor:pointer}
+.otsCab:focus-visible{outline:2px solid var(--sm); outline-offset:-3px; border-radius:12px}
+.otsCab .otsTit{margin:0}
+.otsRes{flex:1 1 260px; min-width:0; font-size:13.5px; color:var(--tinta-2)}
+.otsRes b{color:var(--tinta); font-weight:600; font-variant-numeric:tabular-nums}
+.otsRes span{color:var(--tinta-3)}
+.otsVer{display:inline-flex; align-items:center; gap:9px; flex:0 0 auto; font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+  letter-spacing:.12em; color:var(--sm); padding:8px 14px; border:1px solid var(--eqBorde); border-radius:999px;
+  transition:background-color .16s ease, border-color .16s ease, transform .16s var(--eqEase)}
+@media (hover:hover) and (pointer:fine){ .otsCab:hover .otsVer{background:var(--luz); border-color:var(--sm)} }
+.otsCab:active .otsVer{transform:scale(.97)}
+.otsVer i{width:7px; height:7px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor;
+  transform:translateY(-2px) rotate(45deg); transition:transform .24s var(--eqEase)}
+#otsEq.abierto .otsVer i{transform:translateY(2px) rotate(-135deg)}
+/* se abre por la altura de la fila de la grilla (0fr a 1fr): el contenido no se recalcula */
+.otsDesp{display:grid; grid-template-rows:0fr; transition:grid-template-rows .3s var(--eqEase)}
+#otsEq.abierto .otsDesp{grid-template-rows:1fr}
+.otsIn{min-height:0; overflow:hidden; padding:0 24px; opacity:0; transition:opacity .18s ease}
+#otsEq.abierto .otsIn{opacity:1; box-shadow:inset 0 1px 0 var(--linea-2); transition:opacity .24s ease .06s}
+.otsIn > .nota{max-width:none; padding-top:14px}
+.otsIn > .tablaEnv{max-height:min(540px,62vh); overflow:auto; margin-bottom:20px; border:1px solid var(--linea-2); border-radius:8px}
+#v-equipo table.eq thead th{background:#F7F9FB}
+#v-equipo table.eq tbody tr:hover td{background:#F4F7FA}
+
+/* botones de la hoja: responden al presionar */
+#v-equipo .vb, #v-equipo .fbt{transition:background-color .16s ease, color .16s ease, transform .14s var(--eqEase)}
+#v-equipo .vb:active, #v-equipo .fbt:active{transform:scale(.97)}
+
+/* al abrir la hoja, los paneles entran de a uno, rápido y corto */
+@keyframes eqEntra{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+@media (prefers-reduced-motion:no-preference){
+  #v-equipo.on .eqPanel{animation:eqEntra .26s var(--eqEase) both}
+  #v-equipo.on .maq{animation-delay:.05s}
+  #v-equipo.on #otsEq{animation-delay:.1s}
+  #v-equipo.on .otsEq:not(#otsEq){animation-delay:.14s}
+}
+@media (prefers-reduced-motion:reduce){ .otsDesp, .otsIn, .otsVer i{transition:none} }
 </style>
       <div class="panelF eqFil" id="filtrosEq5"></div>
       <label class="buscaEq"><span>BUSCAR</span>
@@ -3061,6 +3264,8 @@ table.xl tfoot .simPt{color:#9FC0FF}
       <span class="ficha" id="ficha"></span>
     </div>
 
+    <div class="eqKpis eqPanel">
+    <div class="eqFila"><b>COSTO Y OPERACIÓN DEL PERIODO</b><span id="q-per-rot">sigue al periodo y a los filtros</span></div>
     <div class="eqCifras">
       <div><div class="l">COSTO DEL PERIODO</div><div class="v" id="q-costo">US$ 0</div><div class="d" id="q-costo-d"></div></div>
       <div><div class="l">HORAS MÁQUINA</div><div class="v" id="q-hrs">0</div><div class="d">HM reales del periodo</div></div>
@@ -3068,8 +3273,11 @@ table.xl tfoot .simPt{color:#9FC0FF}
       <div><div class="l">SISTEMAS CON COSTO</div><div class="v" id="q-sis">0</div><div class="d">conjuntos SAP</div></div>
       <div><div class="l">ÓRDENES</div><div class="v" id="q-ot">0</div><div class="d">con costo imputado</div></div>
     </div>
+    <div class="eqFila"><b>DISPONIBILIDAD Y TARIFA DEL MES</b><span id="q-sep-rot">resultado operativo</span></div>
+    <div class="eqCifras" id="q-sep"></div>
+    </div>
 
-    <div class="maq">
+    <div class="maq eqPanel">
       <div>
         <div class="visor">
           <div class="vistas">
@@ -3106,15 +3314,16 @@ table.xl tfoot .simPt{color:#9FC0FF}
       </div>
     </div>
 
-    <div class="otsEq">
-      <h3 class="d d-m" style="margin-bottom:6px">Tarifa de venta, disponibilidad y usaje</h3>
-      <div id="q-sep" style="margin-top:14px"></div>
-    </div>
-
-    <div class="otsEq">
-      <h3 class="d d-m" style="margin-bottom:6px">Órdenes de trabajo de este equipo</h3>
+    <div class="eqDos">
+    <div class="otsEq eqPanel" id="otsEq">
+      <button type="button" class="otsCab" id="otsCab" aria-expanded="false" aria-controls="otsDesp">
+        <span class="otsTit d d-m">Órdenes de trabajo de este equipo</span>
+        <span class="otsRes" id="otsRes"></span>
+        <span class="otsVer"><span id="otsVerTxt">VER LISTA</span><i aria-hidden="true"></i></span>
+      </button>
+      <div class="otsDesp" id="otsDesp"><div class="otsIn" id="otsIn" inert>
       <p class="nota" id="q-ots-nota">—</p>
-      <div class="tablaEnv" style="margin-top:16px">
+      <div class="tablaEnv" style="margin-top:12px">
         <table class="eq">
           <thead><tr>
             <th>Orden</th><th>Fecha</th><th>Clase</th><th>Conjunto</th>
@@ -3123,10 +3332,14 @@ table.xl tfoot .simPt{color:#9FC0FF}
           <tbody id="q-ots"></tbody>
         </table>
       </div>
+      </div></div>
+    </div>
 
-      <h3 class="d d-m" style="margin:clamp(30px,4vh,48px) 0 6px">Costo por conjunto, según esas órdenes</h3>
+    <div class="otsEq eqPanel">
+      <h3 class="d d-m" style="margin:0 0 6px">Costo por conjunto, según esas órdenes</h3>
       <p class="nota" id="q-cj-nota">—</p>
       <div class="fases" id="q-cj"></div>
+    </div>
     </div>
   </div>
 </section>
@@ -4114,7 +4327,7 @@ function ponerRango(a, b){
   rangoA = Math.max(0, Math.min(a, b));
   rangoB = Math.min(MESES.length - 1, Math.max(a, b));
   txt('periodoAct', rotuloRango());
-  ['', '2', '3', '4'].forEach(function(suf){
+  ['', '2', '3', '4', '5'].forEach(function(suf){
     var sa = $('mesDesde' + suf), sb = $('mesHasta' + suf);
     if(sa) sa.value = rangoA;
     if(sb) sb.value = rangoB;
@@ -7615,39 +7828,41 @@ function pintarFicha(){
   }, 40);
 }
 
-/* ---------- el bloque de tarifa, DM y usaje de la hoja Equipo ----------
+/* ---------- disponibilidad, usaje y tarifa de la hoja Equipo ----------
    En la Torre original iba por modelo porque no habia otra cosa. Aqui el
-   dato es del propio equipo. */
+   dato es del propio equipo. Desde el 30/10 es la segunda fila de cifras de
+   arriba (#q-sep lleva la clase eqCifras): cinco tarjetas como las del
+   periodo. Las horas reales y de proforma van dentro del usaje, que es su
+   cociente; su rotulo (#q-sep-rot) dice que no sigue al periodo. */
 function pintarSepEquipo(e){
   var caja = $('q-sep');
   if(!caja) return;
   var q = SEP && SEP.eq ? SEP.eq[e.id] : null;
+  var rot = $('q-sep-rot');
   if(!q){
-    caja.innerHTML = '<div class="sinDato"><b>Este equipo no entra al resultado operativo.</b> '
+    if(rot) rot.textContent = 'sin resultado operativo';
+    caja.innerHTML = '<div class="sinDato eqSin"><b>Este equipo no entra al resultado operativo.</b> '
       + 'Sólo tiene órdenes que las hojas dejan fuera (CAPEX, venta o parte de la tarifa), así que el reporte no le calcula '
       + 'tarifa, disponibilidad ni usaje.</div>';
     return;
   }
+  if(rot) rot.textContent = 'resultado operativo del mes al día ' + SETIEMBRE.corteDia + ' · no sigue al periodo ni a los filtros'
+    + (q.conTarifa ? '' : ' · sin tarifa de venta en base varios')
+    + (e.tipo === 'ALQUILADO' ? ' · en alquilados la tarifa es RyM + mano de obra, sin el alquiler' : '');
   var d = (q.tReal !== null && q.tProy !== null) ? q.tReal - q.tProy : null;
   var num = function(x, pre){ return x === null || x === undefined ? '—' : (pre || '') + x.toFixed(1); };
+  var tarj = function(l, v, dd, cls){
+    return '<div><div class="l">' + l + '</div><div class="v' + (cls ? ' ' + cls : '') + '">' + v + '</div><div class="d">' + dd + '</div></div>';
+  };
   caja.innerHTML =
-      '<div class="sepCifras">'
-    + '<div><div class="l">DISPONIBILIDAD MECÁNICA</div><div class="v">'
-      + (q.dm === null ? '—' : pc(q.dm)) + '</div></div>'
-    + '<div><div class="l">USAJE</div><div class="v">' + (q.use === null ? '—' : pc(q.use)) + '</div></div>'
-    + '<div><div class="l">HORAS REALES / PROFORMA DEL MES</div><div class="v">'
-      + fmt(q.hr) + ' / ' + (q.hrProf ? fmt(q.hrProf) : '—') + '</div></div>'
-    + '<div><div class="l">TARIFA REAL AL DÍA ' + SETIEMBRE.corteDia + '</div><div class="v">' + num(q.tReal, 'US$ ') + '</div></div>'
-    + '<div><div class="l">TARIFA DE VENTA</div><div class="v">' + num(q.tProy, 'US$ ') + '</div></div>'
-    + (d === null ? '' :
-       '<div><div class="l">DESVIACIÓN</div><div class="v ' + (d <= 0 ? 'bien' : 'alza') + '">'
-       + (d >= 0 ? '+' : '') + d.toFixed(1) + '</div></div>')
-    + '</div>'
-    + '<p class="nota" style="margin-top:12px">DATO DEL EQUIPO · RESULTADO OPERATIVO COMPLETO AL DÍA ' + SETIEMBRE.corteDia + ' · '
-    + 'NO SIGUE AL PERIODO NI A LOS FILTROS'
-    + (q.conTarifa ? '' : ' · SIN TARIFA DE VENTA EN BASE VARIOS')
-    + (e.tipo === 'ALQUILADO' ? ' · EN ALQUILADOS LA TARIFA ES RYM + MANO DE OBRA, SIN EL ALQUILER' : '')
-    + '</p>';
+      tarj('DISPONIBILIDAD MECÁNICA', q.dm === null ? '—' : pc(q.dm), 'tiempo disponible del mes')
+    + tarj('USAJE', q.use === null ? '—' : pc(q.use),
+           fmt(q.hr) + ' h reales de ' + (q.hrProf ? fmt(q.hrProf) + ' h de proforma' : 'proforma sin dato'))
+    + tarj('TARIFA REAL AL DÍA ' + SETIEMBRE.corteDia, num(q.tReal, 'US$ '), 'costo real por hora')
+    + tarj('TARIFA DE VENTA', num(q.tProy, 'US$ '), 'venta interna por hora')
+    + tarj('DESVIACIÓN', d === null ? '—' : (d >= 0 ? '+' : '') + d.toFixed(1),
+           d === null ? 'sin tarifa para comparar' : (d <= 0 ? 'cuesta menos de lo que vende' : 'cuesta más de lo que vende') + ' · US$/h',
+           d === null ? '' : (d <= 0 ? 'bien' : 'alza'));
 }
 
 /* ---------- pantalla completa con la tecla F ----------
@@ -39937,6 +40152,7 @@ function textoEq(e){ return e.id + ' — ' + (e.mod || e.fam); }
 function llenarSelectorEq(){
   /* los filtros de flota de esta hoja (sufijo 5, como los de Tendencia '3') */
   construirFiltros('5');
+  periodoEq();
   var nota = $('eqFilNota');
   if(!nota && $('filtrosEq5')){
     nota = document.createElement('p'); nota.className = 'nota'; nota.id = 'eqFilNota';
@@ -39993,6 +40209,131 @@ function buscarEquipo(q){
   var sel = $('selector');
   if(sel) sel.addEventListener('change', function(){ inp.value = ''; inp.classList.remove('mal'); });
 })();
+
+/* ── las órdenes en un bloque desplegable (30/10) ──
+   Cerrado al entrar: la cabecera dice cuántas órdenes son, cuántas correctivas
+   (PM01) y cuánto suman, con la misma lista de la tabla (otsDelEquipo). Al
+   cambiar de equipo queda abierto o cerrado como se dejó. Cerrado, su
+   contenido es inert: el tabulador no entra a una tabla que no se ve. */
+function otsResumen(lista){
+  var r = $('otsRes');
+  if(!r) return;
+  var tot = 0, corr = 0;
+  lista.forEach(function(o){ tot += o.v || 0; if(o.pm === 'PM01') corr++; });
+  r.innerHTML = lista.length
+    ? '<b>' + fmt(lista.length) + '</b> órdenes · <b>' + fmt(corr) + '</b> correctivas · <b>US$ ' + fmt(tot) + '</b>'
+      + (lista.length > 60 ? ' <span>· la tabla muestra las 60 de mayor costo</span>' : '')
+    : 'Sin órdenes en ' + esc(rotuloRango());
+}
+(function otsDesplegable(){
+  var b = $('otsCab'), caja = $('otsEq'), dentro = $('otsIn');
+  if(!b || !caja) return;
+  b.addEventListener('click', function(){
+    var abre = b.getAttribute('aria-expanded') !== 'true';
+    b.setAttribute('aria-expanded', abre ? 'true' : 'false');
+    caja.classList.toggle('abierto', abre);
+    if(dentro) dentro.inert = !abre;
+    txt('otsVerTxt', abre ? 'OCULTAR' : 'VER LISTA');
+  });
+})();
+
+/* ── al cambiar de equipo, las cifras de arriba se renuevan con un fundido corto ──
+   Sin él, diez números cambian de golpe y no se nota que cambiaron. Sólo con la
+   hoja a la vista y sin «reducir movimiento». */
+elegirEquipo = (function(base){
+  return function(id){
+    var antes = eqActual;
+    base.apply(this, arguments);
+    if(id === antes || !estudioVisible || !document.body.animate) return;
+    if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    Array.prototype.forEach.call(document.querySelectorAll('#v-equipo .eqCifras .v'), function(v, i){
+      v.animate([{ opacity: 0.2, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }],
+                { duration: 240, delay: (i % 5) * 18, easing: 'cubic-bezier(.23,1,.32,1)', fill: 'backwards' });
+    });
+  };
+})(elegirEquipo);
+
+/* ── el periodo en la fila de filtros (30/10) ──
+   El mismo DESDE – HASTA de Tendencia y Filtros (construirPanelMeses, sufijo 5;
+   ponerRango lo mantiene al día): como ellos, manda en toda la torre. Va justo
+   después del proyecto. */
+function periodoEq(){
+  var cont = $('filtrosEq5');
+  if(!cont || $('mesDesde5')) return;
+  var g = document.createElement('div');
+  g.className = 'fl flPer';
+  g.innerHTML = 'PERIODO<span class="perSel"><select id="mesDesde5" aria-label="Periodo desde"></select>'
+    + '<span aria-hidden="true">–</span><select id="mesHasta5" aria-label="Periodo hasta"></select></span>';
+  var sede = cont.querySelector('.sedeF');
+  cont.insertBefore(g, sede ? sede.nextSibling : cont.firstChild);
+  construirPanelMeses('5');
+}
+
+/* ── buscador, equipo y ayuda en la misma fila de los filtros (30/10) ──
+   La hoja no lleva título: arranca en una sola fila con proyecto, periodo,
+   filtros, buscador, el equipo elegido y su ficha, y al final «?» con la
+   explicación de la hoja (el mismo <details> de siempre, abierto como globo).
+   Así el camión entra en la primera pantalla. Se mueven los mismos nodos,
+   con sus id y sus eventos. */
+(function equipoEnFiltros(){
+  var fila = document.querySelector('#v-equipo .selEq'), b = $('buscaEq');
+  if(!fila || !b) return;
+  var caja = document.createElement('div');
+  caja.className = 'eqElige';
+  b.placeholder = 'Buscar';
+  [b.closest('label'), $('selector'), $('sinMovEq'), $('ficha')].forEach(function(n){ if(n) caja.appendChild(n); });
+  var ayuda = document.querySelector('#v-equipo .tituloV .expl');
+  if(ayuda){
+    var sm = ayuda.querySelector('summary');
+    if(sm){ sm.title = 'Cómo se lee esta hoja'; sm.setAttribute('aria-label', 'Cómo se lee esta hoja'); }
+    caja.appendChild(ayuda);
+  }
+  fila.appendChild(caja);
+})();
+
+/* ── el detalle del costado, sin órdenes (30/10) ──
+   Las órdenes ya están en el panel desplegable de abajo, que marca las del
+   conjunto elegido: aquí queda la ficha del equipo o del conjunto y un botón
+   que abre ese panel en sus órdenes. Reemplaza a la pintarDetalle de
+   nuevo_js_nav.js (ensamblar.py le cambia el nombre a pintarDetalleTorre). */
+function pintarDetalle(e){
+  var el = $('detalle');
+  if(!el) return;
+  var s = null;
+  sysRango(e).forEach(function(x){ if(x.c === sysActual) s = x; });
+  if(!s){
+    el.innerHTML = '<div class="dt">' + esc(e.id) + '</div>'
+      + '<div class="dm">' + esc([e.fam, e.mod].filter(Boolean).join(' · ')) + '</div>'
+      + '<p class="dp">Acumula US$ ' + fmt(eqR(e).v) + ' en ' + fmt(eqR(e).hm) + ' horas máquina. '
+      + 'Elige una pieza del modelo o un conjunto de la lista para ver su detalle.</p>';
+    return;
+  }
+  var rel = (e.ots || []).filter(function(o){
+    return o.sis === s.c && (o.mi === undefined || (o.mi >= rangoA && o.mi <= rangoB)); });
+  el.innerHTML = '<div class="dt">' + esc(s.n) + '</div>'
+    + '<div class="dm">' + esc(s.c) + ' · ' + esc(e.id) + ' · ' + esc(e.mod || '') + '</div>'
+    + '<div class="dstats">'
+    +   '<div><div class="l">COSTO</div><div class="v">' + fmt(s.v) + '</div></div>'
+    +   '<div><div class="l">% DEL EQUIPO</div><div class="v">' + (s.v / e.v * 100).toFixed(1) + '%</div></div>'
+    +   '<div><div class="l">ÓRDENES</div><div class="v">' + (rel.length || '—') + '</div></div>'
+    + '</div>'
+    + (rel.length
+       ? '<button type="button" class="verOts" id="verOts">VER SUS ' + rel.length + ' ÓRDENES <i aria-hidden="true">↓</i></button>'
+       : '<p class="dp">El consumo de este sistema llegó por salidas de almacén sin una orden entre las de mayor costo.</p>');
+}
+/* abre el panel de órdenes (si está cerrado) y lleva la vista a la primera del conjunto */
+document.addEventListener('click', function(ev){
+  if(!ev.target.closest || !ev.target.closest('#verOts')) return;
+  var cab = $('otsCab'), panel = $('otsEq');
+  if(!cab || !panel) return;
+  var abierto = cab.getAttribute('aria-expanded') === 'true';
+  if(!abierto) cab.click();
+  setTimeout(function(){
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var fila = document.querySelector('#q-ots tr.sel'), caja = fila && fila.closest('.tablaEnv');
+    if(fila && caja) caja.scrollTop = Math.max(0, fila.offsetTop - 44);
+  }, abierto ? 0 : 320);
+});
 
 var eqActual = null, sysActual = null;
 
@@ -40091,6 +40432,7 @@ function pintarOrdenesEq(e){
   if(!tb) return;
   var lista = otsDelEquipo(e);
   txt('q-ots-nota', fuenteOts(lista) + ' · ' + rotuloRango());
+  otsResumen(lista);
 
   tb.innerHTML = lista.slice(0, 60).map(function(o){
     return '<tr' + (o.sis && o.sis === sysActual ? ' class="sel"' : '') + '>'
@@ -40129,7 +40471,7 @@ function pintarOrdenesEq(e){
       : 'SIN ÓRDENES EN EL PERIODO');
 }
 
-function pintarDetalle(e){
+function pintarDetalleTorre(e){
   var el = $('detalle');
   if(!el) return;
   var s = null, ss = sysRango(e);

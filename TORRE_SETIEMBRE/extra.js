@@ -137,39 +137,41 @@ function pintarFicha(){
   }, 40);
 }
 
-/* ---------- el bloque de tarifa, DM y usaje de la hoja Equipo ----------
+/* ---------- disponibilidad, usaje y tarifa de la hoja Equipo ----------
    En la Torre original iba por modelo porque no habia otra cosa. Aqui el
-   dato es del propio equipo. */
+   dato es del propio equipo. Desde el 30/10 es la segunda fila de cifras de
+   arriba (#q-sep lleva la clase eqCifras): cinco tarjetas como las del
+   periodo. Las horas reales y de proforma van dentro del usaje, que es su
+   cociente; su rotulo (#q-sep-rot) dice que no sigue al periodo. */
 function pintarSepEquipo(e){
   var caja = $('q-sep');
   if(!caja) return;
   var q = SEP && SEP.eq ? SEP.eq[e.id] : null;
+  var rot = $('q-sep-rot');
   if(!q){
-    caja.innerHTML = '<div class="sinDato"><b>Este equipo no entra al resultado operativo.</b> '
+    if(rot) rot.textContent = 'sin resultado operativo';
+    caja.innerHTML = '<div class="sinDato eqSin"><b>Este equipo no entra al resultado operativo.</b> '
       + 'Sólo tiene órdenes que las hojas dejan fuera (CAPEX, venta o parte de la tarifa), así que el reporte no le calcula '
       + 'tarifa, disponibilidad ni usaje.</div>';
     return;
   }
+  if(rot) rot.textContent = 'resultado operativo del mes al día ' + SETIEMBRE.corteDia + ' · no sigue al periodo ni a los filtros'
+    + (q.conTarifa ? '' : ' · sin tarifa de venta en base varios')
+    + (e.tipo === 'ALQUILADO' ? ' · en alquilados la tarifa es RyM + mano de obra, sin el alquiler' : '');
   var d = (q.tReal !== null && q.tProy !== null) ? q.tReal - q.tProy : null;
   var num = function(x, pre){ return x === null || x === undefined ? '—' : (pre || '') + x.toFixed(1); };
+  var tarj = function(l, v, dd, cls){
+    return '<div><div class="l">' + l + '</div><div class="v' + (cls ? ' ' + cls : '') + '">' + v + '</div><div class="d">' + dd + '</div></div>';
+  };
   caja.innerHTML =
-      '<div class="sepCifras">'
-    + '<div><div class="l">DISPONIBILIDAD MECÁNICA</div><div class="v">'
-      + (q.dm === null ? '—' : pc(q.dm)) + '</div></div>'
-    + '<div><div class="l">USAJE</div><div class="v">' + (q.use === null ? '—' : pc(q.use)) + '</div></div>'
-    + '<div><div class="l">HORAS REALES / PROFORMA DEL MES</div><div class="v">'
-      + fmt(q.hr) + ' / ' + (q.hrProf ? fmt(q.hrProf) : '—') + '</div></div>'
-    + '<div><div class="l">TARIFA REAL AL DÍA ' + SETIEMBRE.corteDia + '</div><div class="v">' + num(q.tReal, 'US$ ') + '</div></div>'
-    + '<div><div class="l">TARIFA DE VENTA</div><div class="v">' + num(q.tProy, 'US$ ') + '</div></div>'
-    + (d === null ? '' :
-       '<div><div class="l">DESVIACIÓN</div><div class="v ' + (d <= 0 ? 'bien' : 'alza') + '">'
-       + (d >= 0 ? '+' : '') + d.toFixed(1) + '</div></div>')
-    + '</div>'
-    + '<p class="nota" style="margin-top:12px">DATO DEL EQUIPO · RESULTADO OPERATIVO COMPLETO AL DÍA ' + SETIEMBRE.corteDia + ' · '
-    + 'NO SIGUE AL PERIODO NI A LOS FILTROS'
-    + (q.conTarifa ? '' : ' · SIN TARIFA DE VENTA EN BASE VARIOS')
-    + (e.tipo === 'ALQUILADO' ? ' · EN ALQUILADOS LA TARIFA ES RYM + MANO DE OBRA, SIN EL ALQUILER' : '')
-    + '</p>';
+      tarj('DISPONIBILIDAD MECÁNICA', q.dm === null ? '—' : pc(q.dm), 'tiempo disponible del mes')
+    + tarj('USAJE', q.use === null ? '—' : pc(q.use),
+           fmt(q.hr) + ' h reales de ' + (q.hrProf ? fmt(q.hrProf) + ' h de proforma' : 'proforma sin dato'))
+    + tarj('TARIFA REAL AL DÍA ' + SETIEMBRE.corteDia, num(q.tReal, 'US$ '), 'costo real por hora')
+    + tarj('TARIFA DE VENTA', num(q.tProy, 'US$ '), 'venta interna por hora')
+    + tarj('DESVIACIÓN', d === null ? '—' : (d >= 0 ? '+' : '') + d.toFixed(1),
+           d === null ? 'sin tarifa para comparar' : (d <= 0 ? 'cuesta menos de lo que vende' : 'cuesta más de lo que vende') + ' · US$/h',
+           d === null ? '' : (d <= 0 ? 'bien' : 'alza'));
 }
 
 /* ---------- pantalla completa con la tecla F ----------

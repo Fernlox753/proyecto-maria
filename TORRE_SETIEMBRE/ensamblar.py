@@ -315,7 +315,63 @@ cuerpo = entre(cuerpo, '<p class="lede">Las cifras de arriba salen del libro may
     'toca una pieza y al costado aparecen sus órdenes; más abajo está la lista completa. <b>El conjunto '
     'sale de la orden de trabajo</b>: cada orden lleva el suyo en SAP, y su costo es la suma de lo que se '
     'le cargó hasta el día %d.</p></details>' % CORTE, C)
-cuerpo = cambia(cuerpo, "Tarifa proyectada, disponibilidad y usaje", "Tarifa de venta, disponibilidad y usaje", C)
+# los indicadores arriba, en dos filas de cinco (30/10): la del periodo (sigue a los
+# filtros) y la de operación del mes (disponibilidad, usaje y tarifas, que pinta
+# pintarSepEquipo de extra.js en #q-sep con el mismo formato). Antes la segunda iba
+# abajo del modelo, en su propio bloque.
+cuerpo = cambia(cuerpo,
+    '    <div class="otsEq">\n'
+    '      <h3 class="d d-m" style="margin-bottom:6px">Tarifa proyectada, disponibilidad y usaje</h3>\n'
+    '      <div id="q-sep" style="margin-top:14px"></div>\n'
+    '    </div>\n\n', '', C)
+cuerpo = cambia(cuerpo, '    <div class="eqCifras">\n      <div><div class="l">COSTO DEL PERIODO</div>',
+    '    <div class="eqKpis eqPanel">\n'
+    '    <div class="eqFila"><b>COSTO Y OPERACIÓN DEL PERIODO</b><span id="q-per-rot">sigue al periodo y a los filtros</span></div>\n'
+    '    <div class="eqCifras">\n      <div><div class="l">COSTO DEL PERIODO</div>', C)
+cuerpo = cambia(cuerpo,
+    '      <div><div class="l">ÓRDENES</div><div class="v" id="q-ot">0</div><div class="d">con costo imputado</div></div>\n'
+    '    </div>\n',
+    '      <div><div class="l">ÓRDENES</div><div class="v" id="q-ot">0</div><div class="d">con costo imputado</div></div>\n'
+    '    </div>\n'
+    '    <div class="eqFila"><b>DISPONIBILIDAD Y TARIFA DEL MES</b><span id="q-sep-rot">resultado operativo</span></div>\n'
+    '    <div class="eqCifras" id="q-sep"></div>\n'
+    '    </div>\n', C)
+cuerpo = cambia(cuerpo, '    <div class="maq">\n', '    <div class="maq eqPanel">\n', C)
+# las órdenes en un bloque que se despliega (cerrado al entrar: su cabecera ya dice
+# cuántas son, cuántas correctivas y cuánto suman); el costo por conjunto, aparte
+cuerpo = cambia(cuerpo,
+    '    <div class="otsEq">\n'
+    '      <h3 class="d d-m" style="margin-bottom:6px">Órdenes de trabajo de este equipo</h3>\n'
+    '      <p class="nota" id="q-ots-nota">—</p>\n'
+    '      <div class="tablaEnv" style="margin-top:16px">\n',
+    '    <div class="eqDos">\n'
+    '    <div class="otsEq eqPanel" id="otsEq">\n'
+    '      <button type="button" class="otsCab" id="otsCab" aria-expanded="false" aria-controls="otsDesp">\n'
+    '        <span class="otsTit d d-m">Órdenes de trabajo de este equipo</span>\n'
+    '        <span class="otsRes" id="otsRes"></span>\n'
+    '        <span class="otsVer"><span id="otsVerTxt">VER LISTA</span><i aria-hidden="true"></i></span>\n'
+    '      </button>\n'
+    '      <div class="otsDesp" id="otsDesp"><div class="otsIn" id="otsIn" inert>\n'
+    '      <p class="nota" id="q-ots-nota">—</p>\n'
+    '      <div class="tablaEnv" style="margin-top:12px">\n', C)
+cuerpo = cambia(cuerpo,
+    '          <tbody id="q-ots"></tbody>\n'
+    '        </table>\n'
+    '      </div>\n\n'
+    '      <h3 class="d d-m" style="margin:clamp(30px,4vh,48px) 0 6px">Costo por conjunto, según esas órdenes</h3>\n',
+    '          <tbody id="q-ots"></tbody>\n'
+    '        </table>\n'
+    '      </div>\n'
+    '      </div></div>\n'
+    '    </div>\n\n'
+    '    <div class="otsEq eqPanel">\n'
+    '      <h3 class="d d-m" style="margin:0 0 6px">Costo por conjunto, según esas órdenes</h3>\n', C)
+# las órdenes y el costo por conjunto, lado a lado (cada uno en la mitad)
+cuerpo = cambia(cuerpo, '      <div class="fases" id="q-cj"></div>\n    </div>\n',
+                '      <div class="fases" id="q-cj"></div>\n    </div>\n    </div>\n', C)
+# el resumen de la cabecera desplegable se arma con la misma lista de la tabla
+js_nav = cambia(js_nav, "  txt('q-ots-nota', fuenteOts(lista) + ' · ' + rotuloRango());\n",
+                "  txt('q-ots-nota', fuenteOts(lista) + ' · ' + rotuloRango());\n  otsResumen(lista);\n", "nuevo_js_nav.js")
 
 # ---- Órdenes
 cuerpo = entre(cuerpo, '<p class="lede"><b>Esta vista viene del detalle de mantenimiento de SHGN</b>', "</p></details>",
@@ -585,6 +641,9 @@ js_nav = cambia(js_nav, "esc_('v-2d', 'click', function(){ ponerModo(false); });
                 "esc_('v-2d', 'click', function(){ prefiere3d = false; ponerModo(false); });", N)
 # Atlas Copco / Epiroc tambien son amarillas: su mapa de calor va en la escala ambar
 tres_d = cambia(tres_d, "(CAT|CATERPILLAR|KOMATSU)([^A-Z]|$)", "(CAT|CATERPILLAR|KOMATSU|ATLAS COPCO|EPIROC)([^A-Z]|$)", T3)
+# el detalle del costado de la hoja Equipo va sin órdenes (equipo.js declara la nueva
+# pintarDetalle; js_nav entra después y ganaría, por eso la suya cambia de nombre)
+js_nav = cambia(js_nav, "function pintarDetalle(e){", "function pintarDetalleTorre(e){", N)
 # hoja Equipo: todos los equipos en el selector (equipo.js) y un buscador al lado
 cuerpo = cambia(cuerpo, '      <select id="selector" aria-label="Elegir equipo"></select>\n', equipo_html, C)
 _SEL = ("htm('selector', EQ.map(function(e){\n"
@@ -597,6 +656,9 @@ js_datos = cambia(js_datos, "  if(EQ.length) elegirEquipo(byId[eqActual] ? eqAct
                   "  if(eqLista.length) elegirEquipo(byId[eqActual] ? eqActual : eqLista[0].id);", D)
 # los filtros de flota tambien arriba de la hoja Equipo (sufijo 5, equipo.js)
 js_datos = cambia(js_datos, "var SUFS = ['', '3'];", "var SUFS = ['', '3', '5'];", D)
+# el periodo de la hoja Equipo (equipo.js, periodoEq): ponerRango lo pone al día como a los demás
+js_datos = cambia(js_datos, "  ['', '2', '3', '4'].forEach(function(suf){\n    var sa = $('mesDesde' + suf)",
+                  "  ['', '2', '3', '4', '5'].forEach(function(suf){\n    var sa = $('mesDesde' + suf)", D)
 # filtros en cascada: cada desplegable ofrece solo lo que queda con los demas (equipo.js)
 for _c, _v, _t in [("tipo", "tipoFiltro", "TODOS"), ("fam", "famFiltro", "TODAS"), ("mod", "modFiltro", "TODOS"), ("prov", "provFiltro", "TODOS")]:
     js_datos = cambia(js_datos, "opciones(u.%s, %s, '%s')" % (_c, _v, _t), "opciones(universoPara('%s'), %s, '%s')" % (_c, _v, _t), D)
