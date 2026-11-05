@@ -1,23 +1,23 @@
 {
  "libro": "0 SHGN_RO EQUIPOS.xlsx + 00 ATOC_RO EQUIPOS.xlsx + 00 TRMA_RO EQUIPOS.xlsx + 00 TEMB_RO EQUIPOS.xlsx",
- "hoja": "SHGN: BASE DATOS 27.10 · ATOC: BASE DATOS 27.10 · TRMA: BASE DATOS 27.10 · TEMB: BASE DATOS 27.10",
- "corte": 25,
+ "hoja": "SHGN: BASE DATOS 02.11 · ATOC: BASE DATOS 03.11 · TRMA: BASE DATOS 03.11 · TEMB: BASE DATOS 02.11",
+ "corte": 31,
  "diasMes": 31,
  "mes": 10,
  "anio": 2026,
- "fechaMaxBase": "2026-10-27",
- "generado": "2026-10-28 08:48",
+ "fechaMaxBase": "2026-10-31",
+ "generado": "2026-11-05 09:47",
  "sedes": {
   "SHGN": {
    "sede": "SHGN",
    "libro": "0 SHGN_RO EQUIPOS.xlsx",
-   "hoja": "BASE DATOS 27.10",
-   "corte": 25,
-   "corteDe": "filtro «Fecha de Tran» de la dinámica",
+   "hoja": "BASE DATOS 02.11",
+   "corte": 31,
+   "corteDe": "encabezado «Costo Real al 31» de SHGN PROP",
    "diasMes": 31,
    "mes": 10,
    "anio": 2026,
-   "fechaMaxBase": "2026-10-27",
+   "fechaMaxBase": "2026-10-31",
    "hojas": {
     "PROPIO": "SHGN PROP",
     "ALQUILADO": "SHGN ALQ"
@@ -28,6 +28,10 @@
       "MAT",
       "SERV",
       "MO"
+     ],
+     "CECO": [
+      "011030SHEP",
+      "013001SHEP"
      ],
      "TIPO": [
       "PROPIO"
@@ -43,6 +47,10 @@
       "SERV",
       "MO"
      ],
+     "CECO": [
+      "011030SHEP",
+      "013001SHEP"
+     ],
      "TIPO": [
       "ALQUILADO"
      ],
@@ -55,6 +63,10 @@
    "reglasFuera": {
     "PROPIO": {
      "RECURSO": [
+      "(vacío)"
+     ],
+     "CECO": [
+      "011030SHOP",
       "(vacío)"
      ],
      "TIPO": [
@@ -78,6 +90,10 @@
      "RECURSO": [
       "(vacío)"
      ],
+     "CECO": [
+      "011030SHOP",
+      "(vacío)"
+     ],
      "TIPO": [
       "PROPIO",
       "(vacío)"
@@ -96,7 +112,7 @@
      ]
     }
    },
-   "fuenteHoras": "EXPORT_20261027_095752.xlsx",
+   "fuenteHoras": "EXPORT_20261103_172003.xlsx",
    "alqPorDias": [
     "MH-91-AL",
     "MH-92-AL",
@@ -109,54 +125,54 @@
    ],
    "propio": {
     "hoja": {
-     "rym": 301295.85,
-     "mov": 264399.7,
-     "terc": 671991.73,
-     "seg": 14887.17,
-     "hr": 7287.89,
-     "nEq": 34.0,
-     "venta": 996745.35,
+     "rym": 389141.62,
+     "mov": 325275.12,
+     "terc": 722433.05,
+     "seg": 18460.09,
+     "hr": 7874.46,
+     "nEq": 35.0,
+     "venta": 1072684.57,
      "hrProf": 9449.38
     },
     "equipos": {
-     "rym": 301295.85,
-     "mov": 264399.7,
-     "terc": 671991.73,
-     "seg": 14887.17,
-     "hr": 7287.89,
-     "nEq": 34,
-     "venta": 996745.35,
+     "rym": 389141.62,
+     "mov": 325275.12,
+     "terc": 722433.05,
+     "seg": 18460.09,
+     "hr": 7874.46,
+     "nEq": 35,
+     "venta": 1072684.57,
      "hrProf": 9449.38
     },
     "calc": {
-     "rym": 301295.85,
-     "mov": 259399.7
+     "rym": 389141.62,
+     "mov": 320275.12
     }
    },
    "alquilado": {
     "hoja": {
-     "rym": 648472.39,
-     "mov": 297596.95,
-     "terc": 4424664.33,
-     "seg": 234550.15,
-     "hr": 89740.99,
-     "nEq": 351.0,
-     "venta": 812516.69,
+     "rym": 897995.38,
+     "mov": 406396.12,
+     "terc": 6994878.89,
+     "seg": 290842.18,
+     "hr": 112225.55,
+     "nEq": 349.0,
+     "venta": 1010275.86,
      "hrProf": 115860.65
     },
     "equipos": {
-     "rym": 648472.39,
-     "mov": 297596.95,
-     "terc": 4424664.33,
-     "seg": 234550.15,
-     "hr": 89740.99,
-     "nEq": 351,
-     "venta": 812516.69,
+     "rym": 897995.38,
+     "mov": 406396.12,
+     "terc": 6994878.89,
+     "seg": 290842.18,
+     "hr": 112225.55,
+     "nEq": 349,
+     "venta": 1010275.86,
      "hrProf": 115860.65
     },
     "calc": {
-     "rym": 648472.39,
-     "mov": 297596.95
+     "rym": 897995.38,
+     "mov": 406396.12
     }
    },
    "acumPeriodos": [
@@ -170,15 +186,11 @@
     8,
     9
    ],
-   "fueraCorte": {
-    "SERV": 107617.98,
-    "MAT": 61302.63,
-    "MO": 700.0
-   },
+   "fueraCorte": {},
    "sinFecha": 0.0,
-   "sinTarifa": 29,
-   "sinHoras": 49,
-   "sinDM": 142,
+   "sinTarifa": 18,
+   "sinHoras": 42,
+   "sinDM": 116,
    "sinParte": 0,
    "serviciosFueraBase": {
     "n": 32,
@@ -189,27 +201,31 @@
      "PROPIO",
      "CH-08",
      "MOV",
-     29337.95,
-     24337.95
+     34732.62,
+     29732.62
     ]
    ]
   },
   "ATOC": {
    "sede": "ATOC",
    "libro": "00 ATOC_RO EQUIPOS.xlsx",
-   "hoja": "BASE DATOS 27.10",
-   "corte": 25,
-   "corteDe": "filtro «Fecha de Tran» de la dinámica",
+   "hoja": "BASE DATOS 03.11",
+   "corte": 31,
+   "corteDe": "encabezado «Costo Real al 31» de ATOC PROP",
    "diasMes": 31,
    "mes": 10,
    "anio": 2026,
-   "fechaMaxBase": "2026-10-27",
+   "fechaMaxBase": "2026-10-31",
    "hojas": {
     "PROPIO": "ATOC PROP",
     "ALQUILADO": "ATOC ALQ"
    },
    "reglas": {
     "PROPIO": {
+     "CECO": [
+      "011030ATEP",
+      "013001ATEP"
+     ],
      "TIPO": [
       "PROPIO"
      ],
@@ -226,13 +242,30 @@
      ]
     },
     "ALQUILADO": {
+     "CECO": [
+      "011030ATEP",
+      "013001ATEP"
+     ],
      "TIPO": [
       "ALQUILADO"
+     ],
+     "CONSIDERAR": [
+      "opex",
+      "13K",
+      "51K",
+      "4K",
+      "Reactivados",
+      "Reactivación CRDC",
+      "Proceso CAPEX"
      ]
     }
    },
    "reglasFuera": {
     "PROPIO": {
+     "CECO": [
+      "011030ATOP",
+      "(vacío)"
+     ],
      "TIPO": [
       "ALQUILADO",
       "(vacío)"
@@ -245,17 +278,27 @@
      "CONSIDERAR": [
       "(vacío)",
       "Proceso CAPEX",
-      "CAPEX"
+      "CAPEX",
+      "DESM UNOP"
      ]
     },
     "ALQUILADO": {
+     "CECO": [
+      "011030ATOP",
+      "(vacío)"
+     ],
      "TIPO": [
       "PROPIO",
       "(vacío)"
+     ],
+     "CONSIDERAR": [
+      "(vacío)",
+      "CAPEX",
+      "DESM UNOP"
      ]
     }
    },
-   "fuenteHoras": "HH OPE",
+   "fuenteHoras": "EXPORT_20261103_172003.xlsx",
    "alqPorDias": [],
    "depPorDias": [
     "MO-23",
@@ -266,54 +309,54 @@
    ],
    "propio": {
     "hoja": {
-     "rym": 38238.21,
-     "mov": 46940.0,
-     "terc": 49765.23,
-     "seg": 4024.92,
-     "hr": 4421.5,
-     "nEq": 65.0,
-     "venta": 109633.13,
+     "rym": 46348.74,
+     "mov": 72560.0,
+     "terc": 64025.71,
+     "seg": 4990.9,
+     "hr": 6188.0,
+     "nEq": 66.0,
+     "venta": 143336.78,
      "hrProf": 5660.0
     },
     "equipos": {
-     "rym": 38238.21,
-     "mov": 46940.0,
-     "terc": 49765.23,
-     "seg": 4024.92,
-     "hr": 4421.5,
-     "nEq": 65,
-     "venta": 109633.13,
+     "rym": 46348.74,
+     "mov": 72560.0,
+     "terc": 64025.71,
+     "seg": 4990.9,
+     "hr": 6188.0,
+     "nEq": 66,
+     "venta": 143336.78,
      "hrProf": 5660.0
     },
     "calc": {
-     "rym": 38238.21,
-     "mov": 46940.0
+     "rym": 46348.74,
+     "mov": 72560.0
     }
    },
    "alquilado": {
     "hoja": {
-     "rym": 5284.44,
-     "mov": 32930.0,
-     "terc": 493051.34,
+     "rym": 9850.21,
+     "mov": 33400.0,
+     "terc": 604250.32,
      "seg": 0.0,
-     "hr": 10553.29,
-     "nEq": 63.0,
-     "venta": 26428.09,
+     "hr": 13277.12,
+     "nEq": 68.0,
+     "venta": 32839.95,
      "hrProf": 8720.0
     },
     "equipos": {
-     "rym": 5284.44,
-     "mov": 32930.0,
-     "terc": 493051.34,
+     "rym": 9850.21,
+     "mov": 33400.0,
+     "terc": 604250.32,
      "seg": 0.0,
-     "hr": 10553.29,
-     "nEq": 63,
-     "venta": 26428.09,
+     "hr": 13277.12,
+     "nEq": 68,
+     "venta": 32839.95,
      "hrProf": 8720.0
     },
     "calc": {
-     "rym": 5284.44,
-     "mov": 32930.0
+     "rym": 9850.21,
+     "mov": 33400.0
     }
    },
    "acumPeriodos": [
@@ -327,13 +370,11 @@
     8,
     9
    ],
-   "fueraCorte": {
-    "MAT": 2905.48
-   },
+   "fueraCorte": {},
    "sinFecha": 0.0,
-   "sinTarifa": 19,
-   "sinHoras": 35,
-   "sinDM": 38,
+   "sinTarifa": 25,
+   "sinHoras": 33,
+   "sinDM": 44,
    "sinParte": 0,
    "serviciosFueraBase": null,
    "descuadre": []
@@ -341,13 +382,13 @@
   "TRMA": {
    "sede": "TRMA",
    "libro": "00 TRMA_RO EQUIPOS.xlsx",
-   "hoja": "BASE DATOS 27.10",
-   "corte": 25,
-   "corteDe": "filtro «Fecha de Tran» de la dinámica",
+   "hoja": "BASE DATOS 03.11",
+   "corte": 31,
+   "corteDe": "encabezado «Costo Real al 31» de TRMA PROP",
    "diasMes": 31,
    "mes": 10,
    "anio": 2026,
-   "fechaMaxBase": "2026-10-27",
+   "fechaMaxBase": "2026-10-31",
    "hojas": {
     "PROPIO": "TRMA PROP",
     "ALQUILADO": "TRMA ALQ"
@@ -356,8 +397,12 @@
     "PROPIO": {
      "RECURSO": [
       "MAT",
-      "MO",
-      "SERV"
+      "SERV",
+      "MO"
+     ],
+     "CECO": [
+      "011030TAEP",
+      "013001TAEP"
      ],
      "TIPO": [
       "PROPIO"
@@ -368,6 +413,10 @@
      ]
     },
     "ALQUILADO": {
+     "CECO": [
+      "011030TAEP",
+      "013001TAEP"
+     ],
      "TIPO": [
       "ALQUILADO"
      ]
@@ -376,6 +425,10 @@
    "reglasFuera": {
     "PROPIO": {
      "RECURSO": [
+      "(vacío)"
+     ],
+     "CECO": [
+      "011030TAOP",
       "(vacío)"
      ],
      "TIPO": [
@@ -390,13 +443,17 @@
      ]
     },
     "ALQUILADO": {
+     "CECO": [
+      "011030TAOP",
+      "(vacío)"
+     ],
      "TIPO": [
       "PROPIO",
       "(vacío)"
      ]
     }
    },
-   "fuenteHoras": "EXPORT_20261027_124701.xlsx",
+   "fuenteHoras": "EXPORT_20261103_172003.xlsx",
    "alqPorDias": [
     "XXL",
     "YY"
@@ -407,54 +464,54 @@
    ],
    "propio": {
     "hoja": {
-     "rym": 15695.41,
-     "mov": 15350.0,
-     "terc": 18012.58,
-     "seg": 854.81,
-     "hr": 2393.1,
+     "rym": 21460.34,
+     "mov": 18775.0,
+     "terc": 22531.95,
+     "seg": 1059.96,
+     "hr": 2893.4,
      "nEq": 22.0,
-     "venta": 62629.14,
+     "venta": 76869.39,
      "hrProf": 2858.82
     },
     "equipos": {
-     "rym": 15695.41,
-     "mov": 15350.0,
-     "terc": 18012.58,
-     "seg": 854.81,
-     "hr": 2393.1,
+     "rym": 21460.34,
+     "mov": 18775.0,
+     "terc": 22531.95,
+     "seg": 1059.96,
+     "hr": 2893.4,
      "nEq": 22,
-     "venta": 62629.14,
+     "venta": 76869.39,
      "hrProf": 2858.82
     },
     "calc": {
-     "rym": 16275.12,
-     "mov": 15350.0
+     "rym": 21460.34,
+     "mov": 18775.0
     }
    },
    "alquilado": {
     "hoja": {
-     "rym": 1869.76,
-     "mov": 6050.0,
-     "terc": 156566.32,
+     "rym": 2170.86,
+     "mov": 7065.0,
+     "terc": 195385.12,
      "seg": 0.0,
-     "hr": 4882.9,
-     "nEq": 22.0,
-     "venta": 8389.16,
+     "hr": 6176.6,
+     "nEq": 23.0,
+     "venta": 10340.14,
      "hrProf": 4811.94
     },
     "equipos": {
-     "rym": 1869.76,
-     "mov": 6050.0,
-     "terc": 156566.32,
+     "rym": 2170.86,
+     "mov": 7065.0,
+     "terc": 195385.12,
      "seg": 0.0,
-     "hr": 4882.9,
-     "nEq": 22,
-     "venta": 8389.16,
+     "hr": 6176.6,
+     "nEq": 23,
+     "venta": 10340.14,
      "hrProf": 4811.94
     },
     "calc": {
-     "rym": 1869.76,
-     "mov": 6050.0
+     "rym": 2170.86,
+     "mov": 7065.0
     }
    },
    "acumPeriodos": [
@@ -468,43 +525,70 @@
     8,
     9
    ],
-   "fueraCorte": {
-    "SERV": 24962.92,
-    "MAT": 1209.81,
-    "MO": 1770.0
-   },
+   "fueraCorte": {},
    "sinFecha": 0.0,
-   "sinTarifa": 6,
-   "sinHoras": 8,
-   "sinDM": 4,
+   "sinTarifa": 4,
+   "sinHoras": 6,
+   "sinDM": 5,
    "sinParte": 0,
    "serviciosFueraBase": null,
-   "descuadre": [
-    [
-     "PROPIO",
-     "RE-61",
-     "RyM",
-     1537.81,
-     2117.52
-    ]
-   ]
+   "descuadre": []
   },
   "TEMB": {
    "sede": "TEMB",
    "libro": "00 TEMB_RO EQUIPOS.xlsx",
-   "hoja": "BASE DATOS 27.10",
-   "corte": 25,
-   "corteDe": "encabezado «Costo Real al 25» de TEMB PROP",
+   "hoja": "BASE DATOS 02.11",
+   "corte": 31,
+   "corteDe": "encabezado «Costo Real al 31» de TEMB PROP",
    "diasMes": 31,
    "mes": 10,
    "anio": 2026,
-   "fechaMaxBase": "2026-10-24",
+   "fechaMaxBase": "2026-10-31",
    "hojas": {
     "PROPIO": "TEMB PROP",
     "ALQUILADO": "TEMB ALQ"
    },
    "reglas": {
     "PROPIO": {
+     "CECO": [
+      "011030TEEP",
+      "013001TEEP",
+      "C-75",
+      "C-92",
+      "CA-2414-AL",
+      "CA-2416-AL",
+      "CA-2611-AL",
+      "CI-30",
+      "CI-31",
+      "CI-730-AL",
+      "EI-101",
+      "EI-102",
+      "EI-2300-AL",
+      "EI-96",
+      "EP-159-AL",
+      "EP-37",
+      "EQ-VA-OPER-TEMB",
+      "ET-34-AL",
+      "MO-19",
+      "RE-1264-AL",
+      "RE-1319-AL",
+      "RE-1353-AL",
+      "RE-1373-AL",
+      "RE-44",
+      "RE-57",
+      "T-37",
+      "TV-334-AL",
+      "V-2438-AL",
+      "V-2491-AL",
+      "V-2521-AL",
+      "V-2527-AL",
+      "V-2541-AL",
+      "V-2544-AL",
+      "V-2545-AL",
+      "V-2576-AL",
+      "V-2578-AL",
+      "(vacío)"
+     ],
      "TIPO": [
       "PROPIO"
      ],
@@ -518,104 +602,43 @@
      ]
     },
     "ALQUILADO": {
-     "Descripcion OT": [
-      "MO3/RELLENO DE ACEITE ALMO 529 1/4 GL.",
-      "MO3/RELLENO DE ACEITE ALMO 529 1/4 G.",
-      "MO3/ENGRASE PARCIAL/REV. NIVEL DE FLUIDO",
-      "MO3/ENGRASE GENERAL/REV. NIVEL DE FLUIDO",
-      "MO3/RELLENO DE ACEITE ALMO 529 1/8",
-      "MO3/C. DE BALDE DE GRASA 17.5 KG.",
-      "MO3/C. FILTROS COMB/MOT/AIRE ACEITE 10 G",
-      "MO3/ENGRASE GENERAL/REV. NIVEL D FLUIDOS",
-      "MO3/ENGRASE GENRAL/REV. NIVEL DE FLUIDOS",
-      "MO3/REPARACIÓN NEUMÁTICO POS. 08",
-      "MO3/RELLENO DE REFRIGERANTE 1/2 GLN",
-      "MO3/RELLENO ACEITE ALMO 529 1/8/ENGRASE",
-      "MO3/TEMPLADO DE CADENA LH/RH",
-      "MO3/C. FOCO LATERAL RH/REVISIÓN CLAXON",
-      "MO3/COLOCACIÓN DE PERNOS RADIO BASE",
-      "MO3/MANTENIMIENTO PREVENTIVO 250 HR",
-      "MO3/TEMPLADO DE CADENA LH",
-      "MO3/C. DE NAUMÁTICO POS. 06 DE STOCK",
-      "MO3/C. DE NAUMÁTICO POS. 12",
-      "MO3/C. DE ALTERNADOR",
-      "MO3/C. DE NEUMÁTICO POS. 09",
-      "MO3/C. DE NAUMÁTICO POS. 10",
-      "MO3/INSTAL. SEGURO DE PINES INF. D TOLVA",
-      "MO3/ DEVOL. DE NEUMÁTICO REP. POS. 08",
-      "MO3/C. NAUMÁTICOS REENC. POS. 5-6-7-8",
-      "MO3/RELLENO ACEITE ALMO 529 1/08 GL",
-      "MO3/RELLENO DE ACEITE ALMO 529 1/8 GL.",
-      "MO3/RELLENO DE ACEITE ALMO 529 1/8 G.",
-      "MO3/ENGRASE PARCIAL/INSPEC. NIVEL FLUIDO",
-      "MO3/ENGRASE GENERAL/INSPEC. NIVEL FLUIDO",
-      "MO3/ENGRASE PARCIAL/REV. NIVEL D FLUIDOS",
-      "MO3/INSTAL. DE SEGURO DE PISTON DE TOLVA",
-      "MO3/INSTAL. DE SEGURO DE PISTOL DE TOLVA",
-      "MO3/REACONDICIONO VÁLVULA DE ASIENTO",
-      "MO3/EVAL. POR FALLA A ALTA TEMPERATURA",
-      "MO3/TEMPLADO DE CADENA RH",
-      "MO3/RETIRO DE PELDAÑO ABOLLADO RH",
-      "MO3/TEMPLADO DE CADELA LH",
-      "MO3/C. DE NEUMÁTICO POS. 12",
-      "MO3/REEMPLAZO DE NEUMÁTICOS POS. 09-10",
-      "MO3/MONTAJE DE NEUMÁTICO POS. 08",
-      "MO3/C. DE NEUMÁTICO USADO POS. 08",
-      "MO3/ENGRASE/RELLENO ACEITE ALMO 1/8 G.",
-      "MO3/RELLENO ACEITE ALMO 529 1/8 G.",
-      "MO3/C. DE VÁLVULA DE ASIENTO DEL PILOTO",
-      "MO3/AJUSTE DE ABRAZADERA TUBO REFRIGER.",
-      "MO3/INSPECC. FAROS POR NO ALUMBRAR UNO",
-      "MO3/REVISIÓN SIST. ELÉCTRICO RADIO BASE",
-      "MO3/EVA. POR APAGADO DE MOTOR SIN COMBUS",
-      "MO3/LIMPIEZA/ZOPLETEO FILTRO DE AIRE ADM",
-      "MO3/ARMADO DE 3 NEUMÁTICOS PARA STOCK",
-      "MO3/ENGRASE PARCIAL/VERIFIC. NIVEL FLUID",
-      "MO3/REPARACIÓN FALLA ASIENTO DE PILOTO",
-      "MO3/REP. CIRCUITO ELÉC. ALARMA RETROCESO",
-      "MO3/FALLA SISTE. ELÉC. DE FAROLAS",
-      "MO3/ISPECC. FLUIDOS-MÁSIL-FAROS",
-      "MO3/MANTENIMIENTO PREVENTIVO MF RH/LH",
-      "MO3/INSTALL. RADIO BASE Y ANTENA",
-      "MO3/C. CONECTOR DE PTT DE RADIO BASE",
-      "MO3/REPARACIÓN DE PORTA TACOS",
-      "MO3/C. DE NAUMÁTICOS POS 09-10",
-      "MO3/C. DE NAUMÁTICOS NUEVOS POS. 09-10",
-      "MO3/EVAL. POR FALLA EN MARCHA DE TRANS.",
-      "MO3/REVISIÓN POR FUGA DE COMBUSTIBLE",
-      "MO3/ENGRASE PARCIAL/REVIS. NIVEL FLUIDOS",
-      "MO3/RELLENO DE REFRIGERANTE",
-      "MO3/C/ MANGUERA SISTEMA DE COMBUSTIBLE",
-      "MO3/RELLENO ACEITE NUTO 68 4 GL.",
-      "MO3/ENGRASE PARCIAL/REV. NIVEL DE FLUDOS",
-      "MO3/ENGRASE GENERAL/REV. NIVEL DE FLUDOS",
-      "MO3/SOLDEO DE CUCHARÓN",
-      "MO3/C. FARO LED",
-      "MO3/C. DE FOCOS H3/H7",
-      "MO3/INSPECC. FAROS/FLUIDOS/MÁSTIL",
-      "MO3/C. SEGURO DE CADENA DE AVANCE MARTI.",
-      "MO3/VERIFIC./RRANQUE CON CABLES AUX.",
-      "MO3/AJUSTE/REGULACIÓN COMP. SIST. D PERF",
-      "MO3/EVAL. POR RESUMEN DE ACEITE HYD",
-      "MO3/MONTAJE DE MANGUERA HYD NUEVA",
-      "MO3/TEMPLADO DE CADENA RH/LH",
-      "MO3/REPARACIÓN NEUMÁTICO POS. 02",
-      "MO3/REPARACIÓN NEUMÁTICO POS. 09",
-      "MO3/REPARACIÓN DE NAUMÁTICO POS. 07",
-      "MO3/AUXILIO DE ARRANQUE DE EQUIPO",
-      "MO3/C. ACEITE MANDOS FINALES/GIRO/DAMPER",
-      "MO3/C. DE NEUMÁTICO POS. 06",
-      "MO3/C. DE NEUMÁTICOS NUEVOS POS. 09 A 12",
-      "MO3/C. DE CIRCULINA",
-      "MO3/COLOCACIÓN DE TUERCA EN MANIJA",
-      "MO3/REVISIÓN DE MÁSTIL QUE NO RECLINA",
-      "MO3/EVAL. POR ROTURA DE BOMBA DE AGUA",
-      "MO3/EVAL. DE COMPUERTA LATERAL",
-      "MO3/LIMPIEZA/SOPLETEO DE FILTROS",
-      "MO3/LAVADO DE FILTROS DE COMB./SEP. AGUA",
-      "MO3/DESARMADO/ARMADO DE 05 NEUMÁTICOS",
-      "MO3/REP. DE NEUMÁTICO POS. 07",
-      "MO3/REP. DE BASE DE FARO DE BOOM"
+     "CECO": [
+      "013001TEEP",
+      "C-75",
+      "C-92",
+      "CA-2414-AL",
+      "CA-2416-AL",
+      "CA-2611-AL",
+      "CI-30",
+      "CI-31",
+      "CI-730-AL",
+      "EI-101",
+      "EI-102",
+      "EI-2300-AL",
+      "EI-96",
+      "EP-159-AL",
+      "EP-37",
+      "EQ-VA-OPER-TEMB",
+      "ET-34-AL",
+      "MO-19",
+      "RE-1264-AL",
+      "RE-1319-AL",
+      "RE-1353-AL",
+      "RE-1373-AL",
+      "RE-44",
+      "RE-57",
+      "T-37",
+      "TV-334-AL",
+      "V-2438-AL",
+      "V-2491-AL",
+      "V-2521-AL",
+      "V-2527-AL",
+      "V-2541-AL",
+      "V-2544-AL",
+      "V-2545-AL",
+      "V-2576-AL",
+      "V-2578-AL",
+      "011030TEEP"
      ],
      "TIPO": [
       "ALQUILADO"
@@ -624,6 +647,9 @@
    },
    "reglasFuera": {
     "PROPIO": {
+     "CECO": [
+      "011030TEOP"
+     ],
      "TIPO": [
       "ALQUILADO",
       "(vacío)"
@@ -640,383 +666,9 @@
      ]
     },
     "ALQUILADO": {
-     "Descripcion OT": [
-      "",
+     "CECO": [
       "(vacío)",
-      "C/NEUMÁTICO POS01",
-      "EVAL. POR RESUMEN DE ACEITE HYD",
-      "ENGRASE PARCIAL/REVISIÓN NIVEL D FLUIDOS",
-      "ENGRASE PARCIAL/REVISIÓN NIVEL DE FLUIDO",
-      "ENGRASE GENERAL/REVISIÓN NIVEL D FLUIDOS",
-      "EVAL. TEMPERATURA DE SIST. DEL COMPRESOR",
-      "FALLA EN TEMPERATURA DE COMPRESOR",
-      "SERV. REPARACION SIST. AAC",
-      "REPARACIÓN AAC.",
-      "ENGRASE GENERAL/REVISIÓN NIVEL DE FLUIDO",
-      "ENGRASE G/RELLENO DE REFRIGERANTE 1/8 GL",
-      "REP. NEUMATICO POS 05 X CORTE EN FLANCO",
-      "C. DE FOCO H1/5WE1",
-      "C/ DE ALARMA DE RETROCESO",
-      "C. DE FOCO H7 LADO RH",
-      "C/ FOCO LUMINARIA",
-      "BL/. CAMB. WINCHE",
-      "BL/.C. DE CHAPA DE CONTACTO",
-      "RELLENO DE ACEITE NUTO 68 5 G.",
-      "C/ FOCOS DELANTEROS Y POSTERIORES",
-      "RELLENO ACEITE ALMO 1/2 G./ENGRASE",
-      "ENGRASE/RELLENO DE ACIETE ALMO 529 1/4 G",
-      "C/NEUMÁTICO POS02",
-      "BL/. CAMB. CALCES . SHINES",
-      "BL/. CAMB. SENSORES VELOCIDAD TRM",
-      "RELLENO DE ACEITE HD 50 1/8 G.",
-      "SELLADO DE ANTE FILTRO DE ADMISIÓN",
-      "INSTAL. PERNOS FALTANTES DEL JOSTING",
-      "SOPLETEO DE FILTRO DE AIRE PRIMARIO",
-      "AJUSTE DE PERNO DE PIN DE CUCHARON",
-      "VERIFICACIÓN DE NIVEL DE FLUIDOS/LUCES",
-      "REVISIÓN DE NIVEL DE FLUIDOS/LUCES",
-      "EVAL. FALTA DE LUBRICACIÓN D HILO BARRAS",
-      "SUCCIÓN DE ACEITE RESIDUAL",
-      "EVAL. POS RESUMEN DE ACEITE HYD",
-      "EXCESO DE HUMO",
-      "C. PROTECTORES D MANGUERAS HYDS CUCHARON",
-      "EVALUACIÓN DE BOMBA DE VIBRACIÓN",
-      "AJUSTE DE ABRAZADERA TUBO DE ESCAPE",
-      "COLOCACIÓN PROTECTORES D MANGUERA RIPER",
-      "C. DE FOCO H3 RH/REVSIÓN DE SIST. LUCES",
-      "COLOCACIÓ DE BASE PARA CIRCULINA",
-      "INSTALACIÓN DE ANTENA",
-      "C/ ADAPTER - OPERACIONAL",
-      "PM01 MANTTO 250 966H-ENG1",
-      "PM01 MANTTO 250 966H-SEN",
-      "ENGRASE Y LUBRICACIÓN",
-      "PM03 MANTTO 250 L150H-ENG1",
-      "C. DE BORNE NEGATIVO DE BATERÍA",
-      "ENGRASE 1 K/RELLENO DE ACEITE ALMO 1/2 G",
-      "RELLENO DE GRASA/ACEITE ALMO 1 G.",
-      "ENGRASE/RELLENO ACEITE ALMO 529 2 GL.",
-      "ENGRASE/RELLENO ACEITE ALMO 529 1 1/2 G.",
-      "ENGRASE 1 K/RELLENO ACEITE ALMO 1 1/2",
-      "ENGRASE 1 K/RELLENO ACEITE ALMO 1 G.",
-      "BL/. CAMB.DIAFRAGMA CPV",
-      "ENGRASE 1 KG/RELLENO ACEITE ALMO 2 GL.",
-      "BL/. CAMB SHINES DE CILINDROS DE LEVANTE",
-      "ACENTAMIENTO DE BOCINAS DE PISTON",
-      "C/ RELES Y CONECTORES LUCES",
-      "ENGRASE/RELLENO ACEITE MOTOR 1 1/2 GL.",
-      "C. DIAFRAGMA DE FRENO N° 24",
-      "FILTROGRAFÍA DEL FILTRO DE ACEITE",
-      "REPARACIÓN DE SISTEMA AAC.",
-      "REPARACIÓN DE MANGUERA DE SIST. ENGRASE",
-      "PM03 MANTTO 250 L150H-SL",
-      "PM03 MANTTO 250 L150H-LPN",
-      "PM03 MANTTO 250 L150H-SC",
-      "REVISIÓN DE LUCES FAROS POSTERIORES",
-      "FILTROGRAFÍA DE ACEITE DE MOTOR",
-      "REVISIÓN POR FUGA DE AIRE POR EL PTO",
-      "ACONDICIONAMIENTO DE TAPA DE COMBUSTIBLE",
-      "REVISIÓN RACHE DE MÁSTIL POR NO SUBIR",
-      "INSPECC. FLUIDOS/LUZ DE FAROLAS",
-      "VERIFICACIÓN DE NIVEL DE FLUIDOS/FAROLAS",
-      "ISNPECC. SISTEMA ELÉCTRICO DE LUCES",
-      "REVISIÓN SISTEMA DE LUCES",
-      "EVAL. POR PERNOS SUELTOS DE MORDAZAS",
-      "MEDISIÓN DE PRESIÓN DE ACUMULADORES",
-      "SOPLETEO FILTRO DE COLECTOR DE AIRE",
-      "EVAL. POR FILTROS DE AIRE SATURADOS",
-      "EVAL. POR CAIDA DE MORDAZA",
-      "EVAL. POR REPORTE DE RESUMEN DE ACEITE",
-      "SE COLOCÓ 2 PERNOS DE MORDAZAS",
-      "REGULACIÓN DE PRESIÓN DE BARRIDO",
-      "INSPECC. POR FALLA EN SISTEMA DE ENGRASE",
-      "REPARACIÓN NEUMÁTICO POS. 03 POR CORTE",
-      "DRENAJE ACEITE HD 2 CIL/REFRIGERANTE 10G",
-      "SE REALIZÓ CHECK LIST DE DESMOVILIZACIÓN",
-      "DESMINTAJE DE PIEZAS PARA DESMOVILIZAR",
-      "EVAL. POR QUIÑADURA DE VIDRIO LATERAL LH",
-      "REVISIÓN/C. DE 2 FOCOS H3 24 V.",
-      "INSPECC/EVAL. PULMÓN DE FRENO POS 03",
-      "C./ VÁLVULA CHECK DE 2\" POR ATASCAMIENTO",
-      "SERV. TRASLADO EP-37 CAJ-TEMB",
-      "C/ PINES DE CONECTOR DE FARO LH - POST",
-      "ENGRASE/RELLENO DE ACEITE ALMO 529",
-      "RELLENO DE GRASA PARA BARRA PERFORACIÓN",
-      "RELLENO DE ACEITE ALMO 529 1 GL.",
-      "RELLENO DE ACEITE ALMO 529 1/2 G.",
-      "ENGRASE/RELLENO DE ACEITE HYD NUTO 68",
-      "ENGRASE/RELLENO DE ACEITE ALMO 2 1/2 G.",
-      "REVISIÓN SITEMA ELÉCTRICO DE FAROS",
-      "PM02 MANTTO 250 374DL-ENG1",
-      "PM02 MANTTO 250 374DL-SEN",
-      "ENGRASE/RELLENO DE ACEITE DE MOTOR",
-      "EVAL. POR FALLA EN SIST. DE TRASLACIÓN",
-      "PM02 MANTTO 500 EC380DL-ENG1",
-      "INSPECC. GOMA DE AMORTIGUACIÓN CABINA",
-      "INSPECC. DEL SISTEMA DE FRENOS DE BREK",
-      "INSTALACIÓN DE VARILLA PUESTA A TIERRA",
-      "INSPECCIÓN DE FLUIDOS/FAROS/MASIL",
-      "INSPECC. DE MASÍL POR REPORTE",
-      "LIMPIEZA DE FILTROS DE AIRE",
-      "INSTAL/AJUSTE PERNOS DE PLANCHA DE VIGA",
-      "AMPLIACIÓN MANGUERA DE ENGRASE BARRENO",
-      "SOPLETEO DE FILTROS DE COLECTOR DE POLVO",
-      "EVAL. POR FALLA EN COLECTOR DE POLVO",
-      "AJUSTE DE PERNOS DE VARILLA DE PERFORAC.",
-      "ARRANQUE DE EQUIPO MEDIANTE EQUIPO AUX.",
-      "C. DE MANGUERA HYD DE FILTRO DE ACEITE",
-      "EVAL. DE JOYSTICK RH POR ACTIVACIÓN",
-      "MANTENIMIENTO DEL DEPOSITO DE ENGRASE",
-      "REPARACIÓN FISURAS EN SOPORTE CANCAMOS",
-      "ENDEREZADO DE PROTECTOR DE CILIN. INCLIN",
-      "C. DE FOCO H3 24V POR FILAMENTO ABIERTO",
-      "C. MANG DE CILIND BASC. HOJA TOP",
-      "EVAL. POR RESUMEN DE REFRIGERANTE",
-      "FILTROGRAFÍA DEL FILTRO DE ACEITE MOTOR",
-      "ENGRASE/RELLENO DE ACEITE DE MOTOR 1 GL.",
-      "COLOCACIÓN PERNO TAPA DE PIN DE CUCHARÓN",
-      "COL. PERNO ABRAZADERA DE CAÑERIA CIL HYD",
-      "RESUMEN ACEITE POR TAPA DE DISTRIBUCIÓN",
-      "LIMPIEZA/SOPLETEO DE FILTRO DE AIRE ADM",
-      "INSPECC. DE FAROS POSTERIORES",
-      "COLOCACIÓN PORTA CONOS/AJUSTE BASE CIRCU",
-      "LIMPIEZA FILTROS DE AIRE CABINA Y MOTOR",
-      "SERV. INSTAL. PROTECTORES DE MANGUERA",
-      "C/ VALVULAS RELÉ DE FRENO DE PARQUEO",
-      "C/ CULATA - EXCESO DE HUMO",
-      "SERV. REPARACION CONDENSADOR-FUGA",
-      "ENGRASE/RELLENO DE REFRIGERANTE 1 GL.",
-      "ENGRASE GENERAL/REV. NIVEL DE FLUIDOS",
-      "RELLENO DE REFRIGERANTE",
-      "ENGRASE/RELLENO REFRIGERANTE 1/2 GL.",
-      "C. FARO LED POSTERIOR",
-      "C/ FILTRO HYD - INSPE. NIVEL FLUIDOS",
-      "C/ TAPON DE TANQUE DE AIRE",
-      "C/ FOCOS DELANTEROS - ALTA",
-      "CORRECCION SIST. LUCES DELANTERAS",
-      "PM01 MANTTO 250 WORKER17-220-ENG1",
-      "ENGRASE 1 KG/VERIFICACIÓN NIVEL FLUIDOS",
-      "ENGRASE/RELL. ACEITE ALMO 529 1 1/2 GL.",
-      "ENGRASE/RELLENO DE ACEITE ALMO 1 GL.",
-      "ENGRASE/RELLENO DE ACEITE ALMO 2 GL.",
-      "RELLENO DE REFRIGERANTE 1/2 G.",
-      "C/ SELLOS CARCAZA DE BARRIDO SHANK",
-      "ENGRASE/RELLENO DE ACEITE ALMO 1 1/2 GL.",
-      "RELLENO DE REFRIGERANTE 1/8 GL.",
-      "ENGRASE PARCIAL/REV. NIVEL DE FLUIDOS",
-      "C/ PERNOS DE CANTONERA SUPERIOR",
-      "C/ ALARMA DE TRASLACIÓN",
-      "C. ACEITE-FILTRO D MOTOR PARA ACENTA.",
-      "BL/. CAMBIO PERNOS TAPA REG. PIN CUCHARO",
-      "PM02 MANTTO 500 EC380DL-MRH",
-      "PM02 MANTTO 500 EC380DL-MLH",
-      "RELLENO ACEITE DE MOTOR 15W40 2 GL.",
-      "RELLENO DE ACEITE NUTO 46 - 3 GL.",
-      "C. DE NEUMÁT. POS 03 AL 06 POR DESGASTE",
-      "LIMPIEZA/LAVADO DE RADIADORES",
-      "MONT. DE 2 SEGUROS DE MANGIL PROTEC. CAB",
-      "AJUSTE D FIJACIONES/LIMPIEZA VISOR NIVEL",
-      "REPARACIÓN DE FISURA DE ESCALERA",
-      "INSPECC. FAROS LUMINARIAS/FLUIDOS/MÁSTIL",
-      "ISPECC. FLUIDOS-MÁSIL-FAROS",
-      "EVAL. SISTEMA DE ARRANQUE",
-      "SE INSTALÓ SEGURO DE PIN CON ABRAZADERA",
-      "INSPECC. SIST. ELÉCTRICO DE FAROS",
-      "FABRICACIÓN DE PORTACONOS",
-      "AJUSTE MANGUERA D SUCC. DE COLEC. POLVO",
-      "REV. SIST. DE LUCES POR NO ENCENDIDO",
-      "REV. SIST. DE LUCES/C. DE FOCO FARO POS.",
-      "LIMPIEZA/LAVADO DE ENFRIADOR DE AIRE AAC",
-      "RECTIFICACIÓN PERNO DE TAPA DE HORQUILLA",
-      "MANTENIMIENTO PREVENTIVO",
-      "C. FOCOS DE BOOM/CABINA POR FIL. ABIERTO",
-      "REV. DE FARO LED INFERIOR DE CABINA",
-      "REVISIÓN SISTEMA ELÉC. DE CLAXON",
-      "LIMPIEZA/SOPLETEO FILTRO DE AIRE DE ADMI",
-      "LIMPIEZA/SOPLETEO DE FILTROS DE AIRE",
-      "REV. FARO DELANTERO RH POR NO ENCENDIDO",
-      "REPAR. DE BASE PORTACONOS",
-      "BL/. CAMBIO SENSOR FRENO",
-      "C. DE NEUMÁT. POS. 7-8-9-10 POR DESGASTE",
-      "C/ MODULO ECM",
-      "CAMBIO SENSOR FRENO",
-      "FUGA DE REFRIGERANTE POR CULATA",
-      "C/. DE MANGUERA HYD PILOTO",
-      "C/. MANGUERA HYD PILOTO",
-      "ENGRASE/RELLENO DE REFRIGERANTE",
-      "C./ DE FOCOS",
-      "C./ FOCOS H3",
-      "EVAL. POR RESUMEN DE ACEITE EN TRANS.",
-      "INSPECC. SISTEMA DE ARRANQUE X APAGADO",
-      "MANTTO A TAPA DE LLENADO DE CUMBUSTIBLE",
-      "INSPECC. DE MÁSIL",
-      "C/ MANGUERA DE ENGRASE BARRENO",
-      "EVAL. JOYSTICK RH-PERCUSION NO DESACTIVA",
-      "VERIFICACIÓN DE NIVEL DE FLUIDOS",
-      "SUCC. ACEITE RESIDUAL/REV. NIVEL FLUIDOS",
-      "COLOCACIÓN PERNOS TAPA PIN DE ESLABÓN",
-      "EVALUACIÓN AT2",
-      "REPAR. BARANDA LH/EXTRACC. PERNO DE PIN",
-      "INSPECC. SIST. DE ENGRASE AUTOMÁTICO",
-      "EVAL. POR REPORTE DE APAGADO MOTOR",
-      "C. DE SERVO DE EMBRAGUE",
-      "SERV. REPARACION - LIMPIEZA ENFRIADORES",
-      "C/. FILTROS DE CABINA",
-      "BL/. CAMB. BOMBA LIMPIAPARABRISA",
-      "CORRE.FALLA SISTEMA AIRE ACONDICION",
-      "C/ VALVULA FRENO DE MOTOR",
-      "C/. DE VÁLVULA TIPO MARIPOSA 3\"",
-      "C/ FILTROS DE TRANSMISION",
-      "C/ DIAFRAGMA PULMON FRENO POS 01",
-      "C/ CONECTORES DE MANGUERA DE ABAST.",
-      "C. DE SOCKET/FOCO",
-      "PM04 MANTTO 1000 RL4V2-ENG1",
-      "PM03 MANTTO 250 RL4V2-ENG1",
-      "PM04 MANTTO 250 RL4-ENG1",
-      "C/ MANGUERAS DEL TANQUE DE GRASA",
-      "C/. DE MANGUERAS PARA ENGRASE DE  BARRAS",
-      "RELLENO DE ACEITE ALMO",
-      "EVAL. POS RESUMEN DE ACEITE POR CARCASA",
-      "RELLENO ACEITE ALMO/VERIF. NIVEL FLUIDOS",
-      "PM01 MANTTO 250 DP-1100-CMP",
-      "PM01 MANTTO 250 DP-1100-ENG1",
-      "PM01 MANTTO 250 DP-1100-SC",
-      "C/. DE ESPEJO LH",
-      "C/ PERNOS TAPA PIN",
-      "C/ FILTROS DE AIRE- PERDIDA POTENCIA",
-      "INST. PERNOS TAPA PIN CUCHARON",
-      "C/ ENFRIADOR HYD",
-      "C/. MANGUERA HYD DE PILOTAJE DE BOMBA",
-      "PM03 MANTTO 250 D8T-ENG1",
-      "PM03 MANTTO 250 D8T-SEN",
-      "ENGRASE/RELLENO ACEITE DE MOTOR",
-      "C/ CILINDRO INCLINACION - REG",
-      "C/. DE MANGUERA PARA ABAST. DE AGUA",
-      "EVAL. SISTEMA DE REGADO DE ASPERSORES",
-      "EVAL. POR APAGADO DE MOTOR SIST. ELECT.",
-      "ISPECCIÓN DE FLUIDOS/FAROS/MÁSIL",
-      "INSPECC. FAROS/FLUIDOS/MÁSTIL",
-      "INSPECCIÓN FAROS/FLUIDOS/MÁSTIL",
-      "EVAL. POR PROBELMA DE ARRANQUE",
-      "INSPECC. POR TORRE DE LEVANTE NO BAJA",
-      "REPARACIÓN CON SOLDADURA DE SOPORTE",
-      "ANULACIÓN DE ENGRASE AUTOMÁTICO",
-      "ENGRASE A BARRA DE PERFORACIÓN",
-      "RELLENO DE ACEITE ALMO 529/REV. FLUIDOS",
-      "EVAL. X DESALINEA. DE CARRUSEL DE BARRAS",
-      "INSTAL. BOCINA SUP. DE INTERC. DE BARRAS",
-      "ISTALACIÓN DE ESPACIADOR Y SEGURO",
-      "REV. DE LUCES/SIST. ELECTRICO",
-      "EVAL. SISTEMA DE AVANCE DE MARTILLO",
-      "LIMPIEZA/SOPLETEO FILTRO DE AIRE D MOTOR",
-      "SOPLETEO FILTRO DE AIRE DE MOTOR",
-      "EVAL. POR PÉRDIDA DE FUERZA D IMPLEMENTO",
-      "EVAL. DE CHAPA DE PUERTA DE CABINA",
-      "DESMON. DE BARANDA ROTA PARA SOLDEO",
-      "EVAL. POR FALLA EN ARRANQUE DE MOTOR",
-      "REV. SISTEMA DE ARRANQUE X NO ENCENDIDO",
-      "TEMPLADO DE CADENA RH",
-      "C./ FOCOS H3 POR FILAMENTO ABIERTO",
-      "SOPLETEO FILTRO DE AIRE ADMISIÓN/CABINA",
-      "LIMPIEZA/LAVADO DE BATERÍAS POR POLVO",
-      "PM03 MANTTO 250 140K-ENG1",
-      "C/ FAROS LED",
-      "C. DE ACOPLE DE MANGUERA DE SUCCIÓN AGUA",
-      "EVAL. CIRCUITO DE CILINDRO HYD DE SWING",
-      "REPAR. D FISURA D BASE DEL NIVEL DE VIGA",
-      "AJUSTE DE PERNOS DE TAPA DE PIN CUCHARON",
-      "VERIF./AJUSTE DE PERNOS DE TAPA DE PIN",
-      "BL/CAMB. DE RESORTES DE CAPOT LH",
-      "M03/ENGRASE GENERAL/RELLENO ACEIT ALMO",
-      "ENGRASE/RELLENO DE ACEITE ALMO 529 1 GL.",
-      "C/ SENSOR TEMPERATURA COMPRESOR",
-      "ENGRASE/RELLENO ACEITE ALMO/REFRIGERANTE",
-      "ENGRASE/RELLENO ACEITE ALMO",
-      "BL/. CAMB. TAPA DE LLENADO DE ACEITE",
-      "SE REALIZÓ LIBERACIÓN DE VENTALA LH",
-      "C./ DE FOCO H7 DE FARO LH",
-      "MANTTO DE VÁLVULA DE ON/OF DE ASPERSORES",
-      "REACONDIC. DE TOPE DE MANGUERA DE ABAST.",
-      "C. DE FOCO DE ESTACIONAMIENTO DE FARO RH",
-      "INSPECCCIÓN FAROS/FLUIDOS/MÁSTIL",
-      "AJUSTE MANGUERA HYD LUBRICACIÓN MARTILLO",
-      "AJUST D NIPLE SUELTO D VÁLVULA ROC PILOT",
-      "EVAL. DE SISTEMA DE BARRIDO",
-      "REACON./AJUSTE COMPON. D SIST. ROTA./HYD",
-      "C. DE FOCOS DELANTEROS H3 24V.",
-      "INSPECC/CHECK LIST PARA DESMOVILIZACIÓN",
-      "LIMPIEZA Y SOPLETEO DE FILTROS",
-      "LIMPIEZA Y LAVADO DE BATERIAS",
-      "REGULACIÓN MANUAL DE ALTURA DE ASIENTO",
-      "REP. FISURA DE BASE DE BARANDA ANTICAIDA",
-      "REAJUSTE DE PERNOS DE TAPA DE PIN",
-      "SOLDEO DE FISURA EN BARANDA",
-      "SOLDEO EN TOPE DE PIN DE CUCHARON",
-      "INSTALL. DE PIN DE BOOM POR CORRIMIENTO",
-      "REPARACIÓN DE BARANDA",
-      "REPARACIÓN DE SILENCIADOR CON SOLDADURA",
-      "ENGRASE GENERAL/REV. NIVELES DE FLUIDOS",
-      "INSTALACIÓN DE 04 CÁMARAS CON SENSOR",
-      "ENGRASE PARCIAL/REV. NIVELES DE FLUIDOS",
-      "LIMPIEZA DE FILTRO DE AIRE PRIMERIO",
-      "AJUSTE DE ALTURA DE ASIENTO DE CABINA",
-      "AJUSTE DE ABRAZADERAS DE TUBO DE ESCAPE",
-      "PM08 MANTTO 2000 FMX 6X4R-DRH",
-      "PM08 MANTTO 2000 FMX 6X4R-DLH",
-      "PM08 MANTTO 2000 FMX 6X4R-DIFP",
-      "PM08 MANTTO 2000 FMX 6X4R-CMP",
-      "PM08 MANTTO 2000 FMX 6X4R-CDR",
-      "PM08 MANTTO 2000 FMX 6X4R-CBN",
-      "PM08 MANTTO 2000 FMX 6X4R-ENG1",
-      "PM08 MANTTO 2000 FMX 6X4R-MLH",
-      "PM08 MANTTO 2000 FMX 6X4R-MRH",
-      "PM08 MANTTO 2000 FMX 6X4R-TRM",
-      "PM08 MANTTO 2000 FMX 6X4R-SH",
-      "C./ CONECTORES PARA MANGUERA DE ABAST.",
-      "BL/. CAMB. TQ EXPANSION",
-      "MO3/RELLENO DE ACEITE ALMO 529 1/4 GLN.",
-      "RELLENO DE REFRIGERANTE/REV. NIVEL FLUID",
-      "PM02 MANTTO 500 374DL-AAC",
-      "PM02 MANTTO 500 374DL-ENG1",
-      "PM02 MANTTO 500 374DL-MRH",
-      "PM02 MANTTO 500 374DL-MLH",
-      "PM02 MANTTO 500 374DL-SEN",
-      "PM02 MANTTO 500 374DL-RG1",
-      "PM02 MANTTO 500 374DL-RG2",
-      "REP. DEPÓSITO DE AGUA LIMPIA PARABRIZAS",
-      "BL/. C. MOTOR DE LIMPIA PARABRIZAS",
-      "REPARACIÓN PROTECTOR DE FARO",
-      "EVAL. POR FALLA EN SIST. DE TRANSMISIÓN",
-      "PM08 MANTTO 2000 FMX 6X4R-SL",
-      "PM08 MANTTO 2000 FMX 6X4R-SC",
-      "PM08 MANTTO 2000 FMX 6X4R-DIFD",
-      "PM08 MANTTO 2000 FMX 6X4R-ST",
-      "REP. NEUMÁTICO POS. 05 POR INCRUS. CLAVO",
-      "INSPECCIÓN FLUIDOS/MÁSTIL/LUCES",
-      "REVISIÓN POR REPORTE DE NO ARRANQUE",
-      "INSPECC. CABLE/POLEAS/RACHET",
-      "EVA. POR REPORTE DE TORRE ELEVADA",
-      "MO3/MANTTO DE SISTEMA HYD",
-      "REPARACIÓN CILINDROS HYD - FUGA",
-      "INSTALACIÓN DE GUIADOR DE MALLA",
-      "MO3/RELLENO DE AGUA PARA LIMPIA PARABR.",
-      "INSPECC. DE CIRCULINA POR NO ENCENDIDO",
-      "LIMPIEZA FILTRO DE AIRE PRIMARIO",
-      "INSTALACIÓN ESPEJO LATERAL RH",
-      "MO3/LIMPIEZA/SOPLETEO DE FILTROS DE AIRE",
-      "MANTENIMIENTO PREVENTIVO 250 HR",
-      "AJUSTE DE ALTURA DE ASIENTO DE OPERADOR",
-      "REGULACIÓN DE ASIENTO DE OPERADOR",
-      "EVAL. RADIO COMUNICACIÓN X NO ENCENDIDO",
-      "RELLENO DE AGUA PARA LIMPIA PARABR.",
-      "COLOCACIÓN DEL DEPÓSITO DE AGUA",
-      "ENGRASE PARCIAL/RELLENO ACEITE 15W40 1 G",
-      "C. DE FARO LED",
-      "FABRICACIÓN EXTRACTORES DE PIN",
-      "C.LLANTA USADA POS. 04 X CORTE EN FLANCO",
-      "DESARMADO Y ARMADO DE NEUMÁTICOS 06 UND.",
-      "MO3/REP. DE LLANTA DE STOCK",
-      "C. DE NEUMÁTICO POS. 05",
-      "INSTALL. SEGUROS PINES INFERIORES TOLVA"
+      "011030TEOP"
      ],
      "TIPO": [
       "PROPIO",
@@ -1024,7 +676,7 @@
      ]
     }
    },
-   "fuenteHoras": "EXPORT_20261027_095752.xlsx",
+   "fuenteHoras": "EXPORT_20261103_172003.xlsx",
    "alqPorDias": [
     "CI-730-AL",
     "EI-2300-AL",
@@ -1038,54 +690,54 @@
    ],
    "propio": {
     "hoja": {
-     "rym": 10196.66,
-     "mov": 15020.84,
-     "terc": 31912.25,
-     "seg": 1619.55,
-     "hr": 1740.87,
+     "rym": 10439.54,
+     "mov": 24806.34,
+     "terc": 40472.25,
+     "seg": 2008.24,
+     "hr": 2220.58,
      "nEq": 15.0,
-     "venta": 48408.92,
+     "venta": 60789.16,
      "hrProf": 1729.0
     },
     "equipos": {
-     "rym": 10196.66,
-     "mov": 15020.84,
-     "terc": 31912.25,
-     "seg": 1619.55,
-     "hr": 1740.87,
+     "rym": 10439.54,
+     "mov": 24806.34,
+     "terc": 40472.25,
+     "seg": 2008.24,
+     "hr": 2220.58,
      "nEq": 15,
-     "venta": 48408.92,
+     "venta": 60789.16,
      "hrProf": 1729.0
     },
     "calc": {
-     "rym": 10196.66,
-     "mov": 15020.84
+     "rym": 10439.54,
+     "mov": 24806.34
     }
    },
    "alquilado": {
     "hoja": {
-     "rym": 530.67,
-     "mov": 1527.66,
-     "terc": 88426.96,
+     "rym": 869.2,
+     "mov": 3715.66,
+     "terc": 134831.0,
      "seg": 0.0,
-     "hr": 2604.4,
-     "nEq": 14.0,
-     "venta": 7918.3,
-     "hrProf": 2734.42
+     "hr": 4049.7,
+     "nEq": 18.0,
+     "venta": 11800.94,
+     "hrProf": 3285.39
     },
     "equipos": {
-     "rym": 530.67,
-     "mov": 1527.66,
-     "terc": 88426.96,
+     "rym": 869.2,
+     "mov": 3715.66,
+     "terc": 134831.0,
      "seg": 0.0,
-     "hr": 2604.4,
-     "nEq": 14,
-     "venta": 7918.3,
-     "hrProf": 2734.42
+     "hr": 4049.7,
+     "nEq": 18,
+     "venta": 11800.94,
+     "hrProf": 3285.39
     },
     "calc": {
-     "rym": 530.67,
-     "mov": 1527.66
+     "rym": 869.2,
+     "mov": 3715.66
     }
    },
    "acumPeriodos": [
@@ -1101,9 +753,9 @@
    ],
    "fueraCorte": {},
    "sinFecha": 0.0,
-   "sinTarifa": 1,
-   "sinHoras": 2,
-   "sinDM": 1,
+   "sinTarifa": 2,
+   "sinHoras": 3,
+   "sinDM": 2,
    "sinParte": 0,
    "serviciosFueraBase": null,
    "descuadre": []
@@ -1122,6 +774,10 @@
     "SERV",
     "MO"
    ],
+   "CECO": [
+    "011030SHEP",
+    "013001SHEP"
+   ],
    "TIPO": [
     "PROPIO"
    ],
@@ -1136,6 +792,10 @@
     "SERV",
     "MO"
    ],
+   "CECO": [
+    "011030SHEP",
+    "013001SHEP"
+   ],
    "TIPO": [
     "ALQUILADO"
    ],
@@ -1148,6 +808,10 @@
  "reglasFuera": {
   "PROPIO": {
    "RECURSO": [
+    "(vacío)"
+   ],
+   "CECO": [
+    "011030SHOP",
     "(vacío)"
    ],
    "TIPO": [
@@ -1171,6 +835,10 @@
    "RECURSO": [
     "(vacío)"
    ],
+   "CECO": [
+    "011030SHOP",
+    "(vacío)"
+   ],
    "TIPO": [
     "PROPIO",
     "(vacío)"
@@ -1189,7 +857,7 @@
    ]
   }
  },
- "fuenteHoras": "EXPORT_20261027_095752.xlsx · EXPORT_20261027_124701.xlsx · HH OPE",
+ "fuenteHoras": "EXPORT_20261103_172003.xlsx",
  "alqPorDias": [
   "MH-91-AL",
   "MH-92-AL",
@@ -1218,46 +886,46 @@
  ],
  "propio": {
   "hoja": {
-   "rym": 365426.13,
-   "mov": 341710.54,
-   "terc": 771681.79,
-   "seg": 21386.45,
-   "hr": 15843.36,
-   "nEq": 136.0,
-   "venta": 1217416.54,
+   "rym": 467390.24,
+   "mov": 441416.46,
+   "terc": 849462.96,
+   "seg": 26519.19,
+   "hr": 19176.44,
+   "nEq": 138.0,
+   "venta": 1353679.9,
    "hrProf": 19697.2
   },
   "calc": {
-   "rym": 366005.84,
-   "mov": 336710.54,
-   "terc": 771681.79,
-   "seg": 21386.45,
-   "hr": 15843.36,
-   "nEq": 136.0,
-   "venta": 1217416.54,
+   "rym": 467390.24,
+   "mov": 436416.46,
+   "terc": 849462.96,
+   "seg": 26519.19,
+   "hr": 19176.44,
+   "nEq": 138.0,
+   "venta": 1353679.9,
    "hrProf": 19697.2
   }
  },
  "alquilado": {
   "hoja": {
-   "rym": 656157.26,
-   "mov": 338104.61,
-   "terc": 5162708.95,
-   "seg": 234550.15,
-   "hr": 107781.58,
-   "nEq": 450.0,
-   "venta": 855252.24,
-   "hrProf": 132127.01
+   "rym": 910885.65,
+   "mov": 450576.78,
+   "terc": 7929345.33,
+   "seg": 290842.18,
+   "hr": 135728.97,
+   "nEq": 458.0,
+   "venta": 1065256.89,
+   "hrProf": 132677.98
   },
   "calc": {
-   "rym": 656157.26,
-   "mov": 338104.61,
-   "terc": 5162708.95,
-   "seg": 234550.15,
-   "hr": 107781.58,
-   "nEq": 450.0,
-   "venta": 855252.24,
-   "hrProf": 132127.01
+   "rym": 910885.65,
+   "mov": 450576.78,
+   "terc": 7929345.33,
+   "seg": 290842.18,
+   "hr": 135728.97,
+   "nEq": 458.0,
+   "venta": 1065256.89,
+   "hrProf": 132677.98
   }
  },
  "acumPeriodos": [
@@ -1271,15 +939,11 @@
   8,
   9
  ],
- "fueraCorte": {
-  "SERV": 132580.9,
-  "MAT": 65417.92,
-  "MO": 2470.0
- },
+ "fueraCorte": {},
  "sinFecha": 0.0,
- "sinTarifa": 55,
- "sinHoras": 94,
- "sinDM": 185,
+ "sinTarifa": 49,
+ "sinHoras": 84,
+ "sinDM": 167,
  "parteTarifa": 0.0,
  "serviciosFueraBase": {
   "n": 32,
@@ -1353,22 +1017,28 @@
    "como": "V-2398-AL (ATOC)"
   },
   {
+   "eq": "V-2406-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2406-AL (ATOC)"
+  },
+  {
    "eq": "V-2410-AL",
    "queda": "SHGN",
    "en": "ATOC",
    "como": "V-2410-AL (ATOC)"
   },
   {
-   "eq": "V-2365-AL",
-   "queda": "SHGN",
-   "en": "ATOC",
-   "como": "V-2365-AL (ATOC)"
-  },
-  {
    "eq": "V-2411-AL",
    "queda": "SHGN",
    "en": "ATOC",
    "como": "V-2411-AL (ATOC)"
+  },
+  {
+   "eq": "V-2365-AL",
+   "queda": "SHGN",
+   "en": "ATOC",
+   "como": "V-2365-AL (ATOC)"
   }
  ]
 }
